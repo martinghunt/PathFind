@@ -50,7 +50,7 @@ GetOptions(
     'i|id=s'       => \$id,
     'f|filetype=s' => \$filetype,
     'l|symlink'    => \$symlink,
-    'a|archive'    => \$archive,
+    'a|archive=s'    => \$archive,
     's|stats'      => \$stats,
     'q|qc=s'       => \$qc,
 	'h|help'       => \$help
