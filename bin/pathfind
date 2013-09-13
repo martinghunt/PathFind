@@ -116,13 +116,29 @@ for my $database (@pathogen_databases) {
     );
 	my @matching_lanes = $lane_filter->filter;
 	
+	if($symlink){
+		
+	}
+	
+	if($archive){
+		my $arch_name = $archive;
+		$arch_name = $id if($archive eq "");
+		my $arch_obj = Path::Find::Archive->new(
+			lanes => \@matching_lanes,
+			archive_name => $archive
+		)->create_archive;
+	}
+	
 	foreach my $ml (@matching_lanes){
 		print "$ml\n";
 	}
 
     $dbh->disconnect();
 	#no need to look in the next database if relevant data has been found
-    exit if ( $lane_filter->found);       
+    if ( $lane_filter->found){
+		Path::Find::Stats->new()->write_stats;
+		exit;
+	}
 }
 
 unless ($lane_filter->found) {
