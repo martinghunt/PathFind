@@ -40,17 +40,17 @@ eval {
     )->commandline();
 };
 
-my ( $type, $id, $qc, $filetype, $symlink, $output, $help );
+my ( $type, $id, $qc, $filetype, $archive, $stats, $symlink, $output, $help );
 
 GetOptions(
     't|type=s'     => \$type,
     'i|id=s'       => \$id,
-    'h|help'       => \$help,
     'f|filetype=s' => \$filetype,
     'l|symlink'    => \$symlink,
     'a|archive'    => \$archive,
     's|stats'      => \$stats,
     'q|qc=s'       => \$qc,
+	'h|help'       => \$help
 );
 
 (
@@ -87,9 +87,7 @@ Using the option -symlink will create a symlink to the queried data in the curre
 
 USAGE
 
-my $destination;
-
-
+my $lane_filter;
 
 # Get databases and loop through
 my @pathogen_databases = Path::Find->pathogen_databases;
@@ -107,7 +105,7 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
-    my $lane_filter = Path::Find::Filter->new(
+    $lane_filter = Path::Find::Filter->new(
         lanes     => \@lanes,
         filetype  => $filetype,
         qc        => $qc,
