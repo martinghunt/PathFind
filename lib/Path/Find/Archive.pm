@@ -1,4 +1,4 @@
-package Path::Find::Filter;
+package Path::Find::Archive;
 
 # ABSTRACT:
 
