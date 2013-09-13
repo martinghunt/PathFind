@@ -220,7 +220,7 @@ sub dbi
 }
 
 sub get_db_info{
-	my ($class, $db) = @_;
+	my ($self, $db) = @_;
 	
 	my $vr = $self->vrtrack($db) or die "Failed to create VRTrack object for '$db'\n";
 	my $dbh = $self->dbi($db) or die "Failed to create DBI object for '$db'\n";
