@@ -139,7 +139,7 @@ for my $database (@pathogen_databases) {
 
     #no need to look in the next database if relevant data has been found
     if ( $lane_filter->found ) {
-        Path::Find::Stats->new()->write_stats;
+        #Path::Find::Stats->new()->write_stats;
         exit;
     }
 }
