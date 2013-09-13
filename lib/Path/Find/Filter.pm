@@ -37,7 +37,7 @@ has '_file_extensions' => (
     required => 0,
     builder  => '_build__file_extensions'
 );
-has 'qc' => ( is => 'ro', isa => 'Str', required => 1 );
+has 'qc' => ( is => 'ro', required => 1 );
 has 'root' => ( is => 'ro', required => 1 );
 has 'found' =>
   ( is => 'rw', required => 0, default => 0, writer => '_set_found' );
