@@ -122,7 +122,7 @@ for my $database (@pathogen_databases) {
 
     }
 
-    if ($archive) {
+    if ($archive && $lane_filter->found) {
         my $arch_name = $archive;
         $arch_name = $id if ( $archive eq "" );
         my $arch_obj = Path::Find::Archive->new(

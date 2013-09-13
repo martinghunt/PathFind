@@ -81,7 +81,7 @@ sub _tar {
 	}
 	else{
 		system("mv $tmp_dir/archive.tar.gz $current_cwd/$arc_name.tar.gz") == 0 or $error = 1;
-		print "An error occurred while writing archive $arc_name: exit code $!\n";
+		print "An error occurred while writing archive $arc_name\n";
 		File::Temp::cleanup();
 		return $error;
 	}

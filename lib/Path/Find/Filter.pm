@@ -53,7 +53,7 @@ sub _build__file_extensions {
     my ($self) = @_;
 
     my %exts = (
-        fastq     => '\.fastq[\.gz]*$',
+        fastq     => '\.fastq\.gz$',
         bam       => '\.bam$',
         gff       => '\.gff$',
         faa       => '\.faa$',
