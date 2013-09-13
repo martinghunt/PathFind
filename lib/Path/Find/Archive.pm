@@ -29,7 +29,7 @@ use Data::Dumper;
 
 has 'lanes'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'archive_name' => ( is => 'ro', isa => 'Str',      required => 1 );
-has '_checked_name' => (is => 'rw', isa => 'Str', builder => '_build__checked_name');
+has '_checked_name' => (is => 'rw', isa => 'Str', lazy => 1, builder => '_build__checked_name');
 has '_tmp_dir' => (is => 'rw', isa => 'Str', builder => '_build__tmp_dir');
 
 sub _build__tmp_dir {

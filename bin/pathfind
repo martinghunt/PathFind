@@ -27,6 +27,7 @@ no warnings 'uninitialized';
 use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
+
 #use lib "/software/pathogen/internal/prod/lib";
 use lib "/nfs/users/nfs_c/cc21/lustre/repos/PathFind/lib";
 use lib "../lib";
@@ -50,10 +51,10 @@ GetOptions(
     'i|id=s'       => \$id,
     'f|filetype=s' => \$filetype,
     'l|symlink'    => \$symlink,
-    'a|archive=s'    => \$archive,
+    'a|archive=s'  => \$archive,
     's|stats'      => \$stats,
     'q|qc=s'       => \$qc,
-	'h|help'       => \$help
+    'h|help'       => \$help
 );
 
 (
@@ -115,34 +116,35 @@ for my $database (@pathogen_databases) {
         root      => $root,
         pathtrack => $pathtrack
     );
-	my @matching_lanes = $lane_filter->filter;
-	
-	if($symlink){
-		
-	}
-	
-	if($archive){
-		my $arch_name = $archive;
-		$arch_name = $id if($archive eq "");
-		my $arch_obj = Path::Find::Archive->new(
-			lanes => \@matching_lanes,
-			archive_name => $archive
-		)->create_archive;
-	}
-	
-	foreach my $ml (@matching_lanes){
-		print "$ml\n";
-	}
+    my @matching_lanes = $lane_filter->filter;
+
+    if ($symlink) {
+
+    }
+
+    if ($archive) {
+        my $arch_name = $archive;
+        $arch_name = $id if ( $archive eq "" );
+        my $arch_obj = Path::Find::Archive->new(
+            lanes        => \@matching_lanes,
+            archive_name => $archive
+        )->create_archive;
+    }
+
+    foreach my $ml (@matching_lanes) {
+        print "$ml\n";
+    }
 
     $dbh->disconnect();
-	#no need to look in the next database if relevant data has been found
-    if ( $lane_filter->found){
-		Path::Find::Stats->new()->write_stats;
-		exit;
-	}
+
+    #no need to look in the next database if relevant data has been found
+    if ( $lane_filter->found ) {
+        Path::Find::Stats->new()->write_stats;
+        exit;
+    }
 }
 
-unless ($lane_filter->found) {
+unless ( $lane_filter->found ) {
 
     print "Could not find lanes or files for input data \n";
 
