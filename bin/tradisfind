@@ -1,0 +1,211 @@
+#!/usr/bin/env perl
+
+=head1 NAME
+
+tradisfind
+
+=head1 SYNOPSIS
+
+tradisfind -t study -id "My study name"
+tradisfind -t lane -id 1234_5#6
+
+=head1 DESCRIPTION
+
+Given a lane id, a study id or a study name, it will return the paths to the rna seq data
+
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=head1 METHODS
+
+=cut
+
+use strict;
+use warnings;
+no warnings 'uninitialized';
+
+use Cwd;
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
+use lib "/software/pathogen/internal/prod/lib";
+use Getopt::Long;
+use Pathfind;
+use File::Basename;
+use FindLanes;
+use PathfindLog;
+eval{ PathfindLog->new(logfile => '/nfs/pathnfs05/log/pathfindlog/tradisfind.log', args => \@ARGV)->commandline(); };
+
+my ( $type, $id, $symlink, $help, $file_type, $extended_details );
+
+GetOptions(
+    't|type=s'           => \$type,
+    'i|id=s'             => \$id,
+    's|symlink'          => \$symlink,
+    'f|file_type=s'      => \$file_type,
+    'd|extended_details' => \$extended_details,
+    'h|help'             => \$help,
+);
+
+( $type && $id && $id ne '' && ( $type eq 'study' || $type eq 'lane' || $type eq 'sample' || $type eq 'file' || $type eq 'species' || $type eq 'database') ) or die <<USAGE;
+
+Usage: $0
+  -t|type      <study|lane|file|sample|species>
+  -i|id        <study id|study name|lane name>
+  -s|symlink   <create a symlink to the data>
+  -f|file_type <coverage|intergenic|bam|spreadsheet>
+  -d           <extended details>
+  -h|help      <print this message>
+
+Given a study or lane this will give you the location of the Tradis results. By default it provides the directory, but by specifiying a 'file_type' 
+you can narrow it down to particular 
+files within the result set. For a single Tradis experiment you will have:
+
+a BAM file with reads corrected according to the protocol,
+a spreadsheet with statistics about insertions on each gene,
+insertion site plots for each sequence which can be opened in Artemis,
+tab files for each sequence with intergenic regions marked up, which can be opened in Artemis.
+
+USAGE
+
+# Get databases
+my @pathogen_databases = Pathfind->pathogen_databases;
+my $hierarchy_template = Pathfind->hierarchy_template;
+
+my %file_types = (
+    coverage    => 'insert_site_plot.gz$',
+    intergenic  => 'tab.gz$',
+    bam         => 'corrected.bam$',
+    spreadsheet => 'insertion.csv$',
+);
+
+my $pathtrack;
+my $found = 0;    #assume nothing found
+my $min   = 0;
+my $max   = 1;
+my $destination;
+
+for my $database (@pathogen_databases) {
+
+    # Connect to database
+    $pathtrack = Pathfind->instantiate_vrtrack($database) or die "Failed to create VRTrack object for '$database'\n";
+    my $dbh  = Pathfind->instantiate_dbi($database)    or die "Failed to create DBI object for '$database'\n";
+    my $root = Pathfind->hierarchy_root_dir($database) or die "Failed to find root directory for '$database'\n";
+
+    my $find_lanes = FindLanes->new(
+        search_type => $type,
+        search_id   => $id,
+        pathtrack   => $pathtrack,
+        dbh         => $dbh,
+        processed_flag => 512
+    );
+    my @lanes = @{ $find_lanes->lanes };
+
+    # check directories exist, find & filter by file type
+    my @directory_or_file_paths;
+    my @extended_analysis_details;
+    for my $lane_obj (@lanes) {
+        my $path = $pathtrack->hierarchy_path_of_lane( $lane_obj, $hierarchy_template );
+        my $full_path = "$root/$path";
+        next unless ( -d $full_path );
+
+        if ( defined($file_type) && defined $file_types{$file_type} ) {
+            push( @directory_or_file_paths, find_files_by_type( $file_types{$file_type}, $full_path ) );
+        }
+        else {
+            push( @directory_or_file_paths, $full_path );
+        }
+
+        if ($extended_details) {
+            my @bam_files = find_files_by_type( $file_types{bam}, $full_path );
+            for my $bam_file (@bam_files) {
+                if ( -l $bam_file ) {
+                    next;
+                }
+                my $mapstats_id = find_mapstats_id($bam_file);
+                next unless ( defined($mapstats_id) );
+
+                my $reference_location = get_reference_location($bam_file);
+
+                my @coverage_plots = grep { /$mapstats_id/ } find_files_by_type( $file_types{coverage}, $full_path );
+                for my $coverage_plot (@coverage_plots) {
+                    push( @extended_analysis_details,
+                        join( "\t", ( $coverage_plot, $reference_location, $bam_file ) ) );
+                }
+
+            }
+
+        }
+    }
+
+    # symlink
+    if ( defined $symlink ) {
+        for my $filtered_path (@directory_or_file_paths) {
+            `ln -s $filtered_path `;
+            if ( $filtered_path =~ /.bam$/ ) {
+                `ln -s $filtered_path.bai `;
+            }
+
+        }
+    }
+
+    if ($extended_details) {
+        for my $analysis_details (@extended_analysis_details) {
+            print $analysis_details . "\n";
+            $found = 1;
+        }
+    }
+    else {
+        # print out the paths
+        for my $filtered_path (@directory_or_file_paths) {
+            print $filtered_path. "\n";
+            $found = 1;
+        }
+    }
+
+    $dbh->disconnect();
+    if ($found)    #no need to look in the next database if relevant data has been found
+    {
+        exit;
+    }
+}
+
+unless ($found) {
+
+    print "Could not find lanes or files for input data \n";
+
+}
+
+sub find_mapstats_id {
+    my ($bamfile_path) = @_;
+    my ( $filename, $directories, $suffix ) = fileparse($bamfile_path);
+    $filename =~ s!\.corrected\.bam$!!;
+    return $filename;
+}
+
+sub find_files_by_type {
+    my ( $type, $base_path ) = @_;
+
+    opendir( DIR, $base_path );
+    my @filenames = grep { /$type/i } readdir(DIR);
+    closedir(DIR);
+    for ( my $i = 0 ; $i < @filenames ; $i++ ) {
+        $filenames[$i] = $base_path . '/' . $filenames[$i];
+    }
+
+    return @filenames;
+}
+
+
+
+sub get_reference_location {
+    my $bam_file = shift;
+    open( IN, "-|", 'samtools view -H ' . $bam_file . ' | grep "^@SQ" ' ) or die "couldnt open bamfile";
+    my $seq_line = <IN>;
+    return "" unless defined($seq_line);
+    if ( $seq_line =~ /UR:file:(.+)fa/ ) {
+        return $1 . "gff";
+    }
+    return "";
+
+}
+

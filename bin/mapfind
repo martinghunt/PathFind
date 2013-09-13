@@ -1,0 +1,270 @@
+#!/usr/bin/env perl
+
+=head1 NAME
+
+mapfind
+
+=head1 SYNOPSIS
+
+mapfind -t study -id "My study name"
+mapfind -t lane -id 1234_5#6
+
+=head1 DESCRIPTION
+
+Given a lane id, a study id or a study name, it will return the paths to the mapped bam files.
+
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=head1 METHODS
+
+=cut
+
+use strict;
+use warnings;
+no warnings 'uninitialized';
+
+use Cwd;
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
+use lib "/software/pathogen/internal/prod/lib";
+use Getopt::Long;
+use Pathfind;
+use Pathogens::Reports::Mapping::Report;
+use FindLanes;
+use PathfindLog;
+eval{ PathfindLog->new(logfile => '/nfs/pathnfs05/log/pathfindlog/mapfind.log', args => \@ARGV)->commandline(); };
+
+my ( $type, $id, $qc, $symlink, $output, $help, $add_reference, $symlinkname_opts, $csv_file, $reference );
+
+GetOptions(
+    't|type=s'   => \$type,
+    'id=s'       => \$id,
+    'qc=s'       => \$qc,
+    'symlink'    => \$symlink,
+    'o|output=s' => \$output,
+    'd|display'  => \$add_reference,
+    'r|rename:s' => \$symlinkname_opts,
+    'results:s'  => \$csv_file,
+    'reference=s'=> \$reference,     
+    'h|help'     => \$help,
+);
+
+(        $type
+      && $id
+      && $id ne ''
+      && ( $type eq 'study' || $type eq 'lane' || $type eq 'file' || $type eq 'sample' || $type eq 'species')
+      && ( !$qc || ( $qc && ( $qc eq 'passed' || $qc eq 'failed' || $qc eq 'pending' ) ) )
+      && ( !defined($csv_file) || $csv_file ne '' )
+      && ( !defined($reference) || $reference ne '') )
+  or die <<USAGE;
+
+Usage: $0
+     -t|type  		<study|lane|file|sample|species>
+     -id 		<study id|study name|lane name|file of lane names>
+     -qc      		<passed|failed|pending>
+     -reference         <filter on reference>
+     -symlink 		<create a symlink to the data>
+     -o|output 		<output dir for sym links>
+     -d|display         <display reference and mapper>
+     -r|rename          <rename symlink to include sample, lane, reference or mapper>     
+     -results           <output file for summary of mapping results in CSV format>
+     -h|help  		<print this message>
+
+Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the mapped bam files with the specified study or lane. 
+Using the option -qc (passed|failed|pending) will limit the results to data of the specified qc status.
+Using the option -reference will limit the results to a lanes mapped against a specific reference (eg 'H1N1','3D7').
+Using the option -symlink will create a symlink to the queried data in the current directory, alternativley an output directory can be specified in which the symlinks will be created.
+Using the option -rename will rename the symlink to include the lane. Alternatively, the symlink can be renamed to include the sample, reference, mapper or lane by supplying any combination of these terms to the -rename option (e.g. -rename sample.mapper or -rename reference.lane).
+USAGE
+
+# Get databases
+my @pathogen_databases = Pathfind->pathogen_databases;
+my $hierarchy_template = Pathfind->hierarchy_template;
+
+my $pathtrack;
+my $found = 0;    #assume nothing found
+my $min   = 0;
+my $max   = 1;
+my $destination;
+
+if ($symlink) {
+    $destination = defined($output) ? $output : getcwd;
+    if ( !-e $destination ) {
+        print
+"The directory $destination does not exist, please specify a valid destination output directory for the symlinks";
+        exit;
+    }
+}
+
+# check rename options
+if ( defined $symlinkname_opts ) {
+    for ( split( /\./, $symlinkname_opts ) ) {
+        next if m/^(sample|lane|reference|mapper)$/;
+        die
+          "Unrecognised option '$_' in --rename options\nRecognised options are: sample, lane, reference and mapper\n";
+    }
+}
+
+# Quotemeta the reference search string
+$reference = quotemeta $reference if defined $reference;
+
+for my $database (@pathogen_databases) {
+
+    # Connect to database
+    $pathtrack = Pathfind->instantiate_vrtrack($database) or die "Failed to create VRTrack object for '$database'\n";
+    my $dbh  = Pathfind->instantiate_dbi($database)    or die "Failed to create DBI object for '$database'\n";
+    my $root = Pathfind->hierarchy_root_dir($database) or die "Failed to find root directory for '$database'\n";
+
+    my $find_lanes = FindLanes->new(
+        search_type => $type,
+        search_id   => $id,
+        pathtrack   => $pathtrack,
+        dbh         => $dbh,
+        processed_flag => 4
+    );
+    my @lanes = @{ $find_lanes->lanes };
+
+    foreach (@lanes) {
+        my $l = $_;
+        if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
+
+            my $path = $pathtrack->hierarchy_path_of_lane( $l, $hierarchy_template );
+
+            my $mapstats = $l->mappings_excluding_qc();
+            foreach my $mapstat ( @{$mapstats} ) {
+
+                my $assembly_name = $mapstat->assembly->name;
+                my $mapper        = $mapstat->mapper->name;
+
+                # Filter on assembly name
+                next if ( defined($reference) && $assembly_name !~ m/$reference/i );
+
+                my @mapping_filenames;
+                push( @mapping_filenames, mapping_filename( $l, 'markdup',    $mapstat ) );
+                push( @mapping_filenames, mapping_filename( $l, 'raw.sorted', $mapstat ) );
+
+                for my $mapping_filename (@mapping_filenames) {
+                    my $full_path = "$root/$path/$mapping_filename";
+                    if ( -e "$full_path" ) {
+                        $found = 1;
+
+                        unless ($add_reference) {
+                            print "$full_path\n";    # Default
+                        }
+                        else {
+                            print "$full_path\t$assembly_name\t$mapper\n";
+                        }
+
+                        my $symlinkname       = '';
+                        my $symlinkname_index = '';
+                        if ( defined $symlinkname_opts ) {
+
+                            # Add sensible link name
+                            $symlinkname .= '/' if $destination;
+
+                            if ( $symlinkname_opts eq '' ) {
+                                $symlinkname .= $l->name . '.';    # default to lane name
+                            }
+                            else {
+                                for my $opt ( split( /\./, $symlinkname_opts ) ) {
+                                    $symlinkname .= $pathtrack->hierarchy_path_of_lane( $l, 'sample' )
+                                      if $opt eq 'sample';
+                                    $symlinkname .= $l->name       if $opt eq 'lane';
+                                    $symlinkname .= $assembly_name if $opt eq 'reference';
+                                    $symlinkname .= $mapper        if $opt eq 'mapper';
+                                    $symlinkname .= '.';
+                                }
+                            }
+
+                            $symlinkname .= $mapstat->id() . '.bam';
+                            $symlinkname_index = $symlinkname . '.bai';
+                        }
+
+                        if ($symlink) {
+                            my $cmd = qq[ ln -s $full_path $destination$symlinkname ];
+                            qx( $cmd );
+
+                            my $full_path_index_file = $full_path . ".bai";
+                            if ( -e "$full_path_index_file" ) {
+                                $cmd = qq[ ln -s $full_path_index_file $destination$symlinkname_index ];
+                                qx( $cmd );
+                            }
+                        }
+                        last;
+                    }
+                }
+            }
+        }
+    }
+
+    # Output CSV file
+    if ( $csv_file && $found ) {
+
+        # Filter on QC status
+        my @filter_lanes = ();
+        foreach my $lane (@lanes) {
+
+            # Filter on QC.
+            if ( $qc && $qc ne $lane->qc_status ) { next; }
+
+            # Filter on reference
+            my $ref_passed = 0;
+            my $mapstats = $lane->mappings_excluding_qc();
+            for my $mapstat (@$mapstats)
+            {
+                my $assembly_name = $mapstat->assembly->name;
+                next if ( defined($reference) && $assembly_name !~ m/$reference/i );
+                $ref_passed = 1;
+            }
+            next unless $ref_passed;
+
+            push @filter_lanes, $lane;
+        }
+
+        # Output lanes
+        open( my $csv_fh, ">$csv_file" ) || die("Error opening '$csv_file':$!");
+        output_csv_file( $csv_fh, $pathtrack, \@filter_lanes );
+        close($csv_fh);
+    }
+
+    $dbh->disconnect();
+    if ($found)    #no need to look in the next database if relevant data has been found
+    {
+        exit;
+    }
+}
+
+unless ($found) {
+
+    print "Could not find lanes or files for input data \n";
+
+}
+
+sub mapping_filename {
+    my $lane   = shift;
+    my $suffix = shift;
+
+    #my $mapstat = $lane->latest_mapping();
+    my $mapstat = shift;
+    return unless $mapstat;
+    my $reads_type;
+    if ( $lane->is_paired() ) {
+        $reads_type = 'pe';
+    }
+    else {
+        $reads_type = 'se';
+    }
+
+    return $mapstat->id . '.' . $reads_type . '.' . $suffix . '.bam';
+}
+
+# Output CSV File
+# Outputs QC and mapping results in CSV format to supplied filehandle.
+sub output_csv_file {
+    my ( $csv_fh, $vrtrack, $lanes ) = @_;
+    my $report =
+      Pathogens::Reports::Mapping::Report->new( vrtrack => $vrtrack, filehandle => $csv_fh, lanes => $lanes );
+    $report->output_csv();
+    return;
+}

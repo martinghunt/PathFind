@@ -1,0 +1,133 @@
+#!/usr/bin/env perl
+
+=head1 NAME
+
+pathfind
+
+=head1 SYNOPSIS
+
+pathfind -t lane -i 1234
+
+=head1 DESCRIPTION
+
+Given a lane id, this script returns the location on disk of the relevant fastq files
+
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=head1 METHODS
+
+=cut
+
+use strict;
+use warnings;
+no warnings 'uninitialized';
+
+use Cwd;
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
+  ;    #Change accordingly once we have a stable checkout
+use lib "/software/pathogen/internal/prod/lib";
+use lib "../lib";
+use Getopt::Long;
+use Path::Find;
+use Path::Find::Lanes;
+use Path::Find::Log;
+eval {
+    Path::Find::Log->new(
+        logfile => '/nfs/pathnfs05/log/pathfindlog/pathfind.log',
+        args    => \@ARGV
+    )->commandline();
+};
+
+my ( $type, $id, $qc, $filetype, $symlink, $output, $help );
+
+GetOptions(
+    't|type=s'     => \$type,
+    'i|id=s'       => \$id,
+    'h|help'       => \$help,
+    'f|filetype=s' => \$filetype,
+    'l|symlink'    => \$symlink,
+    'a|archive'    => \$archive,
+    's|stats'      => \$stats,
+    'q|qc=s'       => \$qc,
+);
+
+(
+         $type
+      && $id
+      && $id ne ''
+      && ( $type eq 'study'
+        || $type eq 'lane'
+        || $type eq 'file'
+        || $type eq 'sample'
+        || $type eq 'species'
+        || $type eq 'database' )
+      && ( !$qc
+        || ( $qc && ( $qc eq 'passed' || $qc eq 'failed' || $qc eq 'pending' ) )
+      )
+      && ( !$filetype
+        || ( $filetype && ( $filetype eq 'bam' || $filetype eq 'fastq' ) ) )
+) or die <<USAGE;
+
+Usage: $0
+	-t|type		<study|lane|file|sample|species>
+	-i|id		<study id|study name|lane name|file of lane names>
+	-h|help		<this help message>
+	-f|filetype	<fastq|bam>
+	-l|symlink	<create sym links to the data and define output directory>
+	-a|archive	<name for archive containing the data>
+	-s|stats	<output statistics>
+	-q|qc		<passed|failed|pending>    
+
+Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the data associated with the specified study or lane. 
+Using the option -qc (passed|failed|pending) will limit the results to data of the specified qc status. 
+Using the option -filetype (fastq or bam) will return the path to the files of this type for the given data. 
+Using the option -symlink will create a symlink to the queried data in the current directory, alternativley an output directory can be specified in which the symlinks will be created.
+
+USAGE
+
+my $destination;
+
+
+
+# Get databases and loop through
+my @pathogen_databases = Path::Find->pathogen_databases;
+for my $database (@pathogen_databases) {
+
+    # Connect to database and get info
+    my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+
+    my $find_lanes = Path::Find::Lanes->new(
+        search_type    => $type,
+        search_id      => $id,
+        pathtrack      => $pathtrack,
+        dbh            => $dbh,
+        processed_flag => 1
+    );
+    my @lanes = @{ $find_lanes->lanes };
+
+    my $lane_filter = Path::Find::Filter->new(
+        lanes     => \@lanes,
+        filetype  => $filetype,
+        qc        => $qc,
+        root      => $root,
+        pathtrack => $pathtrack
+    );
+	my @matching_lanes = $lane_filter->filter;
+	
+	foreach my $ml (@matching_lanes){
+		print "$ml\n";
+	}
+
+    $dbh->disconnect();
+	#no need to look in the next database if relevant data has been found
+    exit if ( $lane_filter->found);       
+}
+
+unless ($lane_filter->found) {
+
+    print "Could not find lanes or files for input data \n";
+
+}
+
