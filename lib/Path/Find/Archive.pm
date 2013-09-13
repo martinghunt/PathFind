@@ -48,11 +48,11 @@ sub _build__checked_name {
 
 sub create_archive {
     my ($self) = @_;
-	print Dumper $self;
     my @lanes = @{ $self->lanes };
 	my $arc_name = $self->_checked_name;
 	my $tmp_dir = $self->_tmp_dir;
 	
+	print "Archiving lanes:\n";
 	#create symlinks in a tmp directory
 	my $dest = "$tmp_dir/$arc_name";
 	system("mkdir $dest");
