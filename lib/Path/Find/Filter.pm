@@ -30,7 +30,7 @@ use Path::Find;
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'hierarchy_template' =>
   ( is => 'rw', required => 0, builder => '_build_hierarchy_template' );
-has 'filetype' => ( is => 'ro', isa => 'Str', required => 1 );
+has 'filetype' => ( is => 'ro', required => 1 );
 has '_file_extensions' => (
     is       => 'rw',
     isa      => 'HashRef',
