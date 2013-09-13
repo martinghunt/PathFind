@@ -70,7 +70,7 @@ sub filter {
     my @lanes    = @{ $self->lanes };
     my $qc       = $self->qc;
 
-	my $type_extn = $self->_file_extensions->{$filetype};
+	my $type_extn = $self->_file_extensions->{$filetype} if($filetype);
 
     my @matching_lanes;
     foreach (@lanes) {
