@@ -58,13 +58,6 @@ GetOptions(
     'h|help'       => \$help
 );
 
-print "SYMLINK = '$symlink'\n";
-print "\$symlink =~ /^\\s/ = " . ($symlink =~ /^\s/ ) . "\n";
-print "\$symlink eq '' = " . ($symlink eq '') . "\n"; 
-print "if \$symlink:\n";
-if(defined $symlink){print "exists!\n";}
-else{print "DNE!\n";}
-
 (
          $type
       && $id
@@ -98,6 +91,8 @@ Using the option -filetype (fastq or bam) will return the path to the files of t
 Using the option -symlink will create a symlink to the queried data in the current directory, alternativley an output directory can be specified in which the symlinks will be created.
 
 USAGE
+
+die "The archive and symlink options cannot be used together\n" if (defined $archive && defined $symlink);
 
 my $lane_filter;
 
