@@ -51,7 +51,7 @@ GetOptions(
     't|type=s'     => \$type,
     'i|id=s'       => \$id,
     'f|filetype=s' => \$filetype,
-    'l|symlink'    => \$symlink,
+    'l|symlink=s'  => \$symlink,
     'a|archive=s'  => \$archive,
     's|stats'      => \$stats,
     'q|qc=s'       => \$qc,
@@ -119,16 +119,16 @@ for my $database (@pathogen_databases) {
     );
     my @matching_lanes = $lane_filter->filter;
 
-    if ($symlink && $lane_filter->found) {
-		my $sym_dest = $symlink;
-		$sym_dest = $id if ( $symlink eq "" );
-		Path::Find::SymLink->new(
-			lanes => \@matching_lanes,
-			sym_dest => $sym_dest
-		)->create_links;
+    if ( $symlink && $lane_filter->found ) {
+        my $sym_dest = $symlink;
+        $sym_dest = $id if ( $symlink eq "" );
+        Path::Find::SymLink->new(
+            lanes    => \@matching_lanes,
+            sym_dest => $sym_dest
+        )->create_links;
     }
 
-    if ($archive && $lane_filter->found) {
+    if ( $archive && $lane_filter->found ) {
         my $arch_name = $archive;
         $arch_name = $id if ( $archive eq "" );
         Path::Find::Archive->new(
@@ -145,6 +145,7 @@ for my $database (@pathogen_databases) {
 
     #no need to look in the next database if relevant data has been found
     if ( $lane_filter->found ) {
+
         #Path::Find::Stats->new()->write_stats;
         exit;
     }
