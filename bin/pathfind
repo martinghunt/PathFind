@@ -36,6 +36,7 @@ use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
 use Path::Find::Log;
+use Path::Find::SymLink;
 use Path::Find::Archive;
 eval {
     Path::Find::Log->new(
@@ -118,14 +119,19 @@ for my $database (@pathogen_databases) {
     );
     my @matching_lanes = $lane_filter->filter;
 
-    if ($symlink) {
-
+    if ($symlink && $lane_filter->found) {
+		my $sym_dest = $symlink;
+		$sym_dest = $id if ( $symlink eq "" );
+		Path::Find::SymLink->new(
+			lanes => \@matching_lanes,
+			sym_dest => $sym_dest
+		)->create_links;
     }
 
     if ($archive && $lane_filter->found) {
         my $arch_name = $archive;
         $arch_name = $id if ( $archive eq "" );
-        my $arch_obj = Path::Find::Archive->new(
+        Path::Find::Archive->new(
             lanes        => \@matching_lanes,
             archive_name => $archive
         )->create_archive;

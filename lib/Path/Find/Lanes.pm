@@ -10,6 +10,7 @@ Logic to find lanes from the tracking database
    my $obj = Path::Find::Lanes->new(
      search_type => 'lane',
      search_id => '1234_5',
+	 processed_flag => 1
      pathtrack => $self->pathtrack,
      dbh => $dbh
    );

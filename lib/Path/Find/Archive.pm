@@ -4,21 +4,19 @@ package Path::Find::Archive;
 
 =head1 SYNOPSIS
 
-Logic to find lanes from the tracking database
+Logic to archive a list of lanes
 
-   use Path::Find::Lanes;
-   my $obj = Path::Find::Lanes->new(
-     search_type => 'lane',
-     search_id => '1234_5',
-     pathtrack => $self->pathtrack,
-     dbh => $dbh
+   use Path::Find::Archive;
+   my $archive_obj = Path::Find::Archive->new(
+       lanes        => \@matching_lanes,
+       archive_name => $archive
    );
+   $archive_obj->create_archive;
    
-   $obj->lanes;
-   
-=method lanes
+=method create_archive
 
-Returns an array of matching VRTrack::Lane objects
+Creates a tar.gz archive containing specified lanes named in accordance with
+$self->archive_name.
 
 =cut
 

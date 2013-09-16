@@ -4,21 +4,21 @@ package Path::Find::Filter;
 
 =head1 SYNOPSIS
 
-Logic to find lanes from the tracking database
+Logic to filter lanes based on given criteria
 
-   use Path::Find::Lanes;
-   my $obj = Path::Find::Lanes->new(
-     search_type => 'lane',
-     search_id => '1234_5',
-     pathtrack => $self->pathtrack,
-     dbh => $dbh
+   use Path::Find::Filter;
+   my $lane_filter = Path::Find::Filter->new(
+       lanes     => \@lanes,
+       filetype  => $filetype,
+       qc        => $qc,
+       root      => $root,
+       pathtrack => $pathtrack
    );
+   my @matching_lanes = $lane_filter->filter;
    
-   $obj->lanes;
-   
-=method lanes
+=method filter
 
-Returns an array of matching VRTrack::Lane objects
+Returns a list of full paths to lanes that match the given criteria
 
 =cut
 

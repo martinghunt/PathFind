@@ -1,16 +1,58 @@
-#check symlink destination
-if ($symlink) {
-    $destination = defined($output) ? $output : getcwd;
-    if ( !-e $destination ) {
-        print
-"The directory $destination does not exist, please specify a valid destination output directory for the symlinks";
-        exit;
+package Path::Find::SymLink;
+
+# ABSTRACT:
+
+=head1 SYNOPSIS
+
+Logic to create symlinks for a list of lanes in a given directory
+
+   use Path::Find::SymLink;
+   my $obj = Path::Find::SymLink->new(
+     lanes => \@lanes,
+     sym_dest => $symlink_destination
+   );
+   
+   $obj->create_links;
+   
+=method create_links
+
+Creates symlinks to each given lane in the defined destination directory
+
+=method _check_destination
+
+Checks whether the defined destination exists. If not, it creates the
+directory.
+
+=cut
+
+use Moose;
+
+has 'lanes'    => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'sym_dest' => ( is => 'ro', isa => 'Str',      required => 1 );
+
+sub create_links {
+    my ($self) = @_;
+    $self->_check_destination;
+	my $lanes = @{ $self->lanes };
+
+    #create symlink
+    foreach my $lane (@lanes) {
+        my $cmd = "ln -s $lane $destination";
+        system($cmd);
     }
+
 }
 
-#create symlink
-if ($symlink) {
-    my $cmd = qq[ ln -s $full_path $destination ];
-    qx( $cmd );
+sub _check_destination {
+    my ($self) = @_;
+    my $destination = $self->sym_dest;
+
+    if ( !-e "./$destination" ) {
+		system("mkdir ./$destination");
+    }
+	return 1;
 }
 
+no Moose;
+__PACKAGE__->meta->make_immutable;
+1;
