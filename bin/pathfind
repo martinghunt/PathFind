@@ -121,7 +121,7 @@ for my $database (@pathogen_databases) {
 
     if ( $symlink && $lane_filter->found ) {
         my $sym_dest = $symlink;
-        $sym_dest = $id if ( $symlink eq "" );
+        $sym_dest = $id if ( $symlink =~ /^-/ );
         Path::Find::SymLink->new(
             lanes    => \@matching_lanes,
             sym_dest => $sym_dest
@@ -130,7 +130,7 @@ for my $database (@pathogen_databases) {
 
     if ( $archive && $lane_filter->found ) {
         my $arch_name = $archive;
-        $arch_name = $id if ( $archive eq "" );
+        $arch_name = $id if ( $archive =~ /^-/ );
         Path::Find::Archive->new(
             lanes        => \@matching_lanes,
             archive_name => $archive
