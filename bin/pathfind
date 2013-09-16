@@ -51,8 +51,8 @@ GetOptions(
     't|type=s'     => \$type,
     'i|id=s'       => \$id,
     'f|filetype=s' => \$filetype,
-    'l|symlink=s'  => \$symlink,
-    'a|archive=s'  => \$archive,
+    'l|symlink:s'  => \$symlink,	# ':' means arg is optional
+    'a|archive:s'  => \$archive,
     's|stats'      => \$stats,
     'q|qc=s'       => \$qc,
     'h|help'       => \$help
@@ -121,7 +121,7 @@ for my $database (@pathogen_databases) {
 
     if ( $symlink && $lane_filter->found ) {
         my $sym_dest = $symlink;
-        $sym_dest = $id if ( $symlink =~ /^[-\s]/ );
+        $sym_dest = $id if ( $symlink eq "" );
         Path::Find::SymLink->new(
             lanes    => \@matching_lanes,
             sym_dest => $sym_dest
@@ -130,7 +130,7 @@ for my $database (@pathogen_databases) {
 
     if ( $archive && $lane_filter->found ) {
         my $arch_name = $archive;
-        $arch_name = $id if ( $archive =~ /^[-\s]/ );
+        $arch_name = $id if ( $archive eq "" );
         Path::Find::Archive->new(
             lanes        => \@matching_lanes,
             archive_name => $archive
