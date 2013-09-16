@@ -8,6 +8,7 @@ Logic to filter lanes based on given criteria
 
    use Path::Find::Filter;
    my $lane_filter = Path::Find::Filter->new(
+	   scriptname => 'pathfind',
        lanes     => \@lanes,
        filetype  => $filetype,
        qc        => $qc,
@@ -27,10 +28,29 @@ use VRTrack::Lane;
 use VRTrack::Individual;
 use Path::Find;
 
+has 'scriptname' => ( is => 'ro', isa => 'Str', required =>1 );
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'hierarchy_template' =>
   ( is => 'rw', required => 0, builder => '_build_hierarchy_template' );
-has 'filetype' => ( is => 'ro', required => 1 );
+has 'filetype' => ( 
+	is => 'ro', 
+	required => 0, 
+	default => sub {
+		my ($self) = @_;
+		my %default_ft = (
+			pathfind => 'fastq',
+			assemblyfind => 'contigs',
+			annotationfind => 'gff',
+			mapfind => 'bam',
+			snpfind => 'vcf',
+			rnaseqfind => 'spreadsheet',
+			tradisfind => 'spreadsheet'
+		);
+		
+		my $script = $self->scriptname;
+		return $default_ft{$script};
+	}
+);
 has '_file_extensions' => (
     is       => 'rw',
     isa      => 'HashRef',

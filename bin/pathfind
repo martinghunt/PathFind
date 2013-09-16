@@ -51,7 +51,7 @@ GetOptions(
     't|type=s'     => \$type,
     'i|id=s'       => \$id,
     'f|filetype=s' => \$filetype,
-    'l|symlink:s'  => \$symlink,	# ':' means arg is optional
+    'l|symlink:s'  => \$symlink,    # ':' means arg is optional
     'a|archive:s'  => \$archive,
     's|stats'      => \$stats,
     'q|qc=s'       => \$qc,
@@ -92,7 +92,8 @@ Using the option -symlink will create a symlink to the queried data in the curre
 
 USAGE
 
-die "The archive and symlink options cannot be used together\n" if (defined $archive && defined $symlink);
+die "The archive and symlink options cannot be used together\n"
+  if ( defined $archive && defined $symlink );
 
 my $lane_filter;
 
@@ -113,11 +114,12 @@ for my $database (@pathogen_databases) {
     my @lanes = @{ $find_lanes->lanes };
 
     $lane_filter = Path::Find::Filter->new(
-        lanes     => \@lanes,
-        filetype  => $filetype,
-        qc        => $qc,
-        root      => $root,
-        pathtrack => $pathtrack
+        scriptname => 'pathfind',
+        lanes      => \@lanes,
+        filetype   => $filetype,
+        qc         => $qc,
+        root       => $root,
+        pathtrack  => $pathtrack
     );
     my @matching_lanes = $lane_filter->filter;
 
