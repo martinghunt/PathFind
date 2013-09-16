@@ -58,6 +58,8 @@ GetOptions(
     'h|help'       => \$help
 );
 
+print "SYMLINK = '$symlink'\n";
+
 (
          $type
       && $id
