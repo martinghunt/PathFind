@@ -29,12 +29,26 @@ use Moose;
 
 has 'lanes'    => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'sym_dest' => ( is => 'ro', isa => 'Str',      required => 1 );
+has '_checked_dest' => (is => 'rw', isa => 'Str', lazy => 1, builder => '_build__checked_dest');
+
+sub _build__checked_dest {
+    my ($self) = @_;
+    my $destination = $self->sym_dest;
+
+	my $checked = $destination;
+	$checked =~ s/\s+/_/;
+
+    if ( !-e "./$checked" ) {
+		system("mkdir ./$checked");
+    }
+	return $checked;
+}
 
 sub create_links {
     my ($self) = @_;
     $self->_check_destination;
 	my @lanes = @{ $self->lanes };
-	my $destination = $self->sym_dest;
+	my $destination = $self->_checked_dest;
 
     #create symlink
     foreach my $lane (@lanes) {
@@ -42,16 +56,6 @@ sub create_links {
         system($cmd);
     }
 
-}
-
-sub _check_destination {
-    my ($self) = @_;
-    my $destination = $self->sym_dest;
-
-    if ( !-e "./$destination" ) {
-		system("mkdir ./$destination");
-    }
-	return 1;
 }
 
 no Moose;
