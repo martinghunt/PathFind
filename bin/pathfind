@@ -59,6 +59,8 @@ GetOptions(
 );
 
 print "SYMLINK = '$symlink'\n";
+print "\$symlink =~ /^\s/ = " . ($symlink =~ /^\s/ ) . "\n";
+print "\$symlink eq '' = " . ($symlink eq '') . "\n"; 
 
 (
          $type
