@@ -59,10 +59,10 @@ GetOptions(
 );
 
 print "SYMLINK = '$symlink'\n";
-print "\$symlink =~ /^\s/ = " . ($symlink =~ /^\s/ ) . "\n";
+print "\$symlink =~ /^\\s/ = " . ($symlink =~ /^\s/ ) . "\n";
 print "\$symlink eq '' = " . ($symlink eq '') . "\n"; 
 print "if \$symlink:\n";
-if($symlink){print "exists!\n";}
+if(defined $symlink){print "exists!\n";}
 else{print "DNE!\n";}
 
 (
