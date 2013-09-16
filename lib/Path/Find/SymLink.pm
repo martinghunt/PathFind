@@ -33,7 +33,8 @@ has 'sym_dest' => ( is => 'ro', isa => 'Str',      required => 1 );
 sub create_links {
     my ($self) = @_;
     $self->_check_destination;
-	my $lanes = @{ $self->lanes };
+	my @lanes = @{ $self->lanes };
+	my $destination = $self->sym_dest;
 
     #create symlink
     foreach my $lane (@lanes) {
