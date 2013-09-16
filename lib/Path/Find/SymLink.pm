@@ -46,7 +46,6 @@ sub _build__checked_dest {
 
 sub create_links {
     my ($self) = @_;
-    $self->_check_destination;
 	my @lanes = @{ $self->lanes };
 	my $destination = $self->_checked_dest;
 
