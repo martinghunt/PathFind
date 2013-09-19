@@ -36,8 +36,7 @@ use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
 use Path::Find::Log;
-use Path::Find::SymLink;
-use Path::Find::Archive;
+use Path::Find::Linker;
 eval {
     Path::Find::Log->new(
         logfile => '/nfs/pathnfs05/log/pathfindlog/pathfind.log',
@@ -104,6 +103,7 @@ for my $database (@pathogen_databases) {
     # Connect to database and get info
     my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
 
+	# find matching lanes
     my $find_lanes = Path::Find::Lanes->new(
         search_type    => $type,
         search_id      => $id,
@@ -113,32 +113,37 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
+	# filter lanes
     $lane_filter = Path::Find::Filter->new(
-        scriptname => 'pathfind',
-        lanes      => \@lanes,
-        filetype   => $filetype,
-        qc         => $qc,
-        root       => $root,
-        pathtrack  => $pathtrack
+        lanes     => \@lanes,
+        filetype  => $filetype,
+        qc        => $qc,
+        root      => $root,
+        pathtrack => $pathtrack
     );
     my @matching_lanes = $lane_filter->filter;
 
+	# Set up to symlink/archive. Check whether default filetype should be used
+	my $use_default = 0;
+	$use_default = 1 if (!defined $filetype);
     if ( defined $symlink && $lane_filter->found ) {
         my $sym_dest = $symlink;
         $sym_dest = $id if ( $symlink eq '' );
-        Path::Find::SymLink->new(
-            lanes    => \@matching_lanes,
-            sym_dest => $sym_dest
-        )->create_links;
+        Path::Find::Linker->new(
+            lanes => \@matching_lanes,
+            name  => $sym_dest,
+			use_default_type => $use_default
+        )->sym_links;
     }
 
     if ( defined $archive && $lane_filter->found ) {
         my $arch_name = $archive;
         $arch_name = $id if ( $archive eq '' );
-        Path::Find::Archive->new(
-            lanes        => \@matching_lanes,
-            archive_name => $arch_name
-        )->create_archive;
+        Path::Find::Linker->new(
+            lanes => \@matching_lanes,
+            name  => $arch_name,
+			use_default_type => $use_default
+        )->archive;
     }
 
     foreach my $ml (@matching_lanes) {

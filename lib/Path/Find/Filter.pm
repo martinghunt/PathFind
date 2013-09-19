@@ -28,36 +28,17 @@ use VRTrack::Lane;
 use VRTrack::Individual;
 use Path::Find;
 
-has 'scriptname' => ( is => 'ro', isa => 'Str', required =>1 );
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'hierarchy_template' =>
   ( is => 'rw', required => 0, builder => '_build_hierarchy_template' );
-has 'filetype' => ( 
-	is => 'ro', 
-	required => 0, 
-	default => sub {
-		my ($self) = @_;
-		my %default_ft = (
-			pathfind => 'fastq',
-			assemblyfind => 'contigs',
-			annotationfind => 'gff',
-			mapfind => 'bam',
-			snpfind => 'vcf',
-			rnaseqfind => 'spreadsheet',
-			tradisfind => 'spreadsheet'
-		);
-		
-		my $script = $self->scriptname;
-		return $default_ft{$script};
-	}
-);
+has 'filetype' => ( is => 'ro', required => 0 );
 has '_file_extensions' => (
     is       => 'rw',
     isa      => 'HashRef',
     required => 0,
     builder  => '_build__file_extensions'
 );
-has 'qc' => ( is => 'ro', required => 1 );
+has 'qc'   => ( is => 'ro', required => 1 );
 has 'root' => ( is => 'ro', required => 1 );
 has 'found' =>
   ( is => 'rw', required => 0, default => 0, writer => '_set_found' );
@@ -90,7 +71,7 @@ sub filter {
     my @lanes    = @{ $self->lanes };
     my $qc       = $self->qc;
 
-	my $type_extn = $self->_file_extensions->{$filetype} if($filetype);
+    my $type_extn = $self->_file_extensions->{$filetype} if ($filetype);
 
     my @matching_lanes;
     foreach (@lanes) {
@@ -99,24 +80,32 @@ sub filter {
             my $full_path = $self->_get_full_path($l);
 
             if ($filetype) {
-				my @matches = `ls $full_path | grep $type_extn`;
-				for my $m (@matches){
-					chomp $m;
-					if( -e "$full_path/$m"){
-						$self->_set_found(1);
-						push(@matching_lanes, "$full_path/$m");
-					}
-				}
+                my @matching_files =
+                  $self->find_files( $full_path, $type_extn );
+                for my $m (@matching_files) {
+                    chomp $m;
+                    if ( -e "$full_path/$m" ) {
+                        $self->_set_found(1);
+                        push( @matching_lanes, "$full_path/$m" );
+                    }
+                }
             }
-			else{
-				if(-e $full_path){
-					$self->_set_found(1);
-					push(@matching_lanes, $full_path);
-				}
-			}
+            else {
+                if ( -e $full_path ) {
+                    $self->_set_found(1);
+                    push( @matching_lanes, $full_path );
+                }
+            }
         }
     }
-	return @matching_lanes;
+    return @matching_lanes;
+}
+
+sub find_files {
+    my ( $self, $full_path, $type_extn ) = @_;
+
+    my @matches = `ls $full_path | grep $type_extn`;
+    return @matches;
 }
 
 sub _get_full_path {
