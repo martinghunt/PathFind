@@ -88,9 +88,9 @@ sub filter {
         if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
             my @paths = $self->_get_full_path($l);
 
-            foreach my $full_path (@paths) {
+            PATH:foreach my $full_path (@paths) {
                 if ($filetype) {
-                    next unless my @matching_files = $self->find_files( $full_path, $type_extn );
+                    next PATH unless defined(my @matching_files = $self->find_files( $full_path, $type_extn ));
                     for my $m (@matching_files) {
                         chomp $m;
                         if ( -e "$full_path/$m" ) {
