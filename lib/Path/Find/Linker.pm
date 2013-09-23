@@ -61,14 +61,14 @@ sub _build__default_type {
     my %default_ft = (
         pathfind       => '/*.fastq.gz',
         assemblyfind   => 'contigs',
-        annotationfind => 'gff',
+        annotationfind => '/*.gff',
         mapfind        => 'bam',
         snpfind        => 'vcf',
         rnaseqfind     => 'spreadsheet',
         tradisfind     => 'spreadsheet',
     );
 
-    #my $script = $self->scriptname;
+	# capture calling script name
 	$0 =~ /([^\/]+$)/;
     return $default_ft{$1};
 }
@@ -100,6 +100,8 @@ sub sym_links {
 
     #create symlinks
     $self->_create_symlinks;
+	my $s_d = $self->_checked_name;
+	print "Symlinks created in $s_d\n";
 }
 
 sub _create_symlinks {

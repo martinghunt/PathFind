@@ -27,41 +27,43 @@ no warnings 'uninitialized';
 
 use Cwd;
 
-use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
+  ;    #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
 
 use File::Temp;
 use File::Copy qw(move);
 use Getopt::Long;
-use Pathfind;
-use FindLanes;
 use Bio::AutomatedAnnotation::ParseGenesFromGFFs;
-use PathfindLog;
+
+use Path::Find;
+use Path::Find::Lanes;
+use Path::Find::Filter;
+use Path::Find::Linker;
+use Path::Find::Log;
 eval {
-    PathfindLog->new(
+    Path::Find::Log->new(
         logfile => '/nfs/pathnfs05/log/pathfindlog/annotationfind.log',
         args    => \@ARGV
     )->commandline();
 };
 
 my (
-    $type, $id,              $symlink,
-    $help, $file_type,       $output,
-    $gene, $search_products, $nucleotides,
-	$archive
+    $type,        $id,     $symlink, $help,
+    $filetype,    $output, $gene,    $search_products,
+    $nucleotides, $archive
 );
 
 GetOptions(
     't|type=s'          => \$type,
     'i|id=s'            => \$id,
-    's|symlink'         => \$symlink,
-    'f|file_type=s'     => \$file_type,
+    'h|help'            => \$help,
+    'f|file_type=s'     => \$filetype,
+    'l|symlink:s'       => \$symlink,
+    'a|archive:s'       => \$archive,
     'g|gene=s'          => \$gene,
     'p|search_products' => \$search_products,
-    'o|output=s'        => \$output,
-    'a|archive=s'       => \$archive,
     'n|nucleotides'     => \$nucleotides,
-    'h|help'            => \$help,
 );
 
 (
@@ -69,14 +71,24 @@ GetOptions(
       && $id
       && $id ne ''
 
-      && ( $type eq 'study' || $type eq 'lane' || $type eq 'file' || $type eq 'sample' || $type eq 'species' || $type eq 'database' ) )
-  or die <<USAGE;
+      && ( $type eq 'study'
+        || $type eq 'lane'
+        || $type eq 'file'
+        || $type eq 'sample'
+        || $type eq 'species'
+        || $type eq 'database' )
+  )
+  && (
+    !$filetype
+    || ( $filetype
+        && ( $filetype eq 'gff' || $filetype eq 'faa' || $filetype eq 'ffn' ) )
+  ) or die <<USAGE;
 
 
 Usage: $0
   -t|type            <study|lane|file|sample|species>
   -i|id              <study id|study name|lane name|file of lane names>
-  -s|symlink         <create a symlink to the data>
+  -l|symlink         <create a symlink to the data>
   -f|file_type       <gff|faa|ffn>
   -g|gene            <name of gene>
   -p|search_products <when searching for genes also search products>
@@ -109,44 +121,27 @@ annotationfind -t study -id 123 -archive study_123_annotations
 
 USAGE
 
+die "The archive and symlink options cannot be used together\n"
+  if ( defined $archive && defined $symlink );
+
 # Get databases
-my @pathogen_databases = Pathfind->pathogen_databases;
-my $hierarchy_template = Pathfind->hierarchy_template;
+my @pathogen_databases = Path::Find->pathogen_databases;
+my $lane_filter;
 
-my %file_types = (
-    gff => '.gff$',
-    faa   => '.faa$',
-    ffn   => '.ffn$',
-
-);
-
-my $pathtrack;
-my $found = 0;
 my @sub_directories =
-  ( 'velvet_assembly/annotation', 'spades_assembly/annotation' );
+  ( '/velvet_assembly/annotation', '/spades_assembly/annotation' );
 
-my $qualifiers_to_search = ['gene'];
-if ( defined($search_products) ) {
-    push( @{$qualifiers_to_search}, 'product' );
-    push( @{$qualifiers_to_search}, 'ID' );
-}
 
-$file_type ||= 'gff';
 if ($gene) {
     $file_type = 'gff';
 }
 
 for my $database (@pathogen_databases) {
 
-    # Connect to database
-    $pathtrack = Pathfind->instantiate_vrtrack($database)
-      or die "Failed to create VRTrack object for '$database'\n";
-    my $dbh = Pathfind->instantiate_dbi($database)
-      or die "Failed to create DBI object for '$database'\n";
-    my $root = Pathfind->hierarchy_root_dir($database)
-      or die "Failed to find root directory for '$database'\n";
+    # Connect to database and get info
+    my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
 
-    my $find_lanes = FindLanes->new(
+    my $find_lanes = Path::Find::Lanes->new(
         search_type    => $type,
         search_id      => $id,
         pathtrack      => $pathtrack,
@@ -156,65 +151,54 @@ for my $database (@pathogen_databases) {
     my @lanes = @{ $find_lanes->lanes };
 
     # check directories exist, find & filter by file type
-    my @directory_or_file_paths;
-    for my $lane_obj (@lanes) {
-        my $path =
-          $pathtrack->hierarchy_path_of_lane( $lane_obj, $hierarchy_template );
-        for my $sub_directory (@sub_directories) {
-            my $full_path = join( '/', ( $root, $path, $sub_directory ) );
-            next unless ( -d $full_path );
-            if ( defined($file_type) && defined $file_types{$file_type} ) {
-                push( @directory_or_file_paths,
-                    find_files_by_type( $file_types{$file_type}, $full_path ) );
-            }
-            else {
-                push( @directory_or_file_paths, $full_path );
-            }
-        }
-    }
+    $lane_filter = Path::Find::Filter->new(
+        lanes          => \@lanes,
+        filetype       => $filetype,
+        qc             => $qc,
+        root           => $root,
+        pathtrack      => $pathtrack,
+        subdirectories => \@sub_directories
+    );
+    my @matching_lanes = $lane_filter->filter;
 
     # symlink or archive
+    my $use_default = 0;
+    $use_default = 1 if ( !defined $filetype );
+    if ( defined $symlink && $lane_filter->found ) {
+        my $sym_dest = $symlink;
+        $sym_dest = $id if ( $symlink eq '' );
+        Path::Find::Linker->new(
+            lanes            => \@matching_lanes,
+            name             => $sym_dest,
+            use_default_type => $use_default
+        )->sym_links;
+    }
 
-	# setup archive related variables
-	my $tmpdirectory_name = "";
-	my $archive_from_id;
-	if($archive eq ""){
-		$archive_from_id = set_archive_name_from_id( $id, $type );
-		$archive_from_id .= '.annotation.tar.gz';
-	}
-	else{
-		$archive_from_id = "$archive.tar.gz";
-	}
-	my ( $archive_path, $archive_name, $archive_suffix ) =
-	  set_archive_name($archive_from_id);
-	my $cwd = cwd();
-	my $archive_full = "$cwd/$archive_name$archive_suffix";
-
-    if ( defined $symlink || defined $archive) {
-		my $destination = "";
-		if(defined $archive){
-			# create temporary directory for archive
-	        my $tmpdirectory = File::Temp->newdir( CLEANUP => 0 );
-	        $tmpdirectory_name = $tmpdirectory->dirname();
-	        system("mkdir $tmpdirectory_name/$archive_name");
-			$destination = "$tmpdirectory_name/$archive_name";
-		}
-        for my $filtered_path (@directory_or_file_paths) {
-            `ln -s $filtered_path $destination`;
-        }
+    if ( defined $archive && $lane_filter->found ) {
+        my $arch_name = $archive;
+        $arch_name = $id if ( $archive eq '' );
+        Path::Find::Linker->new(
+            lanes            => \@matching_lanes,
+            name             => $arch_name,
+            use_default_type => $use_default
+        )->archive;
     }
 
     # print out the paths
-    for my $filtered_path (@directory_or_file_paths) {
-        print $filtered_path. "\n";
-        $found = 1;
+    foreach my $ml (@matching_lanes) {
+        print "$ml\n";
     }
 
-    if ( $found == 1 && defined($gene) ) {
+    if ( $lane_filter->found && defined($gene) ) {
+        my $qualifiers_to_search = ['gene'];
+        if ( defined($search_products) ) {
+            push( @{$qualifiers_to_search}, 'product' );
+            push( @{$qualifiers_to_search}, 'ID' );
+        }
         my $amino_acids = 1;
         $amino_acids = 0 if ($nucleotides);
         my $gene_finder = Bio::AutomatedAnnotation::ParseGenesFromGFFs->new(
-            gff_files         => \@directory_or_file_paths,
+            gff_files         => \@matching_lanes,
             search_query      => $gene,
             search_qualifiers => $qualifiers_to_search,
             amino_acids       => $amino_acids
@@ -228,95 +212,15 @@ for my $database (@pathogen_databases) {
     }
 
     $dbh->disconnect();
-	#no need to look in the next database if relevant data has been found
-    if ($found){
-		# create archive in temp directory and move to output destination
-        archive_lanes( $tmpdirectory_name, $archive_name, $archive_full ) if defined($archive);
-		File::Temp::cleanup();
-		
-		exit;
-	}
-	
+
+    #no need to look in the next database if relevant data has been found
+    if ( $lane_filter->found ) {
+
+        #Path::Find::Stats->new()->write_stats;
+        exit;
+    }
 }
 
 unless ($found) {
     print "Could not find lanes or files for input data \n";
-}
-
-sub find_files_by_type {
-    my ( $type, $base_path ) = @_;
-
-    opendir( DIR, $base_path );
-    my @filenames = grep { /$type/i } readdir(DIR);
-    closedir(DIR);
-    for ( my $i = 0 ; $i < @filenames ; $i++ ) {
-        $filenames[$i] = $base_path . '/' . $filenames[$i];
-    }
-
-    return @filenames;
-}
-
-# Set archive_path, archive_name and archive_suffix
-sub set_archive_name {
-    my ($archive_submitted_name) = @_;
-    my ( @path, $path, $name, $suff );
-
-    @path = split( /\//, $archive_submitted_name );
-    $name = pop @path;
-    $path = scalar @path ? join( '/', @path ) . '/' : '';
-
-    $name =~ m/(\.tgz|\.tar\.gz)$/;
-    $suff = $1 ? $1 : '.tar.gz';
-    $name =~ s/\.tgz$|\.tar\.gz$//;
-
-    $name =~ s/\s+/_/gi;    # replace whitespace in name
-
-    # verify output directory
-    if ( $path && !( -d $path && -e $path ) ) {
-        chop $path;         # remove '/'
-        print "Error: Cannot find directory: $path\n";
-        exit;
-    }
-
-    return ( $path, $name, $suff );
-}
-
-# Create archive for lanes
-# Note: The tar command has to be run in the temporary directory.
-sub archive_lanes {
-    my ( $tmpdirectory_name, $archive_name, $archive_full ) = @_;
-    my $error = 0;
-
-    # create compressed tar archive in temporary directory
-    # tar follows lane symlinks
-    {
-        #local $CWD = $tmpdirectory_name;
-		print "Archiving lanes:\n";
-		system("cd $tmpdirectory_name; tar cvhfz archive.tar.gz $archive_name") == 0 or $error = 1;
-    }
-
-    # return without moving archive if error during creation
-    if ($error) {
-        print STDERR "An error occured while creating the archive: $archive_name\n";
-        print STDERR "No output written to $archive_full\n";
-        return 0;
-    }
-
-    # move temp archive to archive destination
-    move( $tmpdirectory_name . '/archive.tar.gz', $archive_full ) or $error = 1;
-
-    print "An error occured while writing $archive_full: $!\n" if $error;
-    return $error;
-}
-
-sub set_archive_name_from_id {
-    my ( $id, $type ) = @_;
-
-    # only remove path for 'file' some studies have '/' in title.
-    my @path = split( /\//, $id );
-    my $name = $type eq 'file' ? pop @path : $id;
-    $name =~ s/\s+/_/gi;
-    $name =~ s/[^\w\.]+/_/gi;
-
-    return $name;
 }
