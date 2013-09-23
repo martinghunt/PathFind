@@ -43,10 +43,23 @@ has 'destination' =>
   ( is => 'ro', isa => 'Str', required => 0, writer => '_set_destination' );
 has '_default_type' => (is => 'ro', isa => 'Str', required => 0, lazy => 1, builder => '_build__default_type');
 has 'use_default_type' => (is => 'ro', isa => 'Bool', required => 1);
+has '_given_destination' => (is => 'ro', isa => 'Str', required => 0, writer => '_set__given_destination');
 
 sub _build__checked_name {
     my ($self) = @_;
     my $name = $self->name;
+
+	# check if full path, if so, set given destination
+	# if not, set given destination to CWD
+	if($name =~ /^\//){
+		my @dirs = split('/', $name);
+		$name = pop(@dirs);
+		$self->_set__given_destination(join(@dirs, '/'));
+	}
+	else{
+		my $current_cwd = getcwd;
+		$self->_set__given_destination($current_cwd);
+	}
     $name =~ s/\s+/_/;
     return $name;
 }
@@ -95,8 +108,8 @@ sub sym_links {
     my ($self) = @_;
 
     #set destination for symlinks
-    my $current_cwd = getcwd;
-    $self->_set_destination("$current_cwd");
+    my $dest = $self->_given_destination;
+    $self->_set_destination("$dest");
 
     #create symlinks
     $self->_create_symlinks;
@@ -141,9 +154,9 @@ sub _tar {
     my ($self)   = @_;
     my $tmp_dir  = $self->_tmp_dir;
     my $arc_name = $self->_checked_name;
+	my $final_destination = $self->_given_destination;
     my $error    = 0;
 
-    my $current_cwd = getcwd;
     system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name") == 0
       or $error = 1;
 
@@ -154,7 +167,7 @@ sub _tar {
         return 0;
     }
     else {
-        system("mv $tmp_dir/archive.tar.gz $current_cwd/$arc_name.tar.gz") == 0
+        system("mv $tmp_dir/archive.tar.gz $final_destination/$arc_name.tar.gz") == 0
           or die
           "An error occurred while writing archive $arc_name: error code $?\n";
         File::Temp::cleanup();
