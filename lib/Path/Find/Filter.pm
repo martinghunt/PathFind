@@ -90,7 +90,7 @@ sub filter {
 
             PATH:foreach my $full_path (@paths) {
                 if ($filetype) {
-                    next PATH unless defined(my @matching_files = $self->find_files( $full_path, $type_extn ));
+                    next PATH unless my @matching_files = $self->find_files( $full_path, $type_extn );
                     for my $m (@matching_files) {
                         chomp $m;
                         if ( -e "$full_path/$m" ) {
