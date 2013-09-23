@@ -43,14 +43,14 @@ has 'root' => ( is => 'ro', required => 1 );
 has 'found' =>
   ( is => 'rw', required => 0, default => 0, writer => '_set_found' );
 has 'pathtrack' => ( is => 'ro', required => 1 );
-has 'subdirectories' => ( 
-	is => 'ro', 
-	isa => 'ArrayRef', 
-	required => 0, 
-	default => sub {
-		my @empty = ("");
-		return \@empty;
-	}
+has 'subdirectories' => (
+    is       => 'ro',
+    isa      => 'ArrayRef',
+    required => 0,
+    default  => sub {
+        my @empty = ("");
+        return \@empty;
+    }
 );
 
 sub _build_hierarchy_template {
@@ -90,8 +90,7 @@ sub filter {
 
             foreach my $full_path (@paths) {
                 if ($filetype) {
-                    my @matching_files =
-                      $self->find_files( $full_path, $type_extn );
+                    next unless my @matching_files = $self->find_files( $full_path, $type_extn );
                     for my $m (@matching_files) {
                         chomp $m;
                         if ( -e "$full_path/$m" ) {
@@ -115,8 +114,13 @@ sub filter {
 sub find_files {
     my ( $self, $full_path, $type_extn ) = @_;
 
-    my @matches = `ls $full_path | grep $type_extn`;
-    return @matches;
+    if ( -e $full_path ) {
+        my @matches = `ls $full_path | grep $type_extn`;
+        return @matches;
+    }
+    else {
+        return undef;
+    }
 }
 
 sub _get_full_path {
@@ -124,15 +128,15 @@ sub _get_full_path {
     my $hierarchy_template = $self->hierarchy_template;
     my $root               = $self->root;
     my $pathtrack          = $self->pathtrack;
-	my @subdirs = @{ $self->subdirectories };
+    my @subdirs            = @{ $self->subdirectories };
 
     my $lane_path =
       $pathtrack->hierarchy_path_of_lane( $lane, $hierarchy_template );
-	my @fps;
-	foreach my $subdir (@subdirs){
-		push(@fps, "$root/$lane_path$subdir");
-	}
-	
+    my @fps;
+    foreach my $subdir (@subdirs) {
+        push( @fps, "$root/$lane_path$subdir" );
+    }
+
     return @fps;
 }
 
