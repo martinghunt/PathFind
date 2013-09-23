@@ -59,7 +59,7 @@ GetOptions(
     't|type=s'          => \$type,
     'i|id=s'            => \$id,
     'h|help'            => \$help,
-    'f|file_type=s'     => \$filetype,
+    'f|filetype=s'     => \$filetype,
     'l|symlink:s'       => \$symlink,
     'a|archive:s'       => \$archive,
     'g|gene=s'          => \$gene,
@@ -90,7 +90,7 @@ Usage: $0
   -t|type            <study|lane|file|sample|species>
   -i|id              <study id|study name|lane name|file of lane names>
   -l|symlink         <create a symlink to the data>
-  -f|file_type       <gff|faa|ffn>
+  -f|filetype       <gff|faa|ffn>
   -g|gene            <name of gene>
   -p|search_products <when searching for genes also search products>
   -o|output          <name of output fasta file of genes>
@@ -98,7 +98,7 @@ Usage: $0
   -a|archive		 <name of archive>
   -h|help            <print this message>
 
-Given a study or lane this will give you the location of the annotation results. By default it provides the directory, but by specifiying a 'file_type' you can narrow it down to particular 
+Given a study or lane this will give you the location of the annotation results. By default it provides the directory, but by specifiying a 'filetype' you can narrow it down to particular 
 files within the result set. 
 Using the option -archive will create an archive (.tar.gz) containing the selected annotations. The -archive option will automatically name the archive file if a name is not supplied.
 For an annotation you will have:
@@ -134,7 +134,7 @@ my @sub_directories =
 
 
 if ($gene) {
-    $file_type = 'gff';
+    $filetype = 'gff';
 }
 
 for my $database (@pathogen_databases) {
@@ -155,7 +155,6 @@ for my $database (@pathogen_databases) {
     $lane_filter = Path::Find::Filter->new(
         lanes          => \@lanes,
         filetype       => $filetype,
-        qc             => $qc,
         root           => $root,
         pathtrack      => $pathtrack,
         subdirectories => \@sub_directories
@@ -222,6 +221,6 @@ for my $database (@pathogen_databases) {
     }
 }
 
-unless ($found) {
+unless ($lane_filter->found) {
     print "Could not find lanes or files for input data \n";
 }
