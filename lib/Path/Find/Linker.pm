@@ -90,6 +90,9 @@ sub archive {
     my ($self) = @_;
     my @lanes = @{ $self->lanes };
 
+	my $c_name = $self->_checked_name;
+	my $final_dest = $self->_given_destination;
+
     #set destination for symlinks
     my $tmp_dir = $self->_tmp_dir;
     $self->_set_destination("$tmp_dir");
@@ -98,7 +101,7 @@ sub archive {
     $self->_create_symlinks;
 
     #tar and move to CWD
-    print "Archiving lanes:\n";
+    print "Archiving lanes to $final_dest/$c_name:\n";
     $self->_tar;
 
     File::Temp::cleanup();
@@ -106,15 +109,15 @@ sub archive {
 
 sub sym_links {
     my ($self) = @_;
+	my $s_d = $self->_checked_name;
 
     #set destination for symlinks
     my $dest = $self->_given_destination;
-    $self->_set_destination("$dest");
+    $self->_set_destination($dest);
 
     #create symlinks
     $self->_create_symlinks;
-	my $s_d = $self->_checked_name;
-	print "Symlinks created in $s_d\n";
+	print "Symlinks created in $dest/$s_d\n";
 }
 
 sub _create_symlinks {
