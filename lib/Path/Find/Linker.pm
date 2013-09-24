@@ -54,7 +54,7 @@ sub _build__checked_name {
 	if($name =~ /^\//){
 		my @dirs = split('/', $name);
 		$name = pop(@dirs);
-		$self->_set__given_destination(join(@dirs, '/'));
+		$self->_set__given_destination(join('/', @dirs));
 	}
 	else{
 		my $current_cwd = getcwd;
