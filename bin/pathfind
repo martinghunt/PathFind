@@ -94,6 +94,12 @@ USAGE
 die "The archive and symlink options cannot be used together\n"
   if ( defined $archive && defined $symlink );
 
+# set file type extension regular expressions
+my %type_extensions = (
+    fastq => '\.fastq\.gz$',
+    bam   => '\.bam$'
+);
+
 my $lane_filter;
 
 # Get databases and loop through
@@ -103,7 +109,7 @@ for my $database (@pathogen_databases) {
     # Connect to database and get info
     my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
 
-	# find matching lanes
+    # find matching lanes
     my $find_lanes = Path::Find::Lanes->new(
         search_type    => $type,
         search_id      => $id,
@@ -113,26 +119,29 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
-	# filter lanes
+	print Dumper \@lanes;
+
+    # filter lanes
     $lane_filter = Path::Find::Filter->new(
-        lanes     => \@lanes,
-        filetype  => $filetype,
-        qc        => $qc,
-        root      => $root,
-        pathtrack => $pathtrack
+        lanes           => \@lanes,
+        filetype        => $filetype,
+        qc              => $qc,
+        root            => $root,
+        pathtrack       => $pathtrack,
+        type_extensions => \%type_extensions
     );
     my @matching_lanes = $lane_filter->filter;
 
-	# Set up to symlink/archive. Check whether default filetype should be used
-	my $use_default = 0;
-	$use_default = 1 if (!defined $filetype);
+    # Set up to symlink/archive. Check whether default filetype should be used
+    my $use_default = 0;
+    $use_default = 1 if ( !defined $filetype );
     if ( defined $symlink && $lane_filter->found ) {
         my $sym_dest = $symlink;
         $sym_dest = $id if ( $symlink eq '' );
         Path::Find::Linker->new(
-            lanes => \@matching_lanes,
-            name  => $sym_dest,
-			use_default_type => $use_default
+            lanes            => \@matching_lanes,
+            name             => $sym_dest,
+            use_default_type => $use_default
         )->sym_links;
     }
 
@@ -140,9 +149,9 @@ for my $database (@pathogen_databases) {
         my $arch_name = $archive;
         $arch_name = $id if ( $archive eq '' );
         Path::Find::Linker->new(
-            lanes => \@matching_lanes,
-            name  => $arch_name,
-			use_default_type => $use_default
+            lanes            => \@matching_lanes,
+            name             => $arch_name,
+            use_default_type => $use_default
         )->archive;
     }
 

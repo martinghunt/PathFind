@@ -31,15 +31,10 @@ use Path::Find;
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'hierarchy_template' =>
   ( is => 'rw', required => 0, builder => '_build_hierarchy_template' );
-has 'filetype' => ( is => 'ro', required => 0 );
-has '_file_extensions' => (
-    is       => 'rw',
-    isa      => 'HashRef',
-    required => 0,
-    builder  => '_build__file_extensions'
-);
-has 'qc'   => ( is => 'ro', required => 0 );
-has 'root' => ( is => 'ro', required => 1 );
+has 'filetype'        => ( is => 'ro', required => 0 );
+has 'type_extensions' => ( is => 'rw', required => 0, isa => 'HashRef' );
+has 'qc'              => ( is => 'ro', required => 0 );
+has 'root'            => ( is => 'ro', required => 1 );
 has 'found' =>
   ( is => 'rw', required => 0, default => 0, writer => '_set_found' );
 has 'pathtrack' => ( is => 'ro', required => 1 );
@@ -59,28 +54,13 @@ sub _build_hierarchy_template {
     return Path::Find->hierarchy_template;
 }
 
-sub _build__file_extensions {
-    my ($self) = @_;
-
-    my %exts = (
-        fastq     => '\.fastq\.gz$',
-        bam       => '\.bam$',
-        gff       => '\.gff$',
-        faa       => '\.faa$',
-        ffn       => '\.ffn$',
-        contigs   => 'contigs\.fa$',
-        scaffolds => '\_scaffolded.fa$'
-    );
-    return \%exts;
-}
-
 sub filter {
     my ($self)   = @_;
     my $filetype = $self->filetype;
     my @lanes    = @{ $self->lanes };
     my $qc       = $self->qc;
 
-    my $type_extn = $self->_file_extensions->{$filetype} if ($filetype);
+    my $type_extn = $self->type_extensions->{$filetype} if ($filetype);
 
     my @matching_lanes;
     foreach (@lanes) {
@@ -90,8 +70,10 @@ sub filter {
 
             foreach my $full_path (@paths) {
                 if ($filetype) {
-                    next unless my $matching_files = $self->find_files( $full_path, $type_extn );
-                    for my $m (@{ $matching_files }) {
+                    next
+                      unless my $matching_files =
+                      $self->find_files( $full_path, $type_extn );
+                    for my $m ( @{$matching_files} ) {
                         chomp $m;
                         if ( -e "$full_path/$m" ) {
                             $self->_set_found(1);

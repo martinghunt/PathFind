@@ -26,55 +26,60 @@ no warnings 'uninitialized';
 
 use Cwd;
 
-use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
+  ;    #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
 use Getopt::Long;
-use Pathfind;
 use VertRes::Parser::bamcheck;
 use Bio::MLST::Databases;
 use File::Temp;
 use File::chdir;
 use File::Copy qw(move);
-use FindLanes;
-use PathfindLog;
+
+use Path::Find;
+use Path::Find::Lanes;
+use Path::Find::Filter;
+use Path::Find::Linker;
+use Path::Find::Log;
 eval {
-    PathfindLog->new(
+    Path::Find::Log->new(
         logfile => '/nfs/pathnfs05/log/pathfindlog/assemblyfind.log',
         args    => \@ARGV
     )->commandline();
 };
 
-my ( $type, $id, $qc, $symlink, $output, $stats, $stage, $archive, $help );
+my ( $type, $id, $symlink, $output, $stats, $filetype, $archive, $help );
 
 GetOptions(
-    't|type=s'    => \$type,
-    'id=s'        => \$id,
-    'qc=s'        => \$qc,
-    'symlink'     => \$symlink,
-    'o|output=s'  => \$output,
-    's|stats'     => \$stats,
-    'stage=s'     => \$stage,
-    'a|archive:s' => \$archive,
-    'h|help'      => \$help,
+    't|type=s'     => \$type,
+    'i|id=s'       => \$id,
+    'h|help'       => \$help,
+    'f|filetype=s' => \$filetype,
+    'l|symlink:s'  => \$symlink,
+    'a|archive:s'  => \$archive,
+    's|stats'      => \$stats,
 );
 
 (
          $type
       && $id
       && $id ne ''
-      && ( $type eq 'study' || $type eq 'lane' || $type eq 'file' || $type eq 'sample' || $type eq 'species' || $type eq 'database')
-      && ( !$qc || ( $qc && ( $qc eq 'passed' || $qc eq 'failed' || $qc eq 'pending' ) ) )
-
+      && ( $type eq 'study'
+        || $type eq 'lane'
+        || $type eq 'file'
+        || $type eq 'sample'
+        || $type eq 'species'
+        || $type eq 'database' )
       && (
-        !$stage
+        !$filetype
         || (
-            $stage
-            && (   $stage eq 'auto'
-                || $stage eq 'all'
-                || $stage eq 'user'
-                || $stage eq 'velvet'
-                || $stage eq 'columbus'
-                || $stage eq 'scaffold' )
+            $filetype
+            && (   $filetype eq 'auto'
+                || $filetype eq 'all'
+                || $filetype eq 'user'
+                || $filetype eq 'velvet'
+                || $filetype eq 'columbus'
+                || $filetype eq 'scaffold' )
         )
       )
       && ( !defined($archive)
@@ -122,22 +127,8 @@ assemblyfind -t lane -id 1234_5#6 -stage all
 USAGE
 
 # Get databases
-my @pathogen_databases = Pathfind->pathogen_databases;
-my $hierarchy_template = Pathfind->hierarchy_template;
-
-my $pathtrack;
-my $found = 0;    #assume nothing found
-my $destination;
-
-$destination = defined($output) ? $output : getcwd;
-
-if ($symlink) {
-    if ( !-e $destination ) {
-        print
-"The directory $destination does not exist, please specify a valid destination output directory for the symlinks";
-        exit;
-    }
-}
+my @pathogen_databases = Path::Find->pathogen_databases;
+my $hierarchy_template = Path::Find->hierarchy_template;
 
 # Set assembly stage
 my %assembly_stage_directory = (
@@ -157,10 +148,12 @@ my %assembly_stage_suffix = (
     'spades'   => '_spades.fa'
 );
 
-$stage =
-  $stage ? $stage : 'auto';    # Assembly stage defaults to automated pipeline.
-my $stage_directory = $assembly_stage_directory{$stage};
-my $stage_suffix    = $assembly_stage_suffix{$stage};
+$filetype =
+    $filetype
+  ? $filetype
+  : 'auto';    # Assembly stage defaults to automated pipeline.
+my $filetype_directory = $assembly_stage_directory{$filetype};
+my $filetype_suffix    = $assembly_stage_suffix{$filetype};
 
 # set archive name from $id
 my $archive_from_id = set_archive_name_from_id( $id, $type );
@@ -176,17 +169,12 @@ my ( $archive_path, $archive_name, $archive_suffix ) =
 
 for my $database (@pathogen_databases) {
 
-    # Connect to database
-    $pathtrack = Pathfind->instantiate_vrtrack($database)
-      or die "Failed to create VRTrack object for '$database'\n";
-    my $dbh = Pathfind->instantiate_dbi($database)
-      or die "Failed to create DBI object for '$database'\n";
-    my $seq_root = Pathfind->hierarchy_root_dir($database)
-      or die "Failed to find root directory for '$database'\n";
+    # Connect to database and get info
+    my ( $pathtrack, $dbh, $seq_root ) = Path::Find->get_db_info($database);
     my $root = $seq_root;
     $root =~ s/seq-pipelines/assemblies/;
 
-    my $find_lanes = FindLanes->new(
+    my $find_lanes = Path::Find::Lanes->new(
         search_type    => $type,
         search_id      => $id,
         pathtrack      => $pathtrack,
@@ -195,28 +183,15 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
-    @lanes = sort lanesort @lanes;    # sort lanes by run, lane, tag.
-
-    my $all_stats = '';
-    my $tmpdirectory;
-    my $tmpdirectory_name = '';
-    if ( defined $archive ) {
-
-        # create temporary directory for archive
-        $tmpdirectory = File::Temp->newdir( CLEANUP => 1 );
-        $tmpdirectory_name = $tmpdirectory->dirname();
-        mkdir $tmpdirectory_name . '/' . $archive_name;
-    }
-
     # scan through db lanes
     foreach (@lanes) {
         my $l = $_;
         if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
-            if ( $stage ne 'auto' ) {
+            if ( $filetype ne 'auto' ) {
                 my @stages_to_find =
-                    ( $stage eq 'user' || $stage eq 'all' )
+                    ( $filetype eq 'user' || $filetype eq 'all' )
                   ? ( 'velvet', 'columbus', 'scaffold' )
-                  : ($stage);
+                  : ($filetype);
                 for my $user_stage (@stages_to_find) {
                     my $user_stage_directory =
                       $assembly_stage_directory{$user_stage};
@@ -261,7 +236,7 @@ for my $database (@pathogen_databases) {
                 }
             }
 
-            if ( $stage eq 'auto' || $stage eq 'all' ) {
+            if ( $filetype eq 'auto' || $filetype eq 'all' ) {
                 my $pipeline_path =
                   $pathtrack->hierarchy_path_of_lane( $l, $hierarchy_template );
 
@@ -304,7 +279,7 @@ for my $database (@pathogen_databases) {
         # get stats
         if ( defined($stats) || defined($archive) ) {
 
-            if ( $stage eq 'auto' || $stage eq 'all' ) {
+            if ( $filetype eq 'auto' || $filetype eq 'all' ) {
                 my $pipeline_path =
                   $pathtrack->hierarchy_path_of_lane( $l, $hierarchy_template );
                 my $pipeline_velvet_row =
@@ -323,7 +298,7 @@ for my $database (@pathogen_databases) {
                 }
             }
 
-            if ( $stage ne 'auto' ) {
+            if ( $filetype ne 'auto' ) {
                 my $velvet_row =
                   generate_row( $root, $l->name, 'velvet_assembly', 'Velvet' );
                 my $columbus_row = generate_row( $root, $l->name,
@@ -346,7 +321,7 @@ for my $database (@pathogen_databases) {
     }
     $dbh->disconnect();
 
-    if ($found
+    if ( $found
       )    #no need to look in the next database if relevant data has been found
     {
         # create stats file

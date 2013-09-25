@@ -32,8 +32,8 @@ use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
 use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
-use File::Temp;
-use File::Copy qw(move);
+#use File::Temp;
+#use File::Copy qw(move);
 use Getopt::Long;
 use Bio::AutomatedAnnotation::ParseGenesFromGFFs;
 
@@ -59,7 +59,7 @@ GetOptions(
     't|type=s'          => \$type,
     'i|id=s'            => \$id,
     'h|help'            => \$help,
-    'f|filetype=s'     => \$filetype,
+    'f|filetype=s'      => \$filetype,
     'l|symlink:s'       => \$symlink,
     'a|archive:s'       => \$archive,
     'g|gene=s'          => \$gene,
@@ -129,9 +129,16 @@ die "The archive and symlink options cannot be used together\n"
 my @pathogen_databases = Path::Find->pathogen_databases;
 my $lane_filter;
 
+# set subdirectories to search for annotations in
 my @sub_directories =
   ( '/velvet_assembly/annotation', '/spades_assembly/annotation' );
 
+# set file type extension regular expressions
+my %type_extensions = (
+    gff => '\.gff$',
+    faa => '\.faa$',
+    ffn => '\.ffn$'
+);
 
 if ($gene) {
     $filetype = 'gff';
@@ -153,11 +160,12 @@ for my $database (@pathogen_databases) {
 
     # check directories exist, find & filter by file type
     $lane_filter = Path::Find::Filter->new(
-        lanes          => \@lanes,
-        filetype       => $filetype,
-        root           => $root,
-        pathtrack      => $pathtrack,
-        subdirectories => \@sub_directories
+        lanes           => \@lanes,
+        filetype        => $filetype,
+        type_extensions => \%type_extensions,
+        root            => $root,
+        pathtrack       => $pathtrack,
+        subdirectories  => \@sub_directories
     );
     my @matching_lanes = $lane_filter->filter;
 
@@ -221,6 +229,6 @@ for my $database (@pathogen_databases) {
     }
 }
 
-unless ($lane_filter->found) {
+unless ( $lane_filter->found ) {
     print "Could not find lanes or files for input data \n";
 }
