@@ -120,6 +120,7 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
+	next unless (@lanes);
 	print Dumper \@lanes;
 
     # filter lanes
