@@ -101,8 +101,6 @@ USAGE
 die "The archive and symlink options cannot be used together\n"
   if ( defined $archive && defined $symlink );
 
-
-
 # set file type extension regular expressions
 my %type_extensions = (
     coverage    => 'insert_site_plot\.gz$',
@@ -112,6 +110,7 @@ my %type_extensions = (
 );
 
 my $lane_filter;
+my $found = 0;
 
 # Get databases and loop through them
 my @pathogen_databases = Path::Find->pathogen_databases;
@@ -129,118 +128,82 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
+    next unless (@lanes);
+
     # filter lanes
-    my @directory_or_file_paths;
-    my @extended_analysis_details;
-    for my $lane_obj (@lanes) {
-        my $path =
-          $pathtrack->hierarchy_path_of_lane( $lane_obj, $hierarchy_template );
-        my $full_path = "$root/$path";
-        next unless ( -d $full_path );
+    $filetype = "bam" if ($verbose);
+    $lane_filter = Path::Find::Filter->new(
+        lanes           => \@lanes,
+        filetype        => $filetype,
+        root            => $root,
+        pathtrack       => $pathtrack,
+        type_extensions => \%type_extensions
+    );
+    my @matching_lanes = $lane_filter->filter;
 
-        if ( defined($file_type) && defined $file_types{$file_type} ) {
-            push( @directory_or_file_paths,
-                find_files_by_type( $file_types{$file_type}, $full_path ) );
+    # Set up to symlink/archive. Check whether default filetype should be used
+    my $use_default = 0;
+    $use_default = 1 if ( !defined $filetype );
+    if ( $lane_filter->found && ( $symlink || $archive ) ) {
+        my $name;
+        if ( defined $symlink ) {
+            $name = $symlink;
         }
-        else {
-            push( @directory_or_file_paths, $full_path );
+        elsif ( defined $archive ) {
+            $name = $archive;
         }
+        $name = $id if ( $name eq '' );
 
-        if ($extended_details) {
-            my @bam_files = find_files_by_type( $file_types{bam}, $full_path );
-            for my $bam_file (@bam_files) {
-                if ( -l $bam_file ) {
-                    next;
-                }
-                my $mapstats_id = find_mapstats_id($bam_file);
-                next unless ( defined($mapstats_id) );
+        my $linker = Path::Find::Linker->new(
+            lanes            => \@matching_lanes,
+            name             => $name,
+            use_default_type => $use_default
+        );
 
-                my $reference_location = get_reference_location($bam_file);
-
-                my @coverage_plots = grep { /$mapstats_id/ }
-                  find_files_by_type( $file_types{coverage}, $full_path );
-                for my $coverage_plot (@coverage_plots) {
-                    push(
-                        @extended_analysis_details,
-                        join( "\t",
-                            ( $coverage_plot, $reference_location, $bam_file ) )
-                    );
-                }
-
-            }
-
-        }
+        $linker->sym_links if ($symlink);
+        $linker->archive   if ($archive);
     }
 
-    # symlink
-    if ( defined $symlink ) {
-        for my $filtered_path (@directory_or_file_paths) {
-            `ln -s $filtered_path `;
-            if ( $filtered_path =~ /.bam$/ ) {
-                `ln -s $filtered_path.bai `;
-            }
-
-        }
-    }
-
-    if ($extended_details) {
-        for my $analysis_details (@extended_analysis_details) {
-            print $analysis_details . "\n";
-            $found = 1;
-        }
+    if ($verbose || $ref || $mapper || $date) {
+		# retrieve and filter verbose info: ref, mapper, date
+		my @verbose = @matching_lanes;
+        my $vb = Path::Find::Verbose->new(
+			lanes => \@verbose,
+			reference => $ref,
+			mapper => $mapper,
+			date => $date
+		);
+		
+		@verbose = @{ $vb->filter_on_reference } if($ref);
+		@verbose = @{ $vb->filter_on_mapper } if($mapper);
+		@verbose = @{ $vb->filter_on_date } if($date);
+		@verbose = @{ $vb->get_verbose_info } if($verbose);
+		
+		if(@verbose){
+			$found = 1;
+			foreach my $v_lane (@verbose){
+				print "$v_lane\n";
+			}
+		}
+		
     }
     else {
-        # print out the paths
-        for my $filtered_path (@directory_or_file_paths) {
-            print $filtered_path. "\n";
-            $found = 1;
-        }
+        if(@matching_lanes){
+			$found = 1;
+			foreach my $lane (@matching_lanes){
+				print "$lane\n";
+			}
+		}
     }
 
     $dbh->disconnect();
-    if ( $found
-      )    #no need to look in the next database if relevant data has been found
-    {
-        exit;
-    }
+	#no need to look in the next database if relevant data has been found
+    exit if ( $found );
 }
 
 unless ($found) {
 
     print "Could not find lanes or files for input data \n";
-
-}
-
-sub find_mapstats_id {
-    my ($bamfile_path) = @_;
-    my ( $filename, $directories, $suffix ) = fileparse($bamfile_path);
-    $filename =~ s!\.corrected\.bam$!!;
-    return $filename;
-}
-
-sub find_files_by_type {
-    my ( $type, $base_path ) = @_;
-
-    opendir( DIR, $base_path );
-    my @filenames = grep { /$type/i } readdir(DIR);
-    closedir(DIR);
-    for ( my $i = 0 ; $i < @filenames ; $i++ ) {
-        $filenames[$i] = $base_path . '/' . $filenames[$i];
-    }
-
-    return @filenames;
-}
-
-sub get_reference_location {
-    my $bam_file = shift;
-    open( IN, "-|", 'samtools view -H ' . $bam_file . ' | grep "^@SQ" ' )
-      or die "couldnt open bamfile";
-    my $seq_line = <IN>;
-    return "" unless defined($seq_line);
-    if ( $seq_line =~ /UR:file:(.+)fa/ ) {
-        return $1 . "gff";
-    }
-    return "";
 
 }
 

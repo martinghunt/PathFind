@@ -120,8 +120,7 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
-	next unless (@lanes);
-	print Dumper \@lanes;
+    next unless (@lanes);
 
     # filter lanes
     $lane_filter = Path::Find::Filter->new(
@@ -137,24 +136,24 @@ for my $database (@pathogen_databases) {
     # Set up to symlink/archive. Check whether default filetype should be used
     my $use_default = 0;
     $use_default = 1 if ( !defined $filetype );
-    if ( defined $symlink && $lane_filter->found ) {
-        my $sym_dest = $symlink;
-        $sym_dest = $id if ( $symlink eq '' );
-        Path::Find::Linker->new(
-            lanes            => \@matching_lanes,
-            name             => $sym_dest,
-            use_default_type => $use_default
-        )->sym_links;
-    }
+    if ( $lane_filter->found && ( $symlink || $archive ) ) {
+        my $name;
+        if ( defined $symlink ) {
+            $name = $symlink;
+        }
+        elsif ( defined $archive ) {
+            $name = $archive;
+        }
+        $name = $id if ( $name eq '' );
 
-    if ( defined $archive && $lane_filter->found ) {
-        my $arch_name = $archive;
-        $arch_name = $id if ( $archive eq '' );
-        Path::Find::Linker->new(
+        my $linker = Path::Find::Linker->new(
             lanes            => \@matching_lanes,
-            name             => $arch_name,
+            name             => $name,
             use_default_type => $use_default
-        )->archive;
+        );
+
+        $linker->sym_links if ($symlink);
+        $linker->archive   if ($archive);
     }
 
     foreach my $ml (@matching_lanes) {
