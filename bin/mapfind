@@ -29,11 +29,11 @@ use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
 use Getopt::Long;
-use Pathfind;
+use Path::Find;
 use Pathogens::Reports::Mapping::Report;
-use FindLanes;
-use PathfindLog;
-eval{ PathfindLog->new(logfile => '/nfs/pathnfs05/log/pathfindlog/mapfind.log', args => \@ARGV)->commandline(); };
+use Path::Find::Lanes;
+use Path::Find::Log;
+eval{ Path::Find::Log->new(logfile => '/nfs/pathnfs05/log/pathfindlog/mapfind.log', args => \@ARGV)->commandline(); };
 
 my ( $type, $id, $qc, $symlink, $output, $help, $add_reference, $symlinkname_opts, $csv_file, $reference );
 
@@ -78,52 +78,35 @@ Using the option -symlink will create a symlink to the queried data in the curre
 Using the option -rename will rename the symlink to include the lane. Alternatively, the symlink can be renamed to include the sample, reference, mapper or lane by supplying any combination of these terms to the -rename option (e.g. -rename sample.mapper or -rename reference.lane).
 USAGE
 
-# Get databases
-my @pathogen_databases = Pathfind->pathogen_databases;
-my $hierarchy_template = Pathfind->hierarchy_template;
+die "The archive and symlink options cannot be used together\n"
+  if ( defined $archive && defined $symlink );
 
-my $pathtrack;
-my $found = 0;    #assume nothing found
-my $min   = 0;
-my $max   = 1;
-my $destination;
+# set file type extension regular expressions
+my %type_extensions = (
+    bam         => 'markdup\.bam$',
+);
 
-if ($symlink) {
-    $destination = defined($output) ? $output : getcwd;
-    if ( !-e $destination ) {
-        print
-"The directory $destination does not exist, please specify a valid destination output directory for the symlinks";
-        exit;
-    }
-}
+my $lane_filter;
+my $found = 0;
 
-# check rename options
-if ( defined $symlinkname_opts ) {
-    for ( split( /\./, $symlinkname_opts ) ) {
-        next if m/^(sample|lane|reference|mapper)$/;
-        die
-          "Unrecognised option '$_' in --rename options\nRecognised options are: sample, lane, reference and mapper\n";
-    }
-}
-
-# Quotemeta the reference search string
-$reference = quotemeta $reference if defined $reference;
-
+# Get databases and loop through them
+my @pathogen_databases = Path::Find->pathogen_databases;
 for my $database (@pathogen_databases) {
 
-    # Connect to database
-    $pathtrack = Pathfind->instantiate_vrtrack($database) or die "Failed to create VRTrack object for '$database'\n";
-    my $dbh  = Pathfind->instantiate_dbi($database)    or die "Failed to create DBI object for '$database'\n";
-    my $root = Pathfind->hierarchy_root_dir($database) or die "Failed to find root directory for '$database'\n";
+    # Connect to database and get info
+    my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
 
-    my $find_lanes = FindLanes->new(
-        search_type => $type,
-        search_id   => $id,
-        pathtrack   => $pathtrack,
-        dbh         => $dbh,
-        processed_flag => 4
+    my $find_lanes = Path::Find::Lanes->new(
+        search_type    => $type,
+        search_id      => $id,
+        pathtrack      => $pathtrack,
+        dbh            => $dbh,
+        processed_flag => 512
     );
     my @lanes = @{ $find_lanes->lanes };
+
+    next unless (@lanes);
+
 
     foreach (@lanes) {
         my $l = $_;
