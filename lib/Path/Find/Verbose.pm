@@ -44,7 +44,7 @@ sub filter_on_reference {
     my @passed_lanes;
     foreach my $l (@lanes) {
         my $lane_ref = $self->_reference_name($l);
-        push( @passed_lanes, $l ) if ( $1 eq $given_ref );
+        push( @passed_lanes, $l ) if ( $lane_ref eq $given_ref );
     }
     return \@passed_lanes;
 }
