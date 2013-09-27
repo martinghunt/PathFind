@@ -106,7 +106,7 @@ sub _get_mapper {
 
 sub _bam_date {
     my ( $self, $bam_file ) = @_;
-    my $bam_date = `ls -l --time-style="+%Y-%m-%d" | awk '{print $6}'`;
+    my $bam_date = `ls -l --time-style="+%Y-%m-%d" $bam_file | awk '{print $6}'`;
     chomp $bam_date;
     return $bam_date;
 }
