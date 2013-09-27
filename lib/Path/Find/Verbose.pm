@@ -70,17 +70,8 @@ sub filter_on_date {
 
     my @passed_lanes;
     foreach my $l (@lanes) {
-		print "BAM passed: $l\n";
         my $bam_date = $self->_bam_date($l);
-        if ( $self->_is_later($bam_date) ) {
-            push( @passed_lanes, $l );
-            print "$bam_date is later than $earliest_date\n";
-			print "$l\n";
-        }
-		else{
-			print "$bam_date is NOT later than $earliest_date\n";
-			print "$l\n";
-		}
+        push( @passed_lanes, $l ) if ( $self->_is_later($bam_date) );
     }
     return \@passed_lanes;
 }
@@ -115,7 +106,6 @@ sub _get_mapper {
 
 sub _bam_date {
     my ( $self, $bam_file ) = @_;
-	print "BAM recieved: $bam_file\n";
     my $bam_date =
       `ls -l --time-style="+%d-%m-%Y" $bam_file | awk '{print \$6}'`;
     chomp $bam_date;
