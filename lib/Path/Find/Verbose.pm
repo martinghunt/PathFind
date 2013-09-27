@@ -74,9 +74,11 @@ sub filter_on_date {
         if ( $self->_is_later($bam_date) ) {
             push( @passed_lanes, $l );
             print "$bam_date is later than $earliest_date\n";
+			print "$l\n";
         }
 		else{
 			print "$bam_date is NOT later than $earliest_date\n";
+			print "$l\n";
 		}
     }
     return \@passed_lanes;
