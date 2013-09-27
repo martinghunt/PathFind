@@ -43,8 +43,7 @@ sub filter_on_reference {
 
     my @passed_lanes;
     foreach my $l (@lanes) {
-        my $lane_ref = $self->_reference_ur($l);
-        $lane_ref =~ /([^\/]+)\.gff$/;
+        my $lane_ref = $self->_reference_name($l);
         push( @passed_lanes, $l ) if ( $1 eq $given_ref );
     }
     return \@passed_lanes;
@@ -76,14 +75,15 @@ sub filter_on_date {
     return \@passed_lanes;
 }
 
-sub _reference_ur {
+sub _reference_name {
     my ( $self, $bam_file ) = @_;
 
     open( SQ, "-|", "samtools view -H $bam_file | grep ^\@SQ" )
       or die "$bam_file could not be opened\n";
     while ( my $line = <SQ> ) {
         if ( $line =~ /UR:file:(.+)fa/ ) {
-            return $1 . "gff";
+			$lane_ref =~ /([^\/]+$)/;
+            return $1;
         }
     }
     return undef;
