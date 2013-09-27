@@ -122,8 +122,6 @@ for my $database (@pathogen_databases) {
 
     next unless (@lanes);
 
-	print Dumper $lanes[0];
-
     # filter lanes
     $lane_filter = Path::Find::Filter->new(
         lanes           => \@lanes,
