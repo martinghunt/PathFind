@@ -81,7 +81,7 @@ sub _reference_name {
     open( SQ, "-|", "samtools view -H $bam_file | grep ^\@SQ" )
       or die "$bam_file could not be opened\n";
     while ( my $line = <SQ> ) {
-        if ( $line =~ /UR:file:(.+)fa/ ) {
+        if ( $line =~ /UR:file:(.+)\.fa/ ) {
 			my $lane_ref = $1;
 			$lane_ref =~ /([^\/]+$)/;
             return $1;
