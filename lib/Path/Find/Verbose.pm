@@ -106,7 +106,7 @@ sub _get_mapper {
 
 sub _bam_date {
     my ( $self, $bam_file ) = @_;
-    my $bam_date = `ls -l --time-style="+%Y-%m-%d" $bam_file | awk '{print \$6}'`;
+    my $bam_date = `ls -l --time-style="+%d-%m-%Y" $bam_file | awk '{print \$6}'`;
     chomp $bam_date;
     return $bam_date;
 }
@@ -115,21 +115,15 @@ sub _is_later {
     my ( $self, $given_date ) = @_;
     my $earliest_date = $self->date;
 
-    my @e_date = split( "-", $earliest_date );
-    my @g_date = split( "-", $given_date );
+    my ($e_dy, $e_mn, $e_yr) = split( "-", $earliest_date );
+    my ($g_dy, $g_mn, $g_yr) = split( "-", $given_date );
 
-    for my $i ( 0 .. 3 ) {
-        if ( $e_date[$i] == $g_date[$i] ) {
-            next;
-        }
-        elsif ( $e_date[$i] < $g_date[$i] ) {
-            return 1;
-        }
-        else {
-            return 0;
-        }
-    }
-
+    $later = 0;
+	$later = 1 if ($e_yr < $g_yr);
+	$later = 1 if (($e_mn < $g_mn) && $later == 0);
+	$later = 1 if (($e_dy < $g_dy) && $later == 0);
+	
+	return $later;
 }
 
 no Moose;
