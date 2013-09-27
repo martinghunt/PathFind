@@ -29,48 +29,58 @@ use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
 use Getopt::Long;
-use Path::Find;
 use Pathogens::Reports::Mapping::Report;
+
+use Path::Find;
 use Path::Find::Lanes;
+use Path::Find::Filter;
+use Path::Find::Linker;
+use Path::Find::Verbose;
 use Path::Find::Log;
 eval{ Path::Find::Log->new(logfile => '/nfs/pathnfs05/log/pathfindlog/mapfind.log', args => \@ARGV)->commandline(); };
 
-my ( $type, $id, $qc, $symlink, $output, $help, $add_reference, $symlinkname_opts, $csv_file, $reference );
-
-GetOptions(
-    't|type=s'   => \$type,
-    'id=s'       => \$id,
-    'qc=s'       => \$qc,
-    'symlink'    => \$symlink,
-    'o|output=s' => \$output,
-    'd|display'  => \$add_reference,
-    'r|rename:s' => \$symlinkname_opts,
-    'results:s'  => \$csv_file,
-    'reference=s'=> \$reference,     
-    'h|help'     => \$help,
+my (
+    $type,  $id,        $symlink, $archive, $help, $verbose,
+    $stats, $file_type, $ref,     $date,    $mapper
 );
 
-(        $type
-      && $id
-      && $id ne ''
-      && ( $type eq 'study' || $type eq 'lane' || $type eq 'file' || $type eq 'sample' || $type eq 'species')
-      && ( !$qc || ( $qc && ( $qc eq 'passed' || $qc eq 'failed' || $qc eq 'pending' ) ) )
-      && ( !defined($csv_file) || $csv_file ne '' )
-      && ( !defined($reference) || $reference ne '') )
-  or die <<USAGE;
+GetOptions(
+    't|type=s'      => \$type,
+    'i|id=s'        => \$id,
+    'h|help'        => \$help,
+    'f|filetype=s'  => \$filetype,
+    'l|symlink:s'   => \$symlink,
+    'a|archive:s'   => \$archive,
+    's|stats:s'     => \$stats,
+    'v|verbose'     => \$verbose,
+    'r|reference=s' => \$ref,
+    'd|date=s'      => \$date,
+    'm|mapper=s'    => \$mapper,
+);
+
+(
+    $type && $id && $id ne '' && ( $type eq 'study'
+        || $type eq 'lane'
+        || $type eq 'sample'
+        || $type eq 'file'
+        || $type eq 'species'
+        || $type eq 'database' )
+) or die <<USAGE;
 
 Usage: $0
      -t|type  		<study|lane|file|sample|species>
-     -id 		<study id|study name|lane name|file of lane names>
-     -qc      		<passed|failed|pending>
-     -reference         <filter on reference>
-     -symlink 		<create a symlink to the data>
-     -o|output 		<output dir for sym links>
-     -d|display         <display reference and mapper>
-     -r|rename          <rename symlink to include sample, lane, reference or mapper>     
-     -results           <output file for summary of mapping results in CSV format>
+     -i|id 		<study id|study name|lane name|file of lane names>
+	 -f|filetype	<bam>
+     -l|symlink 		<create a symlink to the data>
+	 -a|arvhive		<archive the data>
+     -v|verbose         <display reference and mapper>
+     -s|stats           <output file for summary of mapping results in CSV format>
+	 -r|reference	<filter results based on reference>
+	 -m|mapper	<filter results based on mapper>
+	 -d|date	<show only results produced after a given date>
      -h|help  		<print this message>
 
+***********
 Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the mapped bam files with the specified study or lane. 
 Using the option -qc (passed|failed|pending) will limit the results to data of the specified qc status.
 Using the option -reference will limit the results to a lanes mapped against a specific reference (eg 'H1N1','3D7').
