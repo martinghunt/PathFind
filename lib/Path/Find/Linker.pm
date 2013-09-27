@@ -75,10 +75,10 @@ sub _build__default_type {
         pathfind       => '/*.fastq.gz',
         assemblyfind   => 'contigs',
         annotationfind => '/*.gff',
-        mapfind        => 'markdup\.bam$',
+        mapfind        => '/*markdup.bam',
         snpfind        => 'vcf',
         rnaseqfind     => 'spreadsheet',
-        tradisfind     => 'insertion\.csv$',
+        tradisfind     => '/*insertion.csv',
     );
 
 	# capture calling script name
