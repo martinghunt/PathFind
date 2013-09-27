@@ -26,7 +26,7 @@ sub get_verbose_info {
     my @lanes = @{ $self->lanes };
     my @vb;
     foreach my $l (@lanes) {
-        $ref    = $self->_reference_ur($l);
+        $ref    = $self->_reference_name($l);
         $mapper = $self->_get_mapper($l);
         $date   = $self->_bam_date($l);
 
