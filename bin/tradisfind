@@ -49,7 +49,7 @@ eval {
 
 my (
     $type,  $id,        $symlink, $archive, $help, $verbose,
-    $stats, $file_type, $ref,     $date,    $mapper
+    $stats, $filetype, $ref,     $date,    $mapper
 );
 
 GetOptions(
