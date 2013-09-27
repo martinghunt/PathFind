@@ -120,7 +120,10 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
-    next unless (@lanes);
+	unless (@lanes) {
+        $dbh->disconnect();
+        next;
+    }
 
     # filter lanes
     $lane_filter = Path::Find::Filter->new(

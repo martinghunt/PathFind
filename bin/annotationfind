@@ -158,7 +158,10 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
-	next unless (@lanes);
+	unless (@lanes) {
+        $dbh->disconnect();
+        next;
+    }
 
     # check directories exist, find & filter by file type
     $lane_filter = Path::Find::Filter->new(

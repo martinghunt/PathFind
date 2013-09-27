@@ -73,6 +73,11 @@ GetOptions(
         || $type eq 'file'
         || $type eq 'species'
         || $type eq 'database' )
+	&& ( !$filetype || ( $filetype && 
+		( $filetype eq 'bam' || 
+		$filetype eq 'spreadsheet' ||
+		$filetype eq 'intergenic' ||
+		$filetype eq 'coverage') ) )
 ) or die <<USAGE;
 
 Usage: $0
@@ -129,7 +134,10 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
-    next unless (@lanes);
+	unless (@lanes) {
+        $dbh->disconnect();
+        next;
+    }
 
     # filter lanes
     $filetype = "bam" if ($verbose || $date || $ref || $mapper);

@@ -115,80 +115,43 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
-    next unless (@lanes);
+	unless (@lanes) {
+        $dbh->disconnect();
+        next;
+    }
 
+    # filter lanes
+	$lane_filter = Path::Find::Filter->new(
+        lanes           => \@lanes,
+        filetype        => $filetype,
+        qc              => $qc,
+        root            => $root,
+        pathtrack       => $pathtrack,
+        type_extensions => \%type_extensions
+    );
+    my @matching_lanes = $lane_filter->filter;
 
-    foreach (@lanes) {
-        my $l = $_;
-        if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
-
-            my $path = $pathtrack->hierarchy_path_of_lane( $l, $hierarchy_template );
-
-            my $mapstats = $l->mappings_excluding_qc();
-            foreach my $mapstat ( @{$mapstats} ) {
-
-                my $assembly_name = $mapstat->assembly->name;
-                my $mapper        = $mapstat->mapper->name;
-
-                # Filter on assembly name
-                next if ( defined($reference) && $assembly_name !~ m/$reference/i );
-
-                my @mapping_filenames;
-                push( @mapping_filenames, mapping_filename( $l, 'markdup',    $mapstat ) );
-                push( @mapping_filenames, mapping_filename( $l, 'raw.sorted', $mapstat ) );
-
-                for my $mapping_filename (@mapping_filenames) {
-                    my $full_path = "$root/$path/$mapping_filename";
-                    if ( -e "$full_path" ) {
-                        $found = 1;
-
-                        unless ($add_reference) {
-                            print "$full_path\n";    # Default
-                        }
-                        else {
-                            print "$full_path\t$assembly_name\t$mapper\n";
-                        }
-
-                        my $symlinkname       = '';
-                        my $symlinkname_index = '';
-                        if ( defined $symlinkname_opts ) {
-
-                            # Add sensible link name
-                            $symlinkname .= '/' if $destination;
-
-                            if ( $symlinkname_opts eq '' ) {
-                                $symlinkname .= $l->name . '.';    # default to lane name
-                            }
-                            else {
-                                for my $opt ( split( /\./, $symlinkname_opts ) ) {
-                                    $symlinkname .= $pathtrack->hierarchy_path_of_lane( $l, 'sample' )
-                                      if $opt eq 'sample';
-                                    $symlinkname .= $l->name       if $opt eq 'lane';
-                                    $symlinkname .= $assembly_name if $opt eq 'reference';
-                                    $symlinkname .= $mapper        if $opt eq 'mapper';
-                                    $symlinkname .= '.';
-                                }
-                            }
-
-                            $symlinkname .= $mapstat->id() . '.bam';
-                            $symlinkname_index = $symlinkname . '.bai';
-                        }
-
-                        if ($symlink) {
-                            my $cmd = qq[ ln -s $full_path $destination$symlinkname ];
-                            qx( $cmd );
-
-                            my $full_path_index_file = $full_path . ".bai";
-                            if ( -e "$full_path_index_file" ) {
-                                $cmd = qq[ ln -s $full_path_index_file $destination$symlinkname_index ];
-                                qx( $cmd );
-                            }
-                        }
-                        last;
-                    }
-                }
-            }
+    # Set up to symlink/archive. Check whether default filetype should be used
+    my $use_default = 0;
+    $use_default = 1 if ( !defined $filetype );
+    if ( $lane_filter->found && ( $symlink || $archive ) ) {
+        my $name;
+        if ( defined $symlink ) {
+            $name = $symlink;
         }
+        elsif ( defined $archive ) {
+            $name = $archive;
+        }
+        $name = $id if ( $name eq '' );
+
+        my $linker = Path::Find::Linker->new(
+            lanes            => \@matching_lanes,
+            name             => $name,
+            use_default_type => $use_default
+        );
+
+        $linker->sym_links if ($symlink);
+        $linker->archive   if ($archive);
     }
 
     # Output CSV file
@@ -232,24 +195,6 @@ unless ($found) {
 
     print "Could not find lanes or files for input data \n";
 
-}
-
-sub mapping_filename {
-    my $lane   = shift;
-    my $suffix = shift;
-
-    #my $mapstat = $lane->latest_mapping();
-    my $mapstat = shift;
-    return unless $mapstat;
-    my $reads_type;
-    if ( $lane->is_paired() ) {
-        $reads_type = 'pe';
-    }
-    else {
-        $reads_type = 'se';
-    }
-
-    return $mapstat->id . '.' . $reads_type . '.' . $suffix . '.bam';
 }
 
 # Output CSV File
