@@ -118,7 +118,7 @@ sub _is_later {
     my ($e_dy, $e_mn, $e_yr) = split( "-", $earliest_date );
     my ($g_dy, $g_mn, $g_yr) = split( "-", $given_date );
 
-    $later = 0;
+    my $later = 0;
 	$later = 1 if ($e_yr < $g_yr);
 	$later = 1 if (($e_mn < $g_mn) && $later == 0);
 	$later = 1 if (($e_dy < $g_dy) && $later == 0);
