@@ -132,7 +132,7 @@ for my $database (@pathogen_databases) {
     next unless (@lanes);
 
     # filter lanes
-    $filetype = "bam" if ($verbose);
+    $filetype = "bam" if ($verbose || $date || $ref || $mapper);
     $lane_filter = Path::Find::Filter->new(
         lanes           => \@lanes,
         filetype        => $filetype,
