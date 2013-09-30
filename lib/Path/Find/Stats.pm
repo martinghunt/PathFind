@@ -28,7 +28,7 @@ sub output_csv_file {
 	open(my $csv_fh, ">", $csv_file);
 	
     my $report =
-      Pathogens::Reports::Mapping::Report->new( vrtrack => $vrtrack, filehandle => $csv_fh, lanes => $lanes );
+      Pathogens::Reports::Mapping::Report->new( vrtrack => $vrtrack, filehandle => $csv_fh, lanes => $self->lanes );
     $report->output_csv();
     return;
 }
