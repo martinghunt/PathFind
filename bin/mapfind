@@ -186,7 +186,6 @@ for my $database (@pathogen_databases) {
     }
 
 	$lane_filter->lane_objects(\@matching_lanes);
-	exit;
 
 	my $csv_file;
     # Output CSV file
