@@ -48,7 +48,7 @@ eval {
 };
 
 my (
-    $type,  $id,        $symlink, $archive, $help, $verbose,
+    $type,  $id,       $symlink, $archive, $help, $verbose,
     $stats, $filetype, $ref,     $date,    $mapper
 );
 
@@ -67,17 +67,25 @@ GetOptions(
 );
 
 (
-    $type && $id && $id ne '' && ( $type eq 'study'
+         $type
+      && $id
+      && $id ne ''
+      && ( $type eq 'study'
         || $type eq 'lane'
         || $type eq 'sample'
         || $type eq 'file'
         || $type eq 'species'
         || $type eq 'database' )
-	&& ( !$filetype || ( $filetype && 
-		( $filetype eq 'bam' || 
-		$filetype eq 'spreadsheet' ||
-		$filetype eq 'intergenic' ||
-		$filetype eq 'coverage') ) )
+      && (
+        !$filetype
+        || (
+            $filetype
+            && (   $filetype eq 'bam'
+                || $filetype eq 'spreadsheet'
+                || $filetype eq 'intergenic'
+                || $filetype eq 'coverage' )
+        )
+      )
 ) or die <<USAGE;
 
 Usage: $0
@@ -134,13 +142,13 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
-	unless (@lanes) {
+    unless (@lanes) {
         $dbh->disconnect();
         next;
     }
 
     # filter lanes
-    $filetype = "bam" if ($verbose || $date || $ref || $mapper);
+    $filetype = "bam" if ( $verbose || $date || $ref || $mapper );
     $lane_filter = Path::Find::Filter->new(
         lanes           => \@lanes,
         filetype        => $filetype,
@@ -173,41 +181,43 @@ for my $database (@pathogen_databases) {
         $linker->archive   if ($archive);
     }
 
-    if ($verbose || $ref || $mapper || $date) {
-		# retrieve and filter verbose info: ref, mapper, date
-		my @verbose = @matching_lanes;
+    if ( $verbose || $ref || $mapper || $date ) {
+
+        # retrieve and filter verbose info: ref, mapper, date
+        #my @verbose = @matching_lanes;
         my $vb = Path::Find::Verbose->new(
-			lanes => \@verbose,
-			reference => $ref,
-			mapper => $mapper,
-			date => $date
-		);
-		
-		@verbose = @{ $vb->filter_on_reference } if($ref);
-		@verbose = @{ $vb->filter_on_mapper } if($mapper);
-		@verbose = @{ $vb->filter_on_date } if($date);
-		@verbose = @{ $vb->get_verbose_info } if($verbose);
-		
-		if(@verbose){
-			$found = 1;
-			foreach my $v_lane (@verbose){
-				print "$v_lane\n";
-			}
-		}
-		
+            lanes     => \@matching_lanes,
+            reference => $ref,
+            mapper    => $mapper,
+            date      => $date
+        );
+
+        @matching_lanes = @{ $vb->filter_on_reference } if ($ref);
+        @matching_lanes = @{ $vb->filter_on_mapper }    if ($mapper);
+        @matching_lanes = @{ $vb->filter_on_date }      if ($date);
+    }
+
+    if ($verbose) {
+        @verbose = @{ $vb->get_verbose_info };
+        next unless (@verbose);
+        $found = 1;
+        foreach my $v_lane (@verbose) {
+            print "$v_lane\n";
+        }
     }
     else {
-        if(@matching_lanes){
-			$found = 1;
-			foreach my $lane (@matching_lanes){
-				print "$lane\n";
-			}
-		}
+        if (@matching_lanes) {
+            $found = 1;
+            foreach my $lane (@matching_lanes) {
+                print "$lane\n";
+            }
+        }
     }
 
     $dbh->disconnect();
-	#no need to look in the next database if relevant data has been found
-    exit if ( $found );
+
+    #no need to look in the next database if relevant data has been found
+    exit if ($found);
 }
 
 unless ($found) {
