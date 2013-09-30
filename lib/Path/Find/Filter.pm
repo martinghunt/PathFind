@@ -114,7 +114,7 @@ sub lane_objects{
 	
 	my @obj_paths;
 	foreach my $o (@lane_objects){
-		push(@obj_paths, $o);
+		push(@obj_paths, $self->_get_full_path($o));
 	}
 	print "OBJ_PATHS:\n";
 	print Dumper \@obj_paths;
