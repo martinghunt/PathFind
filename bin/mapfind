@@ -41,7 +41,7 @@ eval{ Path::Find::Log->new(logfile => '/nfs/pathnfs05/log/pathfindlog/mapfind.lo
 
 my (
     $type,  $id,        $symlink, $archive, $help, $verbose,
-    $stats, $file_type, $ref,     $date,    $mapper
+    $stats, $filetype, $ref,     $date,    $mapper
 );
 
 GetOptions(
@@ -124,7 +124,6 @@ for my $database (@pathogen_databases) {
 	$lane_filter = Path::Find::Filter->new(
         lanes           => \@lanes,
         filetype        => $filetype,
-        qc              => $qc,
         root            => $root,
         pathtrack       => $pathtrack,
         type_extensions => \%type_extensions,
@@ -189,6 +188,7 @@ for my $database (@pathogen_databases) {
 	$lane_filter->lane_objects(\@matching_lanes);
 	exit;
 
+	my $csv_file;
     # Output CSV file
     if ( $csv_file && $found ) {
 		# set default stats file name
