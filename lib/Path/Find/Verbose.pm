@@ -122,7 +122,7 @@ sub _is_later {
     my ( $g_dy, $g_mn, $g_yr ) = split( "-", $given_date );
 
     my $later = 0;
-	print "later = $later. Checking year: \n";
+	print "\n\nlater = $later. Checking year: \n";
     $later = 1 if ( $e_yr < $g_yr );
 	print "later = $later. Checking month: \n";
     $later = 1 if ( ( $e_mn < $g_mn ) && $later == 0 );
