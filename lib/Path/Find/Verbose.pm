@@ -70,6 +70,7 @@ sub filter_on_date {
     my @passed_lanes;
     foreach my $l (@lanes) {
         my $bam_date = $self->_bam_date($l);
+		print "$bam_date is later? " . ($self->_is_later($bam_date) . "\n");
         push( @passed_lanes, $l ) if ( $self->_is_later($bam_date) );
     }
     return \@passed_lanes;
