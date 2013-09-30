@@ -37,6 +37,7 @@ use Path::Find::Lanes;
 use Path::Find::Filter;
 use Path::Find::Linker;
 use Path::Find::Verbose;
+use Path::Find::Stats;
 use Path::Find::Log;
 eval{ Path::Find::Log->new(logfile => '/nfs/pathnfs05/log/pathfindlog/mapfind.log', args => \@ARGV)->commandline(); };
 
