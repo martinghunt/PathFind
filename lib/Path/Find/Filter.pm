@@ -111,17 +111,15 @@ sub lane_objects{
 	my ($self, $ml) = @_;
 	my @matching_lanes = @{ $ml };
 	
-	print "\@MATCHING_LANES:\n";
-	print Dumper \@matching_lanes;
-	
 	my @lane_objects = @{ $self->lanes };
 	
 	my @matching_objects;
 	foreach my $o (@lane_objects){
-		my $o_path = $self->_get_full_path($o);
+		my @o_paths = $self->_get_full_path($o);
+		my $o_path = $o_paths[0];
 		foreach my $m_path (@matching_lanes){
 			if($m_path =~ /$o_path/){
-				#print "$o_path is in $m_path\n";
+				print "$o_path is in $m_path\n";
 				push(@matching_objects, $o);
 			}
 		}
