@@ -112,7 +112,7 @@ for my $database (@pathogen_databases) {
         search_id      => $id,
         pathtrack      => $pathtrack,
         dbh            => $dbh,
-        processed_flag => 512
+        processed_flag => 4
     );
     my @lanes = @{ $find_lanes->lanes };
 

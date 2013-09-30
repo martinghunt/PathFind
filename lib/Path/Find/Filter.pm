@@ -112,14 +112,14 @@ sub lane_objects{
 	my @matching_lanes = @{ $ml };
 	my @lane_objects = @{ $self->lanes };
 	
-	my @obj_paths;
+	my @matching_objects;
 	foreach my $o (@lane_objects){
-		push(@obj_paths, $self->_get_full_path($o));
+		my $o_path = $self->_get_full_path($o);
+		foreach my $m_path (@matching_lanes){
+			push(@matching_objects, $o) if($m_path =~ /$o_path/);
+		}
 	}
-	print "OBJ_PATHS:\n";
-	print Dumper \@obj_paths;
-	print "\n\n\nMATCHING LANES:\n";
-	print Dumper \@matching_lanes;
+	return \@matching_objects;
 }
 
 sub _get_full_path {
