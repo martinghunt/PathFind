@@ -30,6 +30,8 @@ sub output_csv_file {
     my $report =
       Pathogens::Reports::Mapping::Report->new( vrtrack => $vrtrack, filehandle => $csv_fh, lanes => $self->lanes );
     $report->output_csv();
+
+	close($csv_fh);
     return;
 }
 

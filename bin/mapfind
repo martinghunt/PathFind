@@ -132,7 +132,21 @@ for my $database (@pathogen_databases) {
     );
     my @matching_lanes = $lane_filter->filter;
 
-    # Set up to symlink/archive. Check whether default filetype should be used
+	# retrieve and filter on verbose info: ref, mapper, date
+    if ( $verbose || $ref || $mapper || $date ) {
+        $vb = Path::Find::Verbose->new(
+            lanes     => \@matching_lanes,
+            reference => $ref,
+            mapper    => $mapper,
+            date      => $date
+        );
+
+        @matching_lanes = @{ $vb->filter_on_reference } if ($ref);
+        @matching_lanes = @{ $vb->filter_on_mapper }    if ($mapper);
+        @matching_lanes = @{ $vb->filter_on_date }      if ($date);
+    }
+
+	# Set up to symlink/archive. Check whether default filetype should be used
     my $use_default = 0;
     $use_default = 1 if ( !defined $filetype );
     if ( $lane_filter->found && ( $symlink || $archive ) ) {
@@ -155,38 +169,23 @@ for my $database (@pathogen_databases) {
         $linker->archive   if ($archive);
     }
 
-	if ($verbose || $ref || $mapper || $date) {
-		# retrieve and filter verbose info: ref, mapper, date
-		my @verbose = \@matching_lanes;
-        my $vb = Path::Find::Verbose->new(
-			lanes => \@verbose,
-			reference => $ref,
-			mapper => $mapper,
-			date => $date
-		);
-		
-		@verbose = @{ $vb->filter_on_reference } if($ref);
-		@verbose = @{ $vb->filter_on_mapper } if($mapper);
-		@verbose = @{ $vb->filter_on_date } if($date);
-		@verbose = @{ $vb->get_verbose_info } if($verbose);
-		
-		if(@verbose){
-			$found = 1;
-			foreach my $v_lane (@verbose){
-				print "$v_lane\n";
-			}
-		}
-		
+    if ($verbose) {
+        my @verbose = @{ $vb->get_verbose_info };
+        next unless (@verbose);
+        $found = 1;
+        foreach my $v_lane (@verbose) {
+            print "$v_lane\n";
+        }
     }
     else {
-        if(@matching_lanes){
-			$found = 1;
-			foreach my $lane (@matching_lanes){
-				print "$lane\n";
-			}
-		}
+        if (@matching_lanes) {
+            $found = 1;
+            foreach my $lane (@matching_lanes) {
+                print "$lane\n";
+            }
+        }
     }
-
+	
     # Output CSV file
     if ( $stats && $found ) {
 		# set default stats file name

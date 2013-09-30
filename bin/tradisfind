@@ -158,10 +158,8 @@ for my $database (@pathogen_databases) {
     );
     my @matching_lanes = $lane_filter->filter;
 
+	# retrieve and filter verbose on info: ref, mapper, date
     if ( $verbose || $ref || $mapper || $date ) {
-
-        # retrieve and filter verbose info: ref, mapper, date
-        #my @verbose = @matching_lanes;
         $vb = Path::Find::Verbose->new(
             lanes     => \@matching_lanes,
             reference => $ref,
