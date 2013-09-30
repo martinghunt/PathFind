@@ -70,7 +70,8 @@ sub filter_on_date {
     my @passed_lanes;
     foreach my $l (@lanes) {
         my $bam_date = $self->_bam_date($l);
-		print "$bam_date is later than $earliest_date? " . ($self->_is_later($bam_date) . "\n");
+        print "$bam_date is later than $earliest_date? "
+          . ( $self->_is_later($bam_date) . "\n" );
         push( @passed_lanes, $l ) if ( $self->_is_later($bam_date) );
     }
     return \@passed_lanes;
@@ -83,8 +84,8 @@ sub _reference_name {
       or die "$bam_file could not be opened\n";
     while ( my $line = <SQ> ) {
         if ( $line =~ /UR:file:(.+)\.fa/ ) {
-			my $lane_ref = $1;
-			$lane_ref =~ /([^\/]+$)/;
+            my $lane_ref = $1;
+            $lane_ref =~ /([^\/]+$)/;
             return $1;
         }
     }
@@ -122,13 +123,19 @@ sub _is_later {
     my ( $g_dy, $g_mn, $g_yr ) = split( "-", $given_date );
 
     my $later = 0;
-	print "\n\nlater = $later. Checking year: \n";
-    $later = 1 if ( $e_yr < $g_yr );
-	print "later = $later. Checking month: \n";
-    $later = 1 if ( ( $e_mn < $g_mn ) && $later == 0 );
-	print "later = $later. Checking day: \n";
-    $later = 1 if ( ( $e_dy < $g_dy ) && $later == 0 );
-	print print "later = $later.\n";
+
+    $later = 1
+      if ( ($e_yr < $g_yr)
+        || ( $e_yr == $g_yr && $e_mn < $g_mn )
+        || ( $e_yr == $g_yr && $e_mn == $g_mn && $e_dy < $g_dy ) );
+
+    #print "\n\nlater = $later. Checking year: \n";
+    #$later = 1 if ( $e_yr < $g_yr );
+    #print "later = $later. Checking month: \n";
+    #$later = 1 if ( ( $e_mn < $g_mn ) && $later == 0 );
+    #print "later = $later. Checking day: \n";
+    #$later = 1 if ( ( $e_dy < $g_dy ) && $later == 0 );
+    #print print "later = $later.\n";
 
     return $later;
 }
