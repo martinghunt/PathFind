@@ -98,7 +98,7 @@ my %type_extensions = (
     bam         => 'markdup\.bam$',
 );
 
-my $lane_filter;
+my ($lane_filter, $vb);
 my $found = 0;
 
 # Get databases and loop through them
