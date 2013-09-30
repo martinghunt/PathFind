@@ -1,0 +1,160 @@
+#!/usr/bin/env perl
+
+=head1 NAME
+
+bacteria_pan_genome
+
+=head1 SYNOPSIS
+
+bacteria_pan_genome -t lane -i 1234
+
+=head1 DESCRIPTION
+
+Create a pan genome from a set of lanes
+
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=head1 METHODS
+
+=cut
+
+use strict;
+use warnings;
+no warnings 'uninitialized';
+
+use Data::Dumper;
+use Cwd;
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
+
+#use lib "/software/pathogen/internal/prod/lib";
+use lib "/nfs/users/nfs_c/cc21/lustre/repos/PathFind/lib";
+use lib "../lib";
+use Getopt::Long;
+use File::Path qw(make_path);
+use Cwd;
+use Path::Find;
+use Path::Find::Lanes;
+use Path::Find::Filter;
+use Path::Find::Log;
+use Path::Find::Linker;
+eval {
+    Path::Find::Log->new(
+        logfile => '/nfs/pathnfs05/log/pathfindlog/bacteria_pan_genome.log',
+        args    => \@ARGV
+    )->commandline();
+};
+
+my ( $type, $id, $help );
+
+GetOptions(
+    't|type=s' => \$type,
+    'i|id=s'   => \$id,
+    'h|help'   => \$help
+);
+
+(
+    $type && $id && $id ne '' && ( $type eq 'study'
+        || $type eq 'lane'
+        || $type eq 'file'
+        || $type eq 'sample'
+        || $type eq 'species'
+        || $type eq 'database' )
+) or die <<USAGE;
+Create a pan genome from a set of lanes
+Usage: bacteria_pan_genome
+	-t|type		<study|lane|file|sample|species>
+	-i|id		<study id|study name|lane name|file of lane names>
+	-h|help		<this help message>
+
+# On all lanes in a study
+bacteria_pan_genome -t study -i 1234
+
+# On all lanes in a file
+bacteria_pan_genome -t file -i example.txt
+
+# On all lanes in a multiplexed run
+bacteria_pan_genome -t lane -i 1234_5
+
+USAGE
+
+my @sub_directories = ( '/velvet_assembly/annotation', '/spades_assembly/annotation' );
+
+# set file type extension regular expressions
+my %type_extensions = ( gff => '\.gff$' );
+my $filetype        = 'gff';
+my $symlink         = 1;
+
+my $lane_filter;
+my $output_directory = join( '_', ( 'output', $type, $id ) );
+$output_directory =~ s!\W!_!gi;
+
+print
+"Creating pan genome. If you kill this process it will stop. How long it takes depends on how many samples there are and how busy the farm is.\n";
+
+# Get databases and loop through
+my @pathogen_databases = Path::Find->pathogen_databases;
+for my $database (@pathogen_databases) {
+
+    # Connect to database and get info
+    my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+
+    # find matching lanes
+    my $find_lanes = Path::Find::Lanes->new(
+        search_type    => $type,
+        search_id      => $id,
+        pathtrack      => $pathtrack,
+        dbh            => $dbh,
+        processed_flag => 1
+    );
+    my @lanes = @{ $find_lanes->lanes };
+
+    unless (@lanes) {
+        $dbh->disconnect();
+        next;
+    }
+
+    # check directories exist, find & filter by file type
+    $lane_filter = Path::Find::Filter->new(
+        lanes           => \@lanes,
+        filetype        => $filetype,
+        type_extensions => \%type_extensions,
+        root            => $root,
+        pathtrack       => $pathtrack,
+        subdirectories  => \@sub_directories
+    );
+    my @matching_lanes = $lane_filter->filter;
+    unless ($lane_filter->found) {
+        $dbh->disconnect();
+        next;
+    }
+
+    my $cwd = getcwd();
+
+    
+    # symlink
+    Path::Find::Linker->new(
+        lanes            => \@matching_lanes,
+        name             => $output_directory,
+        use_default_type => 0
+    )->sym_links;
+
+
+    `create_pan_genome *.gff`;
+
+    chdir($cwd);
+    $dbh->disconnect();
+
+    #no need to look in the next database if relevant data has been found
+    if ( $lane_filter->found ) {
+
+        #Path::Find::Stats->new()->write_stats;
+        exit;
+    }
+}
+
+unless ( $lane_filter->found ) {
+    print "Could not find lanes or files for input data \n";
+}
+
