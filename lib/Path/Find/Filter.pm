@@ -116,7 +116,10 @@ sub lane_objects{
 	foreach my $o (@lane_objects){
 		my $o_path = $self->_get_full_path($o);
 		foreach my $m_path (@matching_lanes){
-			push(@matching_objects, $o) if($m_path =~ /$o_path/);
+			if($m_path =~ /$o_path/){
+				print "$o_path is in $m_path\n";
+				push(@matching_objects, $o);
+			}
 		}
 	}
 	return \@matching_objects;
