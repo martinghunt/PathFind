@@ -110,6 +110,10 @@ sub find_files {
 sub lane_objects{
 	my ($self, $ml) = @_;
 	my @matching_lanes = @{ $ml };
+	
+	print "\@MATCHING_LANES:\n";
+	print Dumper \@matching_lanes;
+	
 	my @lane_objects = @{ $self->lanes };
 	
 	my @matching_objects;
