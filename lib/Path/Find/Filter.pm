@@ -15,7 +15,7 @@ Logic to filter lanes based on given criteria
        root      => $root,
        pathtrack => $pathtrack
    );
-   my @matching_lanes = $lane_filter->filter;
+   my @matching_paths = $lane_filter->filter;
    
 =method filter
 
@@ -27,6 +27,7 @@ use Moose;
 use VRTrack::Lane;
 use VRTrack::Individual;
 use Path::Find;
+use Data::Dumper;
 
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'hierarchy_template' =>
@@ -62,7 +63,7 @@ sub filter {
 
     my $type_extn = $self->type_extensions->{$filetype} if ($filetype);
 
-    my @matching_lanes;
+    my @matching_paths;
     foreach (@lanes) {
         my $l = $_;
         if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
@@ -77,20 +78,21 @@ sub filter {
                         chomp $m;
                         if ( -e "$full_path/$m" ) {
                             $self->_set_found(1);
-                            push( @matching_lanes, "$full_path/$m" );
+                            push( @matching_paths, "$full_path/$m" );
                         }
                     }
                 }
                 else {
                     if ( -e $full_path ) {
                         $self->_set_found(1);
-                        push( @matching_lanes, $full_path );
+                        push( @matching_paths, $full_path );
                     }
                 }
             }
         }
     }
-    return @matching_lanes;
+
+    return @matching_paths;
 }
 
 sub find_files {
@@ -103,6 +105,21 @@ sub find_files {
     else {
         return undef;
     }
+}
+
+sub lane_objects{
+	my ($self, $ml) = @_;
+	my @matching_lanes = @{ $ml };
+	my @lane_objects = @{ $self->lanes };
+	
+	my @obj_paths;
+	foreach my $o (@lane_objects){
+		push(@obj_paths, $o);
+	}
+	print "OBJ_PATHS:\n";
+	print Dumper \@obj_paths;
+	print "\n\n\nMATCHING LANES:\n";
+	print Dumper \@matching_lanes;
 }
 
 sub _get_full_path {

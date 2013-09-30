@@ -29,7 +29,6 @@ use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
 use Getopt::Long;
-use Pathogens::Reports::Mapping::Report;
 
 use Path::Find;
 use Path::Find::Lanes;
@@ -127,7 +126,7 @@ for my $database (@pathogen_databases) {
         qc              => $qc,
         root            => $root,
         pathtrack       => $pathtrack,
-        type_extensions => \%type_extensions
+        type_extensions => \%type_extensions,
     );
     my @matching_lanes = $lane_filter->filter;
 
@@ -154,34 +153,54 @@ for my $database (@pathogen_databases) {
         $linker->archive   if ($archive);
     }
 
+	if ($verbose || $ref || $mapper || $date) {
+		# retrieve and filter verbose info: ref, mapper, date
+		my @verbose = \@matching_lanes;
+        my $vb = Path::Find::Verbose->new(
+			lanes => \@verbose,
+			reference => $ref,
+			mapper => $mapper,
+			date => $date
+		);
+		
+		@verbose = @{ $vb->filter_on_reference } if($ref);
+		@verbose = @{ $vb->filter_on_mapper } if($mapper);
+		@verbose = @{ $vb->filter_on_date } if($date);
+		@verbose = @{ $vb->get_verbose_info } if($verbose);
+		
+		if(@verbose){
+			$found = 1;
+			foreach my $v_lane (@verbose){
+				print "$v_lane\n";
+			}
+		}
+		
+    }
+    else {
+        if(@matching_lanes){
+			$found = 1;
+			foreach my $lane (@matching_lanes){
+				print "$lane\n";
+			}
+		}
+    }
+
+	$lane_filter->lane_objects(\@matching_lanes);
+	exit;
+
     # Output CSV file
     if ( $csv_file && $found ) {
-
-        # Filter on QC status
-        my @filter_lanes = ();
-        foreach my $lane (@lanes) {
-
-            # Filter on QC.
-            if ( $qc && $qc ne $lane->qc_status ) { next; }
-
-            # Filter on reference
-            my $ref_passed = 0;
-            my $mapstats = $lane->mappings_excluding_qc();
-            for my $mapstat (@$mapstats)
-            {
-                my $assembly_name = $mapstat->assembly->name;
-                next if ( defined($reference) && $assembly_name !~ m/$reference/i );
-                $ref_passed = 1;
-            }
-            next unless $ref_passed;
-
-            push @filter_lanes, $lane;
-        }
-
-        # Output lanes
-        open( my $csv_fh, ">$csv_file" ) || die("Error opening '$csv_file':$!");
-        output_csv_file( $csv_fh, $pathtrack, \@filter_lanes );
-        close($csv_fh);
+		# set default stats file name
+		my $csv_file = $stats || $id;
+		$csv_file =~ s/\s+/_/g;
+		$csv_file .= ".csv";
+		
+		# output lanes to file
+		Path::Find::Stats->new(
+			lanes => \@matching_lanes,
+			output => $csv_file,
+			vrtrack => $pathtrack
+			)->output_csv_file;
     }
 
     $dbh->disconnect();
@@ -197,12 +216,4 @@ unless ($found) {
 
 }
 
-# Output CSV File
-# Outputs QC and mapping results in CSV format to supplied filehandle.
-sub output_csv_file {
-    my ( $csv_fh, $vrtrack, $lanes ) = @_;
-    my $report =
-      Pathogens::Reports::Mapping::Report->new( vrtrack => $vrtrack, filehandle => $csv_fh, lanes => $lanes );
-    $report->output_csv();
-    return;
-}
+
