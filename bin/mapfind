@@ -190,7 +190,7 @@ for my $database (@pathogen_databases) {
     # Output CSV file
     if ( $stats && $found ) {
 		# set default stats file name
-		my $csv_file = $stats || $id;
+		my $csv_file = $id unless(defined $stats);
 		$csv_file =~ s/\s+/_/g;
 		$csv_file .= ".csv";
 		

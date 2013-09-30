@@ -129,14 +129,6 @@ sub _is_later {
         || ( $e_yr == $g_yr && $e_mn < $g_mn )
         || ( $e_yr == $g_yr && $e_mn == $g_mn && $e_dy < $g_dy ) );
 
-    #print "\n\nlater = $later. Checking year: \n";
-    #$later = 1 if ( $e_yr < $g_yr );
-    #print "later = $later. Checking month: \n";
-    #$later = 1 if ( ( $e_mn < $g_mn ) && $later == 0 );
-    #print "later = $later. Checking day: \n";
-    #$later = 1 if ( ( $e_dy < $g_dy ) && $later == 0 );
-    #print print "later = $later.\n";
-
     return $later;
 }
 
