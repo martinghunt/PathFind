@@ -192,7 +192,7 @@ for my $database (@pathogen_databases) {
     }
 
     # Output CSV file
-    if ( $stats && $found ) {
+    if ( defined $stats && $found ) {
 
         # set default stats file name
         my $csv_file = $stats;
