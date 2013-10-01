@@ -200,6 +200,8 @@ for my $database (@pathogen_databases) {
         $csv_file =~ s/\s+/_/g;
         $csv_file .= ".csv";
 
+		print "CSV_FILE: $csv_file\n";
+
         # get lane objects for matching lanes
         my $lane_objects = $lane_filter->lane_objects( \@matching_lanes );
 
