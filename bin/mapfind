@@ -76,24 +76,37 @@ GetOptions(
 ) or die <<USAGE;
 
 Usage: $0
-     -t|type  		<study|lane|file|sample|species>
-     -i|id 		<study id|study name|lane name|file of lane names>
-	 -f|filetype	<bam>
-     -l|symlink 		<create a symlink to the data>
-	 -a|arvhive		<archive the data>
-     -v|verbose         <display reference and mapper>
-     -s|stats           <output file for summary of mapping results in CSV format>
-	 -r|reference	<filter results based on reference>
-	 -m|mapper	<filter results based on mapper>
-	 -d|date	<show only results produced after a given date>
-     -h|help  		<print this message>
+     -t|type      <study|lane|file|sample|species>
+     -i|id        <study id|study name|lane name|file of lane names>
+     -f|filetype  <bam>
+     -l|symlink   <create a symlink to the data>
+     -a|arvhive   <archive the data>
+     -v|verbose   <display reference, mapper and date>
+     -s|stats     <output file for summary of mapping results in CSV format>
+     -r|reference <filter results based on reference>
+     -m|mapper    <filter results based on mapper>
+     -d|date      <show only results produced after a given date>
+     -h|help      <print this message>
 
 ***********
 Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the mapped bam files with the specified study or lane. 
-Using the option -qc (passed|failed|pending) will limit the results to data of the specified qc status.
-Using the option -reference will limit the results to a lanes mapped against a specific reference (eg 'H1N1','3D7').
-Using the option -symlink will create a symlink to the queried data in the current directory, alternativley an output directory can be specified in which the symlinks will be created.
-Using the option -rename will rename the symlink to include the lane. Alternatively, the symlink can be renamed to include the sample, reference, mapper or lane by supplying any combination of these terms to the -rename option (e.g. -rename sample.mapper or -rename reference.lane).
+Using the option -l|symlink will create a symlink to the queried data in the given directory (this will be created if it does not already exist). 
+Similarly, using the -a|archive option will create an archive of the results with the given filename. 
+The -s|stats option will produce a CSV file summarising the mapping statistics for the resulting lanes.
+In symlink, archive and stats cases, if no name is provided, the name will default to the given ID.
+
+Using the option -r|reference will limit the results to a lanes mapped against a specific reference (eg 'H1N1','3D7').
+The -m|mapper option will limit results to lanes mapped using the specified mapper (eg smalt, bowtie2 )
+The -d|date option will limit results to lanes processed after a given date. The date format should be dd-mm-yyyy (eg 01-01-2010)
+***********
+# produce an archive named 1234.tar.gz with all matching lanes
+$0 -t study -i 1234 -a 
+# produce an archive named myarchive.tar.gz with all matching lanes
+$0 -t study -i 1234 -a myarchive
+# create symlinks to data created after Dec 25th 2011 in the directory symlink_dir
+$0 -t study -i 1234 -l symlink_dir -d 25-12-2011
+# show verbose information for lanes mapped with smalt
+$0 -t study -i 1234 -m smalt -v
 USAGE
 
 die "The archive and symlink options cannot be used together\n"
@@ -199,8 +212,6 @@ for my $database (@pathogen_databases) {
         $csv_file = $id if ( $csv_file eq '' );
         $csv_file =~ s/\s+/_/g;
         $csv_file .= ".csv";
-
-		print "CSV_FILE: $csv_file\n";
 
         # get lane objects for matching lanes
         my $lane_objects = $lane_filter->lane_objects( \@matching_lanes );
