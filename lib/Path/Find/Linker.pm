@@ -36,7 +36,6 @@ use Cwd;
 use Data::Dumper;
 
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-#has '_dehashed_lanes' => (is => 'rw', isa => 'ArrayRef', required => 0, lazy => 0, builder => '_build__dehashed_lanes');
 has '_tmp_dir' => ( is => 'rw', isa => 'Str', builder  => '_build__tmp_dir' );
 has 'name'     => ( is => 'ro', isa => 'Str', required => 1 );
 has '_checked_name' =>
@@ -46,16 +45,6 @@ has 'destination' =>
 has '_default_type' => (is => 'ro', isa => 'Str', required => 0, lazy => 1, builder => '_build__default_type');
 has 'use_default_type' => (is => 'ro', isa => 'Bool', required => 1);
 has '_given_destination' => (is => 'ro', isa => 'Str', required => 0, writer => '_set__given_destination');
-
-#sub _build__dehashed_lanes {
-#	my ($self) = @_;
-#	
-#	my @dh_lanes;
-#	foreach my $l ( @{ $self->lanes } ){
-#		push(@dh_lanes, $l->{lane});
-#	}
-#	return \@dh_lanes;
-#}
 
 sub _build__checked_name {
     my ($self) = @_;
@@ -122,9 +111,6 @@ sub sym_links {
     my ($self) = @_;
 	my $s_d = $self->_checked_name;
 	
-	print "SELF:\n";
-	print Dumper $self;
-
     #set destination for symlinks
     my $dest = $self->_given_destination;
     $self->_set_destination($dest);
