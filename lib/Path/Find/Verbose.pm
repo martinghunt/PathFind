@@ -71,8 +71,6 @@ sub filter_on_date {
     my @passed_lanes;
     foreach my $l (@lanes) {
         my $bam_date = $self->_bam_date($l);
-        print "$bam_date is later than $earliest_date? "
-          . ( $self->_is_later($bam_date) . "\n" );
         push( @passed_lanes, $l ) if ( $self->_is_later($bam_date) );
     }
     return \@passed_lanes;
@@ -125,7 +123,7 @@ sub _old_get_mapper {
 sub _bam_date {
 	my ($self, $lane) = @_;
 	
-	print $lane->run_date;
+	print $lane->changed;
 }
 
 sub _old_bam_date {
@@ -139,6 +137,8 @@ sub _old_bam_date {
 sub _is_later {
     my ( $self, $given_date ) = @_;
     my $earliest_date = $self->date;
+
+	return 1;
 
     my ( $e_dy, $e_mn, $e_yr ) = split( "-", $earliest_date );
     my ( $g_dy, $g_mn, $g_yr ) = split( "-", $given_date );
