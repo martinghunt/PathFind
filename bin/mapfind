@@ -50,7 +50,7 @@ eval {
 my (
     $type, $id,      $symlink, $archive,
     $help, $verbose, $stats,   $filetype,
-    $ref,  $date,    $mapper . $qc
+    $ref,  $date,    $mapper , $qc
 );
 
 GetOptions(
@@ -142,6 +142,20 @@ for my $database (@pathogen_databases) {
         next;
     }
 
+	# retrieve and filter on verbose info: ref, mapper, date
+    if ( $verbose || $ref || $mapper || $date ) {
+        $vb = Path::Find::Verbose->new(
+            lanes     => \@lanes,
+            reference => $ref,
+            mapper    => $mapper,
+            date      => $date
+        );
+
+        @matching_lanes = @{ $vb->filter_on_reference } if ($ref);
+        @matching_lanes = @{ $vb->filter_on_mapper }    if ($mapper);
+        @matching_lanes = @{ $vb->filter_on_date }      if ($date);
+    }
+
     # filter lanes
     $filetype = "bam" if ( $verbose || $date || $ref || $mapper );
     $lane_filter = Path::Find::Filter->new(
@@ -153,20 +167,6 @@ for my $database (@pathogen_databases) {
         qc              => $qc
     );
     my @matching_lanes = $lane_filter->filter;
-
-    # retrieve and filter on verbose info: ref, mapper, date
-    if ( $verbose || $ref || $mapper || $date ) {
-        $vb = Path::Find::Verbose->new(
-            lanes     => \@matching_lanes,
-            reference => $ref,
-            mapper    => $mapper,
-            date      => $date
-        );
-
-        @matching_lanes = @{ $vb->filter_on_reference } if ($ref);
-        @matching_lanes = @{ $vb->filter_on_mapper }    if ($mapper);
-        @matching_lanes = @{ $vb->filter_on_date }      if ($date);
-    }
 
     # Set up to symlink/archive. Check whether default filetype should be used
     my $use_default = 0;
