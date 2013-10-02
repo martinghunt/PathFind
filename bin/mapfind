@@ -155,6 +155,11 @@ for my $database (@pathogen_databases) {
     );
     my @matching_lanes = $lane_filter->filter;
 
+	unless (@matching_lanes) {
+        $dbh->disconnect();
+        next;
+    }
+
     # Set up to symlink/archive. Check whether default filetype should be used
     my $use_default = 0;
     $use_default = 1 if ( !defined $filetype );
