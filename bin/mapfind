@@ -48,8 +48,9 @@ eval {
 };
 
 my (
-    $type,  $id,       $symlink, $archive, $help, $verbose,
-    $stats, $filetype, $ref,     $date,    $mapper
+    $type, $id,      $symlink, $archive,
+    $help, $verbose, $stats,   $filetype,
+    $ref,  $date,    $mapper . $qc
 );
 
 GetOptions(
@@ -64,6 +65,7 @@ GetOptions(
     'r|reference=s' => \$ref,
     'd|date=s'      => \$date,
     'm|mapper=s'    => \$mapper,
+    'q|qc=s'        => \$qc
 );
 
 (
@@ -79,6 +81,7 @@ Usage: $0
      -t|type      <study|lane|file|sample|species>
      -i|id        <study id|study name|lane name|file of lane names>
      -f|filetype  <bam>
+     -q|qc        <pass|failed|pending>
      -l|symlink   <create a symlink to the data>
      -a|arvhive   <archive the data>
      -v|verbose   <display reference, mapper and date>
@@ -147,6 +150,7 @@ for my $database (@pathogen_databases) {
         root            => $root,
         pathtrack       => $pathtrack,
         type_extensions => \%type_extensions,
+        qc              => $qc
     );
     my @matching_lanes = $lane_filter->filter;
 
@@ -227,7 +231,7 @@ for my $database (@pathogen_databases) {
     }
 
     $dbh->disconnect();
-    if ($found
+    if ( $found
       )    #no need to look in the next database if relevant data has been found
     {
         exit;

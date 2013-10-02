@@ -11,6 +11,7 @@ package Path::Find::Verbose;
 =cut
 
 use Moose;
+use Data::Dumper;
 
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'reference' => ( is => 'ro', required => 0 );
@@ -78,6 +79,13 @@ sub filter_on_date {
 }
 
 sub _reference_name {
+	my ($self, $lane) = @_;
+	
+	my $mapstats = $lane->mappings_excluding_qc;
+	print Dumper $mapstats;
+}
+
+sub _old_reference_name {
     my ( $self, $bam_file ) = @_;
 
     open( SQ, "-|", "samtools view -H $bam_file | grep ^\@SQ" )
@@ -92,7 +100,7 @@ sub _reference_name {
     return undef;
 }
 
-sub _get_mapper {
+sub _old_get_mapper {
     my ( $self, $bam_file ) = @_;
     my @possible_mappers =
       ( "bwa", "stampy", "smalt", "ssaha2", "bowtie2", "tophat" );
@@ -107,7 +115,7 @@ sub _get_mapper {
     return undef;
 }
 
-sub _bam_date {
+sub _old_bam_date {
     my ( $self, $bam_file ) = @_;
     my $bam_date =
       `ls -l --time-style="+%d-%m-%Y" $bam_file | awk '{print \$6}'`;

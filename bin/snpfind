@@ -29,45 +29,68 @@ use Cwd;
 use File::chdir;
 use File::Temp;
 use File::Copy qw(move);
-use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
 use Getopt::Long;
-use Pathfind;
-use FindLanes;
-use PathfindLog;
-eval{ PathfindLog->new(logfile => '/nfs/pathnfs05/log/pathfindlog/snpfind.log', args => \@ARGV)->commandline(); };
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
+  ;    #Change accordingly once we have a stable checkout
+use lib "/software/pathogen/internal/prod/lib";
+use lib "../lib";
 
-my ( $type, $id, $qc, $symlink, $output, $pseudo_genome, $help, $target_reference, $archive );
+use Path::Find;
+use Path::Find::Lanes;
+use Path::Find::Filter;
+use Path::Find::Linker;
+use Path::Find::Verbose;
+use Path::Find::Stats;
+use Path::Find::Log;
+eval {
+    Path::Find::Log->new(
+        logfile => '/nfs/pathnfs05/log/pathfindlog/snpfind.log',
+        args    => \@ARGV
+    )->commandline();
+};
 
-GetOptions(
-    't|type=s'        => \$type,
-    'id=s'            => \$id,
-    'qc=s'            => \$qc,
-    'symlink'         => \$symlink,
-    'p|pseudo_genome' => \$pseudo_genome,
-    'r|reference=s'   => \$target_reference,
-    'o|output=s'      => \$output,
-    'a|archive:s'     => \$archive,
-    'h|help'          => \$help,
+my (
+    $type,  $id,       $symlink, $archive, $help,   $verbose,
+    $stats, $filetype, $ref,     $date,    $mapper, $qc
 );
 
-(        $type
-      && $id
-      && $id ne ''
-      && ( $type eq 'study' || $type eq 'lane' || $type eq 'file'|| $type eq 'sample'  || $type eq 'species' || $type eq 'database')
-      && ( !$qc || ( $qc && ( $qc eq 'passed' || $qc eq 'failed' || $qc eq 'pending' ) ) ) )
-  or die <<USAGE;
+GetOptions(
+    't|type=s'      => \$type,
+    'i|id=s'        => \$id,
+    'h|help'        => \$help,
+    'f|filetype=s'  => \$filetype,
+    'l|symlink:s'   => \$symlink,
+    'a|archive:s'   => \$archive,
+    's|stats:s'     => \$stats,
+    'v|verbose'     => \$verbose,
+    'r|reference=s' => \$ref,
+    'd|date=s'      => \$date,
+    'm|mapper=s'    => \$mapper,
+    'q|qc=s'        => $qc
+);
+
+(
+    $type && $id && $id ne '' && ( $type eq 'study'
+        || $type eq 'lane'
+        || $type eq 'sample'
+        || $type eq 'file'
+        || $type eq 'species'
+        || $type eq 'database' )
+) or die <<USAGE;
 
 Usage: $0
-     -t|type  		<study|lane|file|sample|species>
-     -id 		<study id|study name|lane name|file of lane names>
-     -qc      		<passed|failed|pending>
-     -r           <reference name to filter on>
-     -p           <pseudo genome>
-     -symlink 		<create a symlink to the data>
-     -o|output 		<output dir for sym links>
-     -a|archive         <name of archive>
-     -h|help  		<print this message>
+     -t|type      <study|lane|file|sample|species>
+     -i|id        <study id|study name|lane name|file of lane names>
+     -f|filetype  <vcf|pseudogenome>
+     -q|qc        <pass|failed|pending>
+     -l|symlink   <create a symlink to the data>
+     -a|arvhive   <archive the data>
+     -v|verbose   <display reference, mapper and date>
+     -s|stats     <output file for summary of mapping results in CSV format>
+     -r|reference <filter results based on reference>
+     -m|mapper    <filter results based on mapper>
+     -d|date      <show only results produced after a given date>
+     -h|help      <print this message>
 
 Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the VCF files with the specified study or lane. Using the option -qc (passed|failed|pending) will limit the 
 results to data of the specified qc status. Using the option -symlink will create a symlink to the queried data in the current 
@@ -76,70 +99,50 @@ Using the option -archive will create an archive (.tar.gz) containing the VCF an
 
 USAGE
 
-# Get databases
-my @pathogen_databases = Pathfind->pathogen_databases;
-my $hierarchy_template = Pathfind->hierarchy_template;
+die "The archive and symlink options cannot be used together\n"
+  if ( defined $archive && defined $symlink );
 
-my $pathtrack;
-my $found = 0;    #assume nothing found
-my $min   = 0;
-my $max   = 1;
-my $destination;
+# set file type extension regular expressions
+my %type_extensions = ( 
+	vcf => 'markdup\.bam$', 
+	pseudogenome => ''
+);
 
-if ($symlink) {
-    $destination = defined($output) ? $output : getcwd;
-    if ( !-e $destination ) {
-        print
-"The directory $destination does not exist, please specify a valid destination output directory for the symlinks";
-        exit;
-    }
-}
+my ( $lane_filter, $vb );
+my $found = 0;
 
-# set archive name from $id
-my $archive_from_id = set_archive_name_from_id( $id, $type );
-$archive_from_id .= '.snp.tar.gz';
-
-# option for user-defined archive name
-my $archive_name_input = ( defined($archive) && $archive ) ? $archive : $archive_from_id;
-
-# set archive path folder_name and suffix
-my ( $archive_path, $archive_name, $archive_suffix ) = set_archive_name($archive_name_input);
-
+# Get databases and loop through them
+my @pathogen_databases = Path::Find->pathogen_databases;
 for my $database (@pathogen_databases) {
 
-    # Connect to database
-    $pathtrack = Pathfind->instantiate_vrtrack($database) or die "Failed to create VRTrack object for '$database'\n";
-    my $dbh  = Pathfind->instantiate_dbi($database)    or die "Failed to create DBI object for '$database'\n";
-    my $root = Pathfind->hierarchy_root_dir($database) or die "Failed to find root directory for '$database'\n";
+    # Connect to database and get info
+    my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
 
-    my $find_lanes = FindLanes->new(
-        search_type => $type,
-        search_id   => $id,
-        pathtrack   => $pathtrack,
-        dbh         => $dbh,
+    my $find_lanes = Path::Find::Lanes->new(
+        search_type    => $type,
+        search_id      => $id,
+        pathtrack      => $pathtrack,
+        dbh            => $dbh,
         processed_flag => 256
     );
     my @lanes = @{ $find_lanes->lanes };
 
-    my $tmpdirectory;
-    my $tmpdirectory_name = '';
-    if ( defined $archive ) {
-
-        # create temporary directory for archive
-        $tmpdirectory = File::Temp->newdir( CLEANUP => 1 );
-        $tmpdirectory_name = $tmpdirectory->dirname();
-        mkdir $tmpdirectory_name . '/' . $archive_name;
+    unless (@lanes) {
+        $dbh->disconnect();
+        next;
     }
 
     foreach (@lanes) {
         my $l = $_;
         if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
-            my $path = $pathtrack->hierarchy_path_of_lane( $l, $hierarchy_template );
+            my $path =
+              $pathtrack->hierarchy_path_of_lane( $l, $hierarchy_template );
 
             my $pseudo_genome_filename = "concatenated";
             if ( defined($pseudo_genome) ) {
                 if ( defined($target_reference) ) {
-                    $pseudo_genome_filename = $target_reference . "_" . $pseudo_genome_filename;
+                    $pseudo_genome_filename =
+                      $target_reference . "_" . $pseudo_genome_filename;
                 }
 
                 $pseudo_genome_filename = $id . "_" . $pseudo_genome_filename;
@@ -151,14 +154,29 @@ for my $database (@pathogen_databases) {
             for my $mapstat ( @{ $l->mappings() } ) {
                 my $mapstat_id = $mapstat->id;
 
-                next unless ( does_mapping_match_target_reference( $target_reference, $mapstat ) );
+                next
+                  unless (
+                    does_mapping_match_target_reference(
+                        $target_reference, $mapstat
+                    )
+                  );
 
                 my $lane_name = $l->name;
 
                 unless ( defined($pseudo_genome) ) {
                     my @filenames;
-                    push( @filenames, snp_calling_filename( $l, 'markdup',    $root, $path, $mapstat_id ) );
-                    push( @filenames, snp_calling_filename( $l, 'raw.sorted', $root, $path, $mapstat_id ) );
+                    push(
+                        @filenames,
+                        snp_calling_filename(
+                            $l, 'markdup', $root, $path, $mapstat_id
+                        )
+                    );
+                    push(
+                        @filenames,
+                        snp_calling_filename(
+                            $l, 'raw.sorted', $root, $path, $mapstat_id
+                        )
+                    );
 
                     for my $full_path (@filenames) {
 
@@ -166,12 +184,19 @@ for my $database (@pathogen_databases) {
                             $found = 1;
                             print "$full_path\n";
                             if ($symlink) {
-                                create_vcf_symlinks( $destination, $lane_name, $mapstat_id, $full_path );
+                                create_vcf_symlinks(
+                                    $destination, $lane_name,
+                                    $mapstat_id,  $full_path
+                                );
                             }
 
                             if ( defined $archive ) {
-                                my $tmpdir = $tmpdirectory_name . '/' . $archive_name;
-                                create_vcf_symlinks( $tmpdir, $lane_name, $mapstat_id, $full_path );
+                                my $tmpdir =
+                                  $tmpdirectory_name . '/' . $archive_name;
+                                create_vcf_symlinks(
+                                    $tmpdir,     $lane_name,
+                                    $mapstat_id, $full_path
+                                );
                             }
                             last;
                         }
@@ -179,10 +204,18 @@ for my $database (@pathogen_databases) {
                 }
                 else {
                     my @pseudo_genome_filenames;
-                    push( @pseudo_genome_filenames,
-                        pseudo_genome_filename( $l, 'markdup', $root, $path, $mapstat_id ) );
-                    push( @pseudo_genome_filenames,
-                        pseudo_genome_filename( $l, 'raw.sorted', $root, $path, $mapstat_id ) );
+                    push(
+                        @pseudo_genome_filenames,
+                        pseudo_genome_filename(
+                            $l, 'markdup', $root, $path, $mapstat_id
+                        )
+                    );
+                    push(
+                        @pseudo_genome_filenames,
+                        pseudo_genome_filename(
+                            $l, 'raw.sorted', $root, $path, $mapstat_id
+                        )
+                    );
                     for my $full_path (@pseudo_genome_filenames) {
 
                         if ( -e "$full_path" ) {
@@ -199,10 +232,12 @@ for my $database (@pathogen_databases) {
     }
 
     $dbh->disconnect();
-    if ($found)    #no need to look in the next database if relevant data has been found
+    if ($found
+      )    #no need to look in the next database if relevant data has been found
     {
         if ( defined $archive ) {
-            archive_vcf( $tmpdirectory_name, $archive_name, $archive_path . $archive_name . $archive_suffix );
+            archive_vcf( $tmpdirectory_name, $archive_name,
+                $archive_path . $archive_name . $archive_suffix );
         }
 
         exit;
@@ -222,7 +257,8 @@ sub snp_calling_filename {
     my $path       = shift;
     my $mapstat_id = shift;
 
-    return base_snp_path( $lane, $suffix, $root, $path, $mapstat_id ) . '/mpileup.unfilt.vcf.gz';
+    return base_snp_path( $lane, $suffix, $root, $path, $mapstat_id )
+      . '/mpileup.unfilt.vcf.gz';
 }
 
 sub pseudo_genome_filename {
@@ -232,7 +268,8 @@ sub pseudo_genome_filename {
     my $path       = shift;
     my $mapstat_id = shift;
 
-    return base_snp_path( $lane, $suffix, $root, $path, $mapstat_id ) . '/pseudo_genome.fasta';
+    return base_snp_path( $lane, $suffix, $root, $path, $mapstat_id )
+      . '/pseudo_genome.fasta';
 
 }
 
@@ -251,7 +288,11 @@ sub base_snp_path {
         $reads_type = 'se';
     }
 
-    return "$root/$path/" . $mapstat_id . '.' . $reads_type . '.' . $suffix . '.snp';
+    return
+        "$root/$path/"
+      . $mapstat_id . '.'
+      . $reads_type . '.'
+      . $suffix . '.snp';
 }
 
 sub does_mapping_match_target_reference {
@@ -273,14 +314,18 @@ sub create_vcf_symlinks {
     my $mapstat_id  = $_[2];
     my $full_path   = $_[3];
 
-    my $destination_directory = $destination . "/" . $lane_name . "." . $mapstat_id . ".mpileup.unfilt.vcf.gz";
-    my $cmd                   = qq[ ln -s $full_path $destination_directory];
+    my $destination_directory =
+        $destination . "/"
+      . $lane_name . "."
+      . $mapstat_id
+      . ".mpileup.unfilt.vcf.gz";
+    my $cmd = qq[ ln -s $full_path $destination_directory];
     qx( $cmd );
 
     my $full_path_index_file = $full_path . ".tbi";
     if ( -e "$full_path_index_file" ) {
         $destination_directory = $destination_directory . ".tbi";
-        $cmd                   = qq[ ln -s $full_path_index_file $destination_directory];
+        $cmd = qq[ ln -s $full_path_index_file $destination_directory];
         qx( $cmd );
     }
 }
