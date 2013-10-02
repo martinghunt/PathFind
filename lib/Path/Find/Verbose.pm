@@ -82,7 +82,7 @@ sub _reference_name {
 	my ($self, $lane) = @_;
 	
 	my @mapstats = @{ $lane->mappings_excluding_qc };
-	print $mapstats[0]->assembly->name;
+	print $mapstats[0]->assembly->name . "\n";
 }
 
 sub _old_reference_name {
@@ -100,6 +100,13 @@ sub _old_reference_name {
     return undef;
 }
 
+sub _get_mapper {
+	my ($self, $lane) = @_;
+	
+	my @mapstats = @{ $lane->mappings_excluding_qc };
+	print $mapstats[0]->mapper->name . "\n";
+}
+
 sub _old_get_mapper {
     my ( $self, $bam_file ) = @_;
     my @possible_mappers =
@@ -113,6 +120,12 @@ sub _old_get_mapper {
         }
     }
     return undef;
+}
+
+sub _bam_date {
+	my ($self, $lane) = @_;
+	
+	print $lane->run_date;
 }
 
 sub _old_bam_date {
