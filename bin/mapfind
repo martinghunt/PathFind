@@ -141,7 +141,8 @@ for my $database (@pathogen_databases) {
         $dbh->disconnect();
         next;
     }
-
+	
+	my @verbose = @lanes;
 	# retrieve and filter on verbose info: ref, mapper, date
     if ( $verbose || $ref || $mapper || $date ) {
         $vb = Path::Find::Verbose->new(
@@ -151,15 +152,14 @@ for my $database (@pathogen_databases) {
             date      => $date
         );
 
-        @matching_lanes = @{ $vb->filter_on_reference } if ($ref);
-        @matching_lanes = @{ $vb->filter_on_mapper }    if ($mapper);
-        @matching_lanes = @{ $vb->filter_on_date }      if ($date);
+        @verbose = @{ $vb->filter_on_reference } if ($ref);
+        @verbose = @{ $vb->filter_on_mapper }    if ($mapper);
+        @verbose = @{ $vb->filter_on_date }      if ($date);
     }
 
     # filter lanes
-    $filetype = "bam" if ( $verbose || $date || $ref || $mapper );
     $lane_filter = Path::Find::Filter->new(
-        lanes           => \@lanes,
+        lanes           => \@verbose,
         filetype        => $filetype,
         root            => $root,
         pathtrack       => $pathtrack,
