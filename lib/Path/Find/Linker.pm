@@ -35,6 +35,7 @@ use File::Temp;
 use Cwd;
 
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has '_dehashed_lanes' => (is => 'rw', isa => 'ArrayRef', required => 0, lazy => 0, builder => '_build__dehashed_lanes');
 has '_tmp_dir' => ( is => 'rw', isa => 'Str', builder  => '_build__tmp_dir' );
 has 'name'     => ( is => 'ro', isa => 'Str', required => 1 );
 has '_checked_name' =>
@@ -44,6 +45,15 @@ has 'destination' =>
 has '_default_type' => (is => 'ro', isa => 'Str', required => 0, lazy => 1, builder => '_build__default_type');
 has 'use_default_type' => (is => 'ro', isa => 'Bool', required => 1);
 has '_given_destination' => (is => 'ro', isa => 'Str', required => 0, writer => '_set__given_destination');
+
+sub _build__dehashed_lanes {
+	my ($self) = @_;
+	my @dh_lanes;
+	foreach my $l ( @{ $self->lanes } ){
+		push(@dh_lanes, $l{lane});
+	}
+	return \@dh_lanes;
+}
 
 sub _build__checked_name {
     my ($self) = @_;
@@ -88,7 +98,6 @@ sub _build__default_type {
 
 sub archive {
     my ($self) = @_;
-    my @lanes = @{ $self->lanes };
 
 	my $c_name = $self->_checked_name;
 	my $final_dest = $self->_given_destination;
@@ -122,7 +131,7 @@ sub sym_links {
 
 sub _create_symlinks {
     my ($self)      = @_;
-    my @lanes       = @{ $self->lanes };
+    my @lanes       = @{ $self->_dehashed_lanes };
     my $destination = $self->destination;
     my $name        = $self->_checked_name;
 

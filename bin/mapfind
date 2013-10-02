@@ -48,9 +48,8 @@ eval {
 };
 
 my (
-    $type, $id,      $symlink, $archive,
-    $help, $verbose, $stats,   $filetype,
-    $ref,  $date,    $mapper , $qc
+    $type,  $id,       $symlink, $archive, $help,   $verbose,
+    $stats, $filetype, $ref,     $date,    $mapper, $qc
 );
 
 GetOptions(
@@ -141,30 +140,19 @@ for my $database (@pathogen_databases) {
         $dbh->disconnect();
         next;
     }
-	
-	my @verbose = @lanes;
-	# retrieve and filter on verbose info: ref, mapper, date
-    if ( $verbose || $ref || $mapper || $date ) {
-        $vb = Path::Find::Verbose->new(
-            lanes     => \@lanes,
-            reference => $ref,
-            mapper    => $mapper,
-            date      => $date
-        );
-
-        @verbose = @{ $vb->filter_on_reference } if ($ref);
-        @verbose = @{ $vb->filter_on_mapper }    if ($mapper);
-        @verbose = @{ $vb->filter_on_date }      if ($date);
-    }
 
     # filter lanes
     $lane_filter = Path::Find::Filter->new(
-        lanes           => \@verbose,
+        lanes           => \@lanes,
         filetype        => $filetype,
         root            => $root,
         pathtrack       => $pathtrack,
         type_extensions => \%type_extensions,
-        qc              => $qc
+        qc              => $qc,
+        reference       => $ref,
+        mapper          => $mapper,
+        date            => $date,
+        verbose         => $verbose
     );
     my @matching_lanes = $lane_filter->filter;
 
@@ -191,19 +179,17 @@ for my $database (@pathogen_databases) {
         $linker->archive   if ($archive);
     }
 
-    if ($verbose) {
-        my @verbose = @{ $vb->get_verbose_info };
-        next unless (@verbose);
-        $found = 1;
-        foreach my $v_lane (@verbose) {
-            print "$v_lane\n";
-        }
-    }
-    else {
-        if (@matching_lanes) {
+    if (@matching_lanes) {
+        if ($verbose) {
             $found = 1;
-            foreach my $lane (@matching_lanes) {
-                print "$lane\n";
+            foreach my $ml (@matching_lanes) {
+                print "$ml{lane}\t$ml{ref}\t$ml{mapper}\t$ml{date}\n";
+            }
+        }
+        else {
+            $found = 1;
+            foreach my $ml (@matching_lanes) {
+                print "$ml{lane}\n";
             }
         }
     }

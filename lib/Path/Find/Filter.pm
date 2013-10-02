@@ -48,6 +48,10 @@ has 'subdirectories' => (
         return \@empty;
     }
 );
+has 'reference' => ( is => 'ro', required => 0 );
+has 'mapper'    => ( is => 'rw', required => 0 );
+has 'date'      => ( is => 'ro', required => 0 );
+has 'verbose' => ( is => 'ro', isa => 'Bool', required => 0, default => 0 );
 
 sub _build_hierarchy_template {
     my ($self) = @_;
@@ -61,11 +65,21 @@ sub filter {
     my @lanes    = @{ $self->lanes };
     my $qc       = $self->qc;
 
+    my $ref    = $self->reference;
+    my $mapper = $self->mapper;
+    my $date   = $self->date;
+
     my $type_extn = $self->type_extensions->{$filetype} if ($filetype);
 
     my @matching_paths;
     foreach (@lanes) {
         my $l = $_;
+
+        # check ref, date or mapper matches
+        next if ( $ref    && !$self->_reference_matches($l) );
+        next if ( $mapper && !$self->_mapper_matches($l) );
+        next if ( $date   && !$self->_date_is_later($l) );
+
         if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
             my @paths = $self->_get_full_path($l);
 
@@ -78,14 +92,14 @@ sub filter {
                         chomp $m;
                         if ( -e "$full_path/$m" ) {
                             $self->_set_found(1);
-                            push( @matching_paths, "$full_path/$m" );
+                            push(@matching_paths, $self->_make_lane_hash( "$full_path/$m", $l ));
                         }
                     }
                 }
                 else {
                     if ( -e $full_path ) {
                         $self->_set_found(1);
-                        push( @matching_paths, $full_path );
+                        push(@matching_paths, $self->_make_lane_hash( "$full_path/$m", $l ));
                     }
                 }
             }
@@ -107,24 +121,22 @@ sub find_files {
     }
 }
 
-sub lane_objects{
-	my ($self, $ml) = @_;
-	my @matching_lanes = @{ $ml };
-	
-	my @lane_objects = @{ $self->lanes };
-	
-	my @matching_objects;
-	foreach my $o (@lane_objects){
-		my @o_paths = $self->_get_full_path($o);
-		my $o_path = $o_paths[0];
-		foreach my $m_path (@matching_lanes){
-			if($m_path =~ /$o_path/){
-				print "$o_path is in $m_path\n";
-				push(@matching_objects, $o);
-			}
-		}
-	}
-	return \@matching_objects;
+sub _make_lane_hash {
+    my ( $self, $path, $lane_obj ) = @_;
+    my $vb = $self->verbose;
+
+    if ($vb) {
+        return {
+            lane   => $path,
+            ref    => $self->_reference_name($lane_obj),
+            mapper => $self->_get_mapper($lane_obj),
+            date   => $self->_date_changed($lane_obj)
+        };
+
+    }
+    else {
+        return { lane => $path };
+    }
 }
 
 sub _get_full_path {
@@ -142,6 +154,89 @@ sub _get_full_path {
     }
 
     return @fps;
+}
+
+sub get_verbose_info {
+    my ($self) = @_;
+    my ( $ref, $mapper, $date );
+
+    my @lanes = @{ $self->lanes };
+    my @vb;
+    foreach my $l (@lanes) {
+        $ref    = $self->_reference_name($l);
+        $mapper = $self->_get_mapper($l);
+        $date   = $self->_bam_date($l);
+
+        push( @vb, "$l\t$ref\t$mapper\t$date" );
+    }
+    $self->_set_found(1) if ( \@vb );
+    return \@vb;
+}
+
+sub _reference_matches {
+    my ( $self, $lane ) = @_;
+    my $given_ref = $self->reference;
+
+    my $lane_ref = $self->_reference_name($l);
+    if ( $lane_ref eq $given_ref ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+sub _mapper_matches {
+    my ( $self, $lane ) = @_;
+    my $given_mapper = $self->mapper;
+
+    my $lane_mapper = $self->_get_mapper($l);
+    if ( $lane_mapper eq $given_mapper ) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+sub _date_is_later {
+    my ( $self, $lane ) = @_;
+    my $earliest_date = $self->date;
+    my $given_date    = $self->_date_changed;
+
+    my ( $e_dy, $e_mn, $e_yr ) = split( "-", $earliest_date );
+    my ( $g_dy, $g_mn, $g_yr ) = split( "-", $given_date );
+
+    my $later = 0;
+
+    $later = 1
+      if ( ( $e_yr < $g_yr )
+        || ( $e_yr == $g_yr && $e_mn < $g_mn )
+        || ( $e_yr == $g_yr && $e_mn == $g_mn && $e_dy < $g_dy ) );
+
+    return $later;
+}
+
+sub _reference_name {
+    my ( $self, $lane ) = @_;
+
+    my @mapstats = @{ $lane->mappings_excluding_qc };
+    return $mapstats[0]->assembly->name;
+}
+
+sub _get_mapper {
+    my ( $self, $lane ) = @_;
+
+    my @mapstats = @{ $lane->mappings_excluding_qc };
+    return $mapstats[0]->mapper->name;
+}
+
+sub _date_changed {
+    my ( $self, $lane ) = @_;
+
+    my ( $date, $time ) = split( //, $lane->changed );
+    my @date_elements = split( '-', $date );
+    return join( '-', reverse @date_elements );
 }
 
 no Moose;

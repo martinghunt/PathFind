@@ -80,65 +80,27 @@ sub _reference_name {
 	my ($self, $lane) = @_;
 	
 	my @mapstats = @{ $lane->mappings_excluding_qc };
-	print $mapstats[0]->assembly->name . "\n";
-}
-
-sub _old_reference_name {
-    my ( $self, $bam_file ) = @_;
-
-    open( SQ, "-|", "samtools view -H $bam_file | grep ^\@SQ" )
-      or die "$bam_file could not be opened\n";
-    while ( my $line = <SQ> ) {
-        if ( $line =~ /UR:file:(.+)\.fa/ ) {
-            my $lane_ref = $1;
-            $lane_ref =~ /([^\/]+$)/;
-            return $1;
-        }
-    }
-    return undef;
+	return $mapstats[0]->assembly->name;
 }
 
 sub _get_mapper {
 	my ($self, $lane) = @_;
 	
 	my @mapstats = @{ $lane->mappings_excluding_qc };
-	print $mapstats[0]->mapper->name . "\n";
-}
-
-sub _old_get_mapper {
-    my ( $self, $bam_file ) = @_;
-    my @possible_mappers =
-      ( "bwa", "stampy", "smalt", "ssaha2", "bowtie2", "tophat" );
-
-    open( PG, "-|", "samtools view -H $bam_file | grep ^\@PG" )
-      or die "$bam_file could not be opened\n";
-    while ( my $line = <PG> ) {
-        if ( $line =~ /PP:([^\s]+)/ ) {
-            return $1 if ( grep { $_ eq $1 } @possible_mappers );
-        }
-    }
-    return undef;
+	return $mapstats[0]->mapper->name;
 }
 
 sub _bam_date {
 	my ($self, $lane) = @_;
 	
-	print $lane->changed . "\n";
-}
-
-sub _old_bam_date {
-    my ( $self, $bam_file ) = @_;
-    my $bam_date =
-      `ls -l --time-style="+%d-%m-%Y" $bam_file | awk '{print \$6}'`;
-    chomp $bam_date;
-    return $bam_date;
+	my ($date, $time) = split(//, $lane->changed);
+	my @date_elements = split('-', $date);
+	return join('-', reverse @date_elements);
 }
 
 sub _is_later {
     my ( $self, $given_date ) = @_;
     my $earliest_date = $self->date;
-
-	return 1;
 
     my ( $e_dy, $e_mn, $e_yr ) = split( "-", $earliest_date );
     my ( $g_dy, $g_mn, $g_yr ) = split( "-", $given_date );
