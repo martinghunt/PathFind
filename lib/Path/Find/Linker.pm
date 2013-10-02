@@ -150,7 +150,7 @@ sub _create_symlinks {
 
     #create symlink
     foreach my $lane (@lanes) {
-		my $l = $lane->lane;
+		my $l = $lane->{lane};
         my $cmd = "ln -s $l$default_type $destination/$name";
         system($cmd) == 0
           or die
