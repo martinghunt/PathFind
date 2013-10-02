@@ -99,7 +99,7 @@ sub filter {
                 else {
                     if ( -e $full_path ) {
                         $self->_set_found(1);
-                        push(@matching_paths, $self->_make_lane_hash( "$full_path/$m", $l ));
+                        push(@matching_paths, $self->_make_lane_hash( $full_path, $l ));
                     }
                 }
             }
@@ -177,7 +177,7 @@ sub _reference_matches {
     my ( $self, $lane ) = @_;
     my $given_ref = $self->reference;
 
-    my $lane_ref = $self->_reference_name($l);
+    my $lane_ref = $self->_reference_name($lane);
     if ( $lane_ref eq $given_ref ) {
         return 1;
     }
@@ -190,7 +190,7 @@ sub _mapper_matches {
     my ( $self, $lane ) = @_;
     my $given_mapper = $self->mapper;
 
-    my $lane_mapper = $self->_get_mapper($l);
+    my $lane_mapper = $self->_get_mapper($lane);
     if ( $lane_mapper eq $given_mapper ) {
         return 1;
     }
