@@ -236,7 +236,7 @@ sub _date_changed {
 
 	my $lc = $lane->changed;
 	print "$lc\t";
-    my ( $date, $time ) = split( //, $lc );
+    my ( $date, $time ) = split( /\s+/, $lc );
     my @date_elements = split( '-', $date );
     my $d = join( '-', reverse @date_elements );
 	print "$d\n";
