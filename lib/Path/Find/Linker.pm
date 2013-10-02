@@ -33,6 +33,7 @@ directory.
 use Moose;
 use File::Temp;
 use Cwd;
+use Data::Dumper;
 
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has '_dehashed_lanes' => (is => 'rw', isa => 'ArrayRef', required => 0, lazy => 0, builder => '_build__dehashed_lanes');
@@ -48,8 +49,12 @@ has '_given_destination' => (is => 'ro', isa => 'Str', required => 0, writer => 
 
 sub _build__dehashed_lanes {
 	my ($self) = @_;
+	my @lanes = @{ $self->lanes };
+	
+	print Dumper \@lanes;
+	
 	my @dh_lanes;
-	foreach my $l ( @{ $self->lanes } ){
+	foreach my $l ( @lanes ){
 		push(@dh_lanes, $l->{lane});
 	}
 	return \@dh_lanes;
