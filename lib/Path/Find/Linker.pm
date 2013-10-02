@@ -50,8 +50,8 @@ has '_given_destination' => (is => 'ro', isa => 'Str', required => 0, writer => 
 sub _build__dehashed_lanes {
 	my ($self) = @_;
 	
-	print "LANES:\n";
-	print Dumper $self->lanes;
+	print "SELF:\n";
+	print Dumper $self;
 	
 	my @dh_lanes;
 	foreach my $l ( @{ $self->lanes } ){
