@@ -183,13 +183,18 @@ for my $database (@pathogen_databases) {
         if ($verbose) {
             $found = 1;
             foreach my $ml (@matching_lanes) {
-                print "$ml{lane}\t$ml{ref}\t$ml{mapper}\t$ml{date}\n";
+				my $l = $ml->lane;
+				my $r = $ml->ref;
+				my $m = $ml->mapper;
+				my $d = $ml->date;
+                print "$l\t$r\t$m\t$d\n";
             }
         }
         else {
             $found = 1;
             foreach my $ml (@matching_lanes) {
-                print "$ml{lane}\n";
+				my $l = $ml->lane;
+                print "$l\n";
             }
         }
     }
