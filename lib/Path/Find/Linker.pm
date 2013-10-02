@@ -50,7 +50,7 @@ sub _build__dehashed_lanes {
 	my ($self) = @_;
 	my @dh_lanes;
 	foreach my $l ( @{ $self->lanes } ){
-		push(@dh_lanes, $l{lane});
+		push(@dh_lanes, $l->lane);
 	}
 	return \@dh_lanes;
 }
