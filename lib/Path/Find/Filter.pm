@@ -75,6 +75,8 @@ sub filter {
     foreach (@lanes) {
         my $l = $_;
 
+		print "$l\n";
+
         # check ref, date or mapper matches
         next if ( $ref    && !$self->_reference_matches($l) );
         next if ( $mapper && !$self->_mapper_matches($l) );
@@ -234,8 +236,6 @@ sub _get_mapper {
 sub _date_changed {
     my ( $self, $lane ) = @_;
 	
-	print "$lane\n";
-
 	my $lc = $lane->changed;
     my ( $date, $time ) = split( /\s+/, $lc );
     my @date_elements = split( '-', $date );
