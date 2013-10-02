@@ -204,7 +204,7 @@ sub _mapper_matches {
 sub _date_is_later {
     my ( $self, $lane ) = @_;
     my $earliest_date = $self->date;
-    my $given_date    = $self->_date_changed;
+    my $given_date    = $self->_date_changed($lane);
 
     my ( $e_dy, $e_mn, $e_yr ) = split( "-", $earliest_date );
     my ( $g_dy, $g_mn, $g_yr ) = split( "-", $given_date );
