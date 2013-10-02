@@ -38,7 +38,6 @@ use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
 use Path::Find::Linker;
-use Path::Find::Verbose;
 use Path::Find::Log;
 eval {
     Path::Find::Log->new(
@@ -123,7 +122,7 @@ my %type_extensions = (
     spreadsheet => 'insertion\.csv$',
 );
 
-my ($lane_filter, $vb);
+my ( $lane_filter, $vb );
 my $found = 0;
 
 # Get databases and loop through them
@@ -154,25 +153,14 @@ for my $database (@pathogen_databases) {
         filetype        => $filetype,
         root            => $root,
         pathtrack       => $pathtrack,
-        type_extensions => \%type_extensions
+        type_extensions => \%type_extensions,
+        reference       => $ref,
+        mapper          => $mapper,
+        date            => $date
     );
     my @matching_lanes = $lane_filter->filter;
 
-	# retrieve and filter verbose on info: ref, mapper, date
-    if ( $verbose || $ref || $mapper || $date ) {
-        $vb = Path::Find::Verbose->new(
-            lanes     => \@matching_lanes,
-            reference => $ref,
-            mapper    => $mapper,
-            date      => $date
-        );
-
-        @matching_lanes = @{ $vb->filter_on_reference } if ($ref);
-        @matching_lanes = @{ $vb->filter_on_mapper }    if ($mapper);
-        @matching_lanes = @{ $vb->filter_on_date }      if ($date);
-    }
-
-	# Set up to symlink/archive. Check whether default filetype should be used
+    # Set up to symlink/archive. Check whether default filetype should be used
     my $use_default = 0;
     $use_default = 1 if ( !defined $filetype );
     if ( $lane_filter->found && ( $symlink || $archive ) ) {
@@ -195,19 +183,21 @@ for my $database (@pathogen_databases) {
         $linker->archive   if ($archive);
     }
 
-    if ($verbose) {
-        my @verbose = @{ $vb->get_verbose_info };
-        next unless (@verbose);
-        $found = 1;
-        foreach my $v_lane (@verbose) {
-            print "$v_lane\n";
+    if (@matching_lanes) {
+		$found = 1;
+        if ($verbose) {
+            foreach my $ml (@matching_lanes) {
+				my $l = $ml->{lane};
+				my $r = $ml->{ref};
+				my $m = $ml->{mapper};
+				my $d = $ml->{date};
+                print "$l\t$r\t$m\t$d\n";
+            }
         }
-    }
-    else {
-        if (@matching_lanes) {
-            $found = 1;
-            foreach my $lane (@matching_lanes) {
-                print "$lane\n";
+        else {
+            foreach my $ml (@matching_lanes) {
+				my $l = $ml->{lane};
+                print "$l\n";
             }
         }
     }

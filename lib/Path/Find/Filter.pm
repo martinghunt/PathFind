@@ -75,8 +75,6 @@ sub filter {
     foreach (@lanes) {
         my $l = $_;
 
-		print "$l\n";
-
         # check ref, date or mapper matches
         next if ( $ref    && !$self->_reference_matches($l) );
         next if ( $mapper && !$self->_mapper_matches($l) );

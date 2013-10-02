@@ -160,7 +160,8 @@ for my $database (@pathogen_databases) {
     }
 
     foreach my $ml (@matching_lanes) {
-        print "$ml\n";
+        my $l = $ml->{lane};
+        print "$l\n";
     }
 
     $dbh->disconnect();

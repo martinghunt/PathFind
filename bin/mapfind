@@ -37,7 +37,6 @@ use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
 use Path::Find::Linker;
-use Path::Find::Verbose;
 use Path::Find::Stats;
 use Path::Find::Log;
 eval {
@@ -180,8 +179,8 @@ for my $database (@pathogen_databases) {
     }
 
     if (@matching_lanes) {
+		$found = 1;
         if ($verbose) {
-            $found = 1;
             foreach my $ml (@matching_lanes) {
 				my $l = $ml->{lane};
 				my $r = $ml->{ref};
@@ -191,7 +190,6 @@ for my $database (@pathogen_databases) {
             }
         }
         else {
-            $found = 1;
             foreach my $ml (@matching_lanes) {
 				my $l = $ml->{lane};
                 print "$l\n";
