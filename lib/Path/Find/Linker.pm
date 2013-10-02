@@ -49,12 +49,12 @@ has '_given_destination' => (is => 'ro', isa => 'Str', required => 0, writer => 
 
 sub _build__dehashed_lanes {
 	my ($self) = @_;
-	my @lanes = @{ $self->lanes };
 	
-	print Dumper \@lanes;
+	print "LANES:\n";
+	print Dumper $self->lanes;
 	
 	my @dh_lanes;
-	foreach my $l ( @lanes ){
+	foreach my $l ( @{ $self->lanes } ){
 		push(@dh_lanes, $l->{lane});
 	}
 	return \@dh_lanes;
