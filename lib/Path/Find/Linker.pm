@@ -47,15 +47,15 @@ has '_default_type' => (is => 'ro', isa => 'Str', required => 0, lazy => 1, buil
 has 'use_default_type' => (is => 'ro', isa => 'Bool', required => 1);
 has '_given_destination' => (is => 'ro', isa => 'Str', required => 0, writer => '_set__given_destination');
 
-sub _build__dehashed_lanes {
-	my ($self) = @_;
-	
-	my @dh_lanes;
-	foreach my $l ( @{ $self->lanes } ){
-		push(@dh_lanes, $l->{lane});
-	}
-	return \@dh_lanes;
-}
+#sub _build__dehashed_lanes {
+#	my ($self) = @_;
+#	
+#	my @dh_lanes;
+#	foreach my $l ( @{ $self->lanes } ){
+#		push(@dh_lanes, $l->{lane});
+#	}
+#	return \@dh_lanes;
+#}
 
 sub _build__checked_name {
     my ($self) = @_;
