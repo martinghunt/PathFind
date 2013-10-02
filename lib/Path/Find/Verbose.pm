@@ -123,7 +123,7 @@ sub _old_get_mapper {
 sub _bam_date {
 	my ($self, $lane) = @_;
 	
-	print $lane->changed;
+	print $lane->changed . "\n";
 }
 
 sub _old_bam_date {
