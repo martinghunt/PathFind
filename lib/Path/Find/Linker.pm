@@ -50,9 +50,6 @@ has '_given_destination' => (is => 'ro', isa => 'Str', required => 0, writer => 
 sub _build__dehashed_lanes {
 	my ($self) = @_;
 	
-	print "SELF:\n";
-	print Dumper $self;
-	
 	my @dh_lanes;
 	foreach my $l ( @{ $self->lanes } ){
 		push(@dh_lanes, $l->{lane});
@@ -124,6 +121,9 @@ sub archive {
 sub sym_links {
     my ($self) = @_;
 	my $s_d = $self->_checked_name;
+	
+	print "SELF:\n";
+	print Dumper $self;
 
     #set destination for symlinks
     my $dest = $self->_given_destination;
