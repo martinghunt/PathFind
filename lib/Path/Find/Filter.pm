@@ -234,7 +234,9 @@ sub _get_mapper {
 sub _date_changed {
     my ( $self, $lane ) = @_;
 
-    my ( $date, $time ) = split( //, $lane->changed );
+	my $lc = $lane->changed;
+	print "$lc\t";
+    my ( $date, $time ) = split( //, $lc );
     my @date_elements = split( '-', $date );
     my $d = join( '-', reverse @date_elements );
 	print "$d\n";
