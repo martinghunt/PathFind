@@ -36,7 +36,7 @@ use Cwd;
 use Data::Dumper;
 
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has '_dehashed_lanes' => (is => 'rw', isa => 'ArrayRef', required => 0, lazy => 0, builder => '_build__dehashed_lanes');
+#has '_dehashed_lanes' => (is => 'rw', isa => 'ArrayRef', required => 0, lazy => 0, builder => '_build__dehashed_lanes');
 has '_tmp_dir' => ( is => 'rw', isa => 'Str', builder  => '_build__tmp_dir' );
 has 'name'     => ( is => 'ro', isa => 'Str', required => 1 );
 has '_checked_name' =>
@@ -136,7 +136,8 @@ sub sym_links {
 
 sub _create_symlinks {
     my ($self)      = @_;
-    my @lanes       = @{ $self->_dehashed_lanes };
+    #my @lanes       = @{ $self->_dehashed_lanes };
+	my @lanes       = @{ $self->lanes };
     my $destination = $self->destination;
     my $name        = $self->_checked_name;
 
