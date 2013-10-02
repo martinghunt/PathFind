@@ -81,8 +81,8 @@ sub filter_on_date {
 sub _reference_name {
 	my ($self, $lane) = @_;
 	
-	my $mapstats = $lane->mappings_excluding_qc;
-	print Dumper $mapstats;
+	my @mapstats = @{ $lane->mappings_excluding_qc };
+	print $mapstats[0]->assembly->name;
 }
 
 sub _old_reference_name {
