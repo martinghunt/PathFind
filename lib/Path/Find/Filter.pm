@@ -74,7 +74,7 @@ sub filter {
     my @matching_paths;
     foreach (@lanes) {
         my $l = $_;
-		next unless (defined $l);
+
         # check ref, date or mapper matches
         next if ( $ref    && !$self->_reference_matches($l) );
         next if ( $mapper && !$self->_mapper_matches($l) );
@@ -233,6 +233,8 @@ sub _get_mapper {
 
 sub _date_changed {
     my ( $self, $lane ) = @_;
+	
+	print "$lane\n";
 
 	my $lc = $lane->changed;
     my ( $date, $time ) = split( /\s+/, $lc );
