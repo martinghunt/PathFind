@@ -97,8 +97,8 @@ die "The archive and symlink options cannot be used together\n"
 
 # set file type extension regular expressions
 my %type_extensions = (
-    fastq => '*\.fastq\.gz$',
-    bam   => '*\.bam$'
+    fastq => '*.fastq.gz',
+    bam   => '*.bam'
 );
 
 my $lane_filter;
