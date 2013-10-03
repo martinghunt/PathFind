@@ -91,6 +91,15 @@ a spreadsheet with RPKM and read counts for each CDS/polypeptide,
 coverage plots for each sequence which can be opened in Artemis,
 optional tab files for each sequence with intergenic regions marked up, which can be opened in Artemis.
 
+Using the option -l|symlink will create a symlink to the queried data in the given directory (this will be created if it does not already exist). 
+Similarly, using the -a|archive option will create an archive of the results with the given filename. 
+The -s|stats option will produce a CSV file summarising the mapping statistics for the resulting lanes.
+In symlink, archive and stats cases, if no name is provided, a default based on the given ID will be used.
+
+Using the option -r|reference will limit the results to a lanes mapped against a specific reference (eg 'H1N1','3D7').
+The -m|mapper option will limit results to lanes mapped using the specified mapper (eg smalt, bowtie2 )
+The -d|date option will limit results to lanes processed after a given date. The date format should be dd-mm-yyyy (eg 01-01-2010)
+
 USAGE
 
 die "The archive and symlink options cannot be used together\n"
@@ -159,7 +168,7 @@ for my $database (@pathogen_databases) {
         elsif ( defined $archive ) {
             $name = $archive;
         }
-        $name = $id if ( $name eq '' );
+        $name = "rnaseqfind_$id" if ( $name eq '' );
 
         my $linker = Path::Find::Linker->new(
             lanes            => \@matching_lanes,

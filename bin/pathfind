@@ -97,8 +97,8 @@ die "The archive and symlink options cannot be used together\n"
 
 # set file type extension regular expressions
 my %type_extensions = (
-    fastq => '\.fastq\.gz$',
-    bam   => '\.bam$'
+    fastq => '*\.fastq\.gz$',
+    bam   => '*\.bam$'
 );
 
 my $lane_filter;
@@ -147,7 +147,7 @@ for my $database (@pathogen_databases) {
         elsif ( defined $archive ) {
             $name = $archive;
         }
-        $name = $id if ( $name eq '' );
+        $name = "pathfind_$id" if ( $name eq '' );
 
         my $linker = Path::Find::Linker->new(
             lanes            => \@matching_lanes,

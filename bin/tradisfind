@@ -171,7 +171,7 @@ for my $database (@pathogen_databases) {
         elsif ( defined $archive ) {
             $name = $archive;
         }
-        $name = $id if ( $name eq '' );
+        $name = "tradisfind_$id" if ( $name eq '' );
 
         my $linker = Path::Find::Linker->new(
             lanes            => \@matching_lanes,

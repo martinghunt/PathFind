@@ -50,8 +50,9 @@ eval {
 };
 
 my (
-    $type,  $id,       $symlink, $archive, $help,   $verbose,
-    $stats, $filetype, $ref,     $date,    $mapper, $qc
+    $type,    $id,           $symlink,  $archive, $help,
+    $verbose, $stats,        $filetype, $ref,     $date,
+    $mapper,  $pseudogenome, $qc
 );
 
 GetOptions(
@@ -66,16 +67,21 @@ GetOptions(
     'r|reference=s' => \$ref,
     'd|date=s'      => \$date,
     'm|mapper=s'    => \$mapper,
+    'p|pseudo=s'    => \$pseudogenome,
     'q|qc=s'        => $qc
 );
 
 (
-    $type && $id && $id ne '' && ( $type eq 'study'
+         $type
+      && $id
+      && $id ne ''
+      && ( $type eq 'study'
         || $type eq 'lane'
         || $type eq 'sample'
         || $type eq 'file'
         || $type eq 'species'
         || $type eq 'database' )
+      && ( !$filetype || $filetype eq 'vcf' || $filetype eq 'pseudogenome' )
 ) or die <<USAGE;
 
 Usage: $0
@@ -90,6 +96,7 @@ Usage: $0
      -r|reference <filter results based on reference>
      -m|mapper    <filter results based on mapper>
      -d|date      <show only results produced after a given date>
+     -p|pseudo    <generate a pseudogenome based on the given reference (-r)>
      -h|help      <print this message>
 
 Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the VCF files with the specified study or lane. Using the option -qc (passed|failed|pending) will limit the 
@@ -102,10 +109,13 @@ USAGE
 die "The archive and symlink options cannot be used together\n"
   if ( defined $archive && defined $symlink );
 
+die "Please specify a reference to base the pseudogenome on\n"
+  if ( defined $pseudogenome && !defined $ref );
+
 # set file type extension regular expressions
-my %type_extensions = ( 
-	vcf => 'markdup\.bam$', 
-	pseudogenome => ''
+my %type_extensions = (
+    vcf          => 'markdup\.bam$',
+    pseudogenome => ''
 );
 
 my ( $lane_filter, $vb );
@@ -132,25 +142,17 @@ for my $database (@pathogen_databases) {
         next;
     }
 
+    my $reference_added = 0;
+
     foreach (@lanes) {
         my $l = $_;
         if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
             my $path =
               $pathtrack->hierarchy_path_of_lane( $l, $hierarchy_template );
 
-            my $pseudo_genome_filename = "concatenated";
-            if ( defined($pseudo_genome) ) {
-                if ( defined($target_reference) ) {
-                    $pseudo_genome_filename =
-                      $target_reference . "_" . $pseudo_genome_filename;
-                }
+            
 
-                $pseudo_genome_filename = $id . "_" . $pseudo_genome_filename;
-                $pseudo_genome_filename =~ s![\W]!_!gi;
-                $pseudo_genome_filename .= '.aln';
-                `touch $pseudo_genome_filename`;
-            }
-
+            my $mapstats_counter = 0;
             for my $mapstat ( @{ $l->mappings() } ) {
                 my $mapstat_id = $mapstat->id;
 
@@ -202,37 +204,12 @@ for my $database (@pathogen_databases) {
                         }
                     }
                 }
-                else {
-                    my @pseudo_genome_filenames;
-                    push(
-                        @pseudo_genome_filenames,
-                        pseudo_genome_filename(
-                            $l, 'markdup', $root, $path, $mapstat_id
-                        )
-                    );
-                    push(
-                        @pseudo_genome_filenames,
-                        pseudo_genome_filename(
-                            $l, 'raw.sorted', $root, $path, $mapstat_id
-                        )
-                    );
-                    for my $full_path (@pseudo_genome_filenames) {
-
-                        if ( -e "$full_path" ) {
-                            $found = 1;
-                            if ( defined($pseudo_genome) ) {
-                                print "$full_path\n";
-                                `cat $full_path >> $pseudo_genome_filename`;
-                            }
-                        }
-                    }
-                }
             }
         }
     }
 
     $dbh->disconnect();
-    if ($found
+    if ( $found
       )    #no need to look in the next database if relevant data has been found
     {
         if ( defined $archive ) {
@@ -248,6 +225,96 @@ unless ($found) {
 
     print "Could not find lanes or files for input data \n";
 
+}
+
+sub make_pseudogenome {
+	#sticks all pseudo-genomes together into a concatenated fastq file
+    my $pseudo_genome_filename = "concatenated";
+    if ( defined($pseudo_genome) ) {
+        if ( defined($target_reference) ) {
+            $pseudo_genome_filename =
+              $target_reference . "_" . $pseudo_genome_filename;
+        }
+
+        $pseudo_genome_filename = $id . "_" . $pseudo_genome_filename;
+        $pseudo_genome_filename =~ s![\W]!_!gi;
+        $pseudo_genome_filename .= '.aln';
+        `touch $pseudo_genome_filename`;
+    }
+
+
+	# Add the reference if its defined
+    if ( defined($target_reference) && $reference_added < 1 ) {
+        my $reference_path = find_reference($target_reference);
+        if ( defined($reference_path) ) {
+            print_out_reference_as_one_sequence(
+                $reference_path, $pseudo_genome_filename,
+                $target_reference );
+        }
+        $reference_added++;
+    }
+
+    my @pseudo_genome_filenames;
+    push(
+        @pseudo_genome_filenames,
+        pseudo_genome_filename(
+            $l, 'markdup', $root, $path, $mapstat_id
+        )
+    );
+    push(
+        @pseudo_genome_filenames,
+        pseudo_genome_filename(
+            $l, 'raw.sorted', $root, $path, $mapstat_id
+        )
+    );
+    for my $full_path (@pseudo_genome_filenames) {
+        last if ( $mapstats_counter > 0 );
+        if ( -e "$full_path" ) {
+            $found = 1;
+            $mapstats_counter++;
+            if ( defined($pseudo_genome) ) {
+                print "$full_path\n";
+                `cat $full_path >> $pseudo_genome_filename`;
+            }
+        }
+    }
+
+}
+
+sub find_reference {
+    my $passed_in_reference = shift;
+    return undef unless ( defined($passed_in_reference) );
+    my $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/refs.index';
+
+    open( my $fh, $index_file ) or die 'Couldnt open index file';
+    while (<$fh>) {
+        chomp;
+        my $line         = $_;
+        my $search_query = $passed_in_reference . '.fa$';
+        if ( $line =~ m/$search_query/i ) {
+            my @ref_details = split( /\t/, $line );
+            if ( -e $ref_details[1] ) {
+                return $ref_details[1];
+            }
+        }
+    }
+    return undef;
+}
+
+sub print_out_reference_as_one_sequence {
+    my ( $reference_file, $output_file, $reference_name ) = @_;
+    open( my $in_fh, $reference_file );
+
+    # Overwrite a file if it already exists because the reference is at the top
+    open( my $out_fh, '>', $output_file );
+    print {$out_fh} ">$reference_name\n";
+    while (<$in_fh>) {
+        my $line = $_;
+        next if ( $line =~ />/ );
+        print {$out_fh} $line;
+    }
+    close($in_fh);
+    close($out_fh);
 }
 
 sub snp_calling_filename {
@@ -303,7 +370,7 @@ sub does_mapping_match_target_reference {
     return 0 unless ( defined($assembly) );
 
     $target_reference =~ s!\W!.+!gi;
-    return 1 if ( $assembly->name =~ m/$target_reference/ );
+    return 1 if ( $assembly->name =~ m/$target_reference$/ );
 
     return 0;
 }
