@@ -85,9 +85,10 @@ sub filter {
 
             foreach my $full_path (@paths) {
                 if ($filetype) {
+					my $search_path = "$full_path/$type_extn";
                     next
                       unless my $matching_files =
-                      $self->find_files( $full_path, $type_extn );
+                      $self->find_files( $search_path );
                     for my $m ( @{$matching_files} ) {
                         chomp $m;
                         if ( -e "$full_path/$m" ) {
@@ -113,7 +114,7 @@ sub find_files {
     my ( $self, $full_path, $type_extn ) = @_;
 
     if ( -e $full_path ) {
-        my @matches = `ls $full_path | grep $type_extn`;
+        my @matches = `ls $full_path`;
         return \@matches;
     }
     else {
