@@ -28,11 +28,16 @@ no warnings 'uninitialized';
 use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"; #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
+use lib "../lib";
 use Getopt::Long;
-use Pathfind;
-use FindLanes;
-use PathfindLog;
-eval{ PathfindLog->new(logfile => '/nfs/pathnfs05/log/pathfindlog/rnaseqfind.log', args => \@ARGV)->commandline(); };
+
+use Path::Find;
+use Path::Find::Lanes;
+use Path::Find::Filter;
+use Path::Find::Linker;
+use Path::Find::Stats;
+use Path::Find::Log;
+eval{ Path::Find::Log->new(logfile => '/nfs/pathnfs05/log/pathfindlog/rnaseqfind.log', args => \@ARGV)->commandline(); };
 
 my (
     $type,  $id,       $symlink, $archive, $help,   $verbose,
