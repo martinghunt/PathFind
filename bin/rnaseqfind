@@ -92,7 +92,7 @@ die "The archive and symlink options cannot be used together\n"
   if ( defined $archive && defined $symlink );
 
 
-my %file_types = (
+my %type_extensions = (
   coverage    => 'coverageplot\.gz$',
   intergenic  => 'tab\.gz$',
   bam         => 'corrected\.bam$',
