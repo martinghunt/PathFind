@@ -116,7 +116,7 @@ die "The archive and symlink options cannot be used together\n"
 # set file type extension regular expressions
 my %type_extensions = ( bam => 'markdup\.bam$', );
 
-my ( $lane_filter, $vb );
+my $lane_filter;
 my $found = 0;
 
 # Get databases and loop through them
