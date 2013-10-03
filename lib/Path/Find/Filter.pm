@@ -91,9 +91,9 @@ sub filter {
                       $self->find_files( $search_path );
                     for my $m ( @{$matching_files} ) {
                         chomp $m;
-                        if ( -e "$full_path/$m" ) {
+                        if ( -e $m ) {
                             $self->_set_found(1);
-                            push(@matching_paths, $self->_make_lane_hash( "$full_path/$m", $l ));
+                            push(@matching_paths, $self->_make_lane_hash( $m, $l ));
                         }
                     }
                 }
