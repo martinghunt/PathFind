@@ -89,7 +89,7 @@ sub _build__default_type {
         assemblyfind   => 'contigs',
         annotationfind => '/*.gff',
         mapfind        => '/*markdup.bam',
-        snpfind        => 'vcf',
+        snpfind        => '/*.markdup.snp/mpileup.unfilt.vcf.gz',
         rnaseqfind     => 'spreadsheet',
         tradisfind     => '/*insertion.csv',
     );
@@ -150,25 +150,14 @@ sub _create_symlinks {
     #create symlink
     foreach my $lane (@lanes) {
         my $l = $lane->{lane};
-        my $cmd;
-        if ( $self->rename_links ) {
-			print "L: $l\n";
-            my $link_name  = _unique_name($l);
-            my @link_files = `ls $l$default_type`;
-            foreach my $lf (@link_files) {
-                $cmd = "ln -s $lf $destination/$name/$link_name";
-				system($cmd) == 0
-		          or die
-		"Could not create symlink for $lane in $destination/$name: error code $?\n";
-            }
+        my @files2link = $self->_link_names( $l, $default_type );
+        foreach my $linkf (@files2link) {
+			my ($source, $dest) = @{ $linkf };
+            my $cmd = "ln -s $source $dest";
+            system($cmd) == 0
+              or die
+"Could not create symlink for $lane in $destination/$name: error code $?\n";
         }
-        else {
-            $cmd = "ln -s $l$default_type $destination/$name";
-			system($cmd) == 0
-	          or die
-	"Could not create symlink for $lane in $destination/$name: error code $?\n";
-        }
-        
     }
     return 1;
 }
@@ -183,11 +172,26 @@ sub _check_dest {
     return 1;
 }
 
-sub _unique_name {
-    my ( $self, $lane ) = @_;
-	print "LANE: $lane\n";
-    $lane =~ m!TRACKING/.+/.+/.+/.+/.+/(\d+).+/(.+)$!;
-    return "$1.$2";
+sub _link_names {
+    my ( $self, $lane, $dt ) = @_;
+    my $destination = $self->destination;
+    my $name        = $self->_checked_name;
+
+	my @files2link;
+    my @matching_files = `ls $lane$dt`;
+    if ( $self->rename_links ) {
+        foreach my $mf (@matching_files) {
+            $mf =~ /(\d+)[^\/]+\/([^\/]+)$/;
+            push( @files2link, [$mf, "$destination/$name/$1.$2"] );
+        }
+    }
+    else {
+        foreach my $mf (@matching_files) {
+            $mf =~ /([^\/]+)$/;
+            push( @files2link, [$mf, "$destination/$name/$1"] );
+        }
+    }
+	return @files2link;
 }
 
 sub _tar {
