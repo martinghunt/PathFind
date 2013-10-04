@@ -114,7 +114,9 @@ sub find_files {
     my ( $self, $full_path, $type_extn ) = @_;
 
     if ( -e $full_path ) {
+		print "ls $full_path";
         my @matches = `ls $full_path`;
+		print join("\n", @matches);
         return \@matches;
     }
     else {
