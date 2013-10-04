@@ -114,8 +114,8 @@ die "Please specify a reference to base the pseudogenome on\n"
 
 # set file type extension regular expressions
 my %type_extensions = (
-    vcf          => 'markdup\.bam$',
-    pseudogenome => ''
+    vcf          => '*.markdup.snp/mpileup.unfilt.vcf.gz',
+    pseudogenome => '*.markdup.snp/pseudo_genome.fasta'
 );
 
 my ( $lane_filter, $vb );
