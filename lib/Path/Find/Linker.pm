@@ -152,16 +152,22 @@ sub _create_symlinks {
         my $l = $lane->{lane};
         my $cmd;
         if ( $self->rename_links ) {
-			my $link_name = _unique_name($l);
-			$cmd = "ln -s $l$default_type $destination/$name/$link_name";
-			print "$cmd\n";
+            my $link_name  = _unique_name($l);
+            my @link_files = `ls $l$default_type`;
+            foreach my $lf (@link_files) {
+                $cmd = "ln -s $lf $destination/$name/$link_name";
+				system($cmd) == 0
+		          or die
+		"Could not create symlink for $lane in $destination/$name: error code $?\n";
+            }
         }
         else {
             $cmd = "ln -s $l$default_type $destination/$name";
+			system($cmd) == 0
+	          or die
+	"Could not create symlink for $lane in $destination/$name: error code $?\n";
         }
-        system($cmd) == 0
-          or die
-"Could not create symlink for $lane in $destination/$name: error code $?\n";
+        
     }
     return 1;
 }
@@ -177,9 +183,9 @@ sub _check_dest {
 }
 
 sub _unique_name {
-	my ($self, $lane) = @_;
-	$lane =~ m!TRACKING/.+/.+/.+/.+/.+/(\d+).+/(.+)$!;
-	return "$1.$2";
+    my ( $self, $lane ) = @_;
+    $lane =~ m!TRACKING/.+/.+/.+/.+/.+/(\d+).+/(.+)$!;
+    return "$1.$2";
 }
 
 sub _tar {
