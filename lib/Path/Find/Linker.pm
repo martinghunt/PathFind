@@ -184,12 +184,14 @@ sub _link_names {
     my @matching_files = `ls $lane$dt`;
     if ( $self->rename_links ) {
         foreach my $mf (@matching_files) {
+			chomp $mf;
             $mf =~ /(\d+)[^\/]+\/([^\/]+)$/;
             push( @files2link, [$mf, "$destination/$name/$1.$2"] );
         }
     }
     else {
         foreach my $mf (@matching_files) {
+			chomp $mf;
             $mf =~ /([^\/]+)$/;
             push( @files2link, [$mf, "$destination/$name/$1"] );
         }
