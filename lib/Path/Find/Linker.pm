@@ -150,7 +150,9 @@ sub _create_symlinks {
     #create symlink
     foreach my $lane (@lanes) {
         my $l = $lane->{lane};
+		print "LANE: $lane\n";
         my @files2link = $self->_link_names( $l, $default_type );
+		print Dumper \@files2link;
         foreach my $linkf (@files2link) {
 			my ($source, $dest) = @{ $linkf };
             my $cmd = "ln -s $source $dest";
