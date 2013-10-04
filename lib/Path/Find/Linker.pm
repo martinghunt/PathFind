@@ -152,6 +152,7 @@ sub _create_symlinks {
         my $l = $lane->{lane};
         my $cmd;
         if ( $self->rename_links ) {
+			print "L: $l\n";
             my $link_name  = _unique_name($l);
             my @link_files = `ls $l$default_type`;
             foreach my $lf (@link_files) {
