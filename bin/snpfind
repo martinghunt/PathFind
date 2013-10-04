@@ -158,7 +158,7 @@ for my $database (@pathogen_databases) {
     # Set up to symlink/archive. Check whether default filetype should be used
     my $use_default = 0;
     $use_default = 1 if ( !defined $filetype );
-    if ( $lane_filter->found && ( $symlink || $archive ) ) {
+    if ( @matching_lanes && ( $symlink || $archive ) ) {
         my $name;
         if ( defined $symlink ) {
             $name = $symlink;
