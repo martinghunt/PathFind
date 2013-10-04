@@ -184,6 +184,7 @@ sub _check_dest {
 
 sub _unique_name {
     my ( $self, $lane ) = @_;
+	print "LANE: $lane\n";
     $lane =~ m!TRACKING/.+/.+/.+/.+/.+/(\d+).+/(.+)$!;
     return "$1.$2";
 }
