@@ -143,81 +143,65 @@ for my $database (@pathogen_databases) {
 
     my $reference_added = 0;
 
-    foreach (@lanes) {
-        my $l = $_;
-        if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
-            my $path =
-              $pathtrack->hierarchy_path_of_lane( $l, $hierarchy_template );
+    # filter lanes
+    $filetype = "bam" if ( $verbose || $date || $ref || $mapper );
+    $lane_filter = Path::Find::Filter->new(
+        lanes           => \@lanes,
+        filetype        => $filetype,
+        root            => $root,
+        pathtrack       => $pathtrack,
+        type_extensions => \%type_extensions,
+        reference       => $ref,
+        mapper          => $mapper,
+        date            => $date
+    );
+    my @matching_lanes = $lane_filter->filter;
 
-            
+    # Set up to symlink/archive. Check whether default filetype should be used
+    my $use_default = 0;
+    $use_default = 1 if ( !defined $filetype );
+    if ( $lane_filter->found && ( $symlink || $archive ) ) {
+        my $name;
+        if ( defined $symlink ) {
+            $name = $symlink;
+        }
+        elsif ( defined $archive ) {
+            $name = $archive;
+        }
+        $name = "tradisfind_$id" if ( $name eq '' );
 
-            my $mapstats_counter = 0;
-            for my $mapstat ( @{ $l->mappings() } ) {
-                my $mapstat_id = $mapstat->id;
+        my $linker = Path::Find::Linker->new(
+            lanes            => \@matching_lanes,
+            name             => $name,
+            use_default_type => $use_default
+        );
 
-                next
-                  unless (
-                    does_mapping_match_target_reference(
-                        $target_reference, $mapstat
-                    )
-                  );
+        $linker->sym_links if ($symlink);
+        $linker->archive   if ($archive);
+    }
 
-                my $lane_name = $l->name;
-
-                unless ( defined($pseudo_genome) ) {
-                    my @filenames;
-                    push(
-                        @filenames,
-                        snp_calling_filename(
-                            $l, 'markdup', $root, $path, $mapstat_id
-                        )
-                    );
-                    push(
-                        @filenames,
-                        snp_calling_filename(
-                            $l, 'raw.sorted', $root, $path, $mapstat_id
-                        )
-                    );
-
-                    for my $full_path (@filenames) {
-
-                        if ( -e "$full_path" ) {
-                            $found = 1;
-                            print "$full_path\n";
-                            if ($symlink) {
-                                create_vcf_symlinks(
-                                    $destination, $lane_name,
-                                    $mapstat_id,  $full_path
-                                );
-                            }
-
-                            if ( defined $archive ) {
-                                my $tmpdir =
-                                  $tmpdirectory_name . '/' . $archive_name;
-                                create_vcf_symlinks(
-                                    $tmpdir,     $lane_name,
-                                    $mapstat_id, $full_path
-                                );
-                            }
-                            last;
-                        }
-                    }
-                }
+    if (@matching_lanes) {
+		$found = 1;
+        if ($verbose) {
+            foreach my $ml (@matching_lanes) {
+				my $l = $ml->{lane};
+				my $r = $ml->{ref};
+				my $m = $ml->{mapper};
+				my $d = $ml->{date};
+                print "$l\t$r\t$m\t$d\n";
+            }
+        }
+        else {
+            foreach my $ml (@matching_lanes) {
+				my $l = $ml->{lane};
+                print "$l\n";
             }
         }
     }
-
+	
     $dbh->disconnect();
-    if ( $found
-      )    #no need to look in the next database if relevant data has been found
-    {
-        if ( defined $archive ) {
-            archive_vcf( $tmpdirectory_name, $archive_name,
-                $archive_path . $archive_name . $archive_suffix );
-        }
-
-        exit;
-    }
+    #no need to look in the next database if relevant data has been found
+    exit if ($found);
 }
 
 unless ($found) {
