@@ -150,12 +150,13 @@ sub _create_symlinks {
     #create symlink
     foreach my $lane (@lanes) {
         my $l = $lane->{lane};
-		print "LANE: $lane\n";
+		print "LANE: $l\n";
         my @files2link = $self->_link_names( $l, $default_type );
 		print Dumper \@files2link;
         foreach my $linkf (@files2link) {
 			my ($source, $dest) = @{ $linkf };
             my $cmd = "ln -s $source $dest";
+			print "CMD: $cmd\n";
             system($cmd) == 0
               or die
 "Could not create symlink for $lane in $destination/$name: error code $?\n";
