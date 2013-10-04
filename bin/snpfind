@@ -168,6 +168,8 @@ for my $database (@pathogen_databases) {
         }
         $name = "snpfind_$id" if ( $name eq '' );
 
+		print "LINKING TO $name\n";
+
         my $linker = Path::Find::Linker->new(
             lanes            => \@matching_lanes,
             name             => $name,
