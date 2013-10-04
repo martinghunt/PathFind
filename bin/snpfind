@@ -172,7 +172,7 @@ for my $database (@pathogen_databases) {
             lanes            => \@matching_lanes,
             name             => $name,
             use_default_type => $use_default,
-            rename           => 1
+            rename_links     => 1
         );
 
         $linker->sym_links if ($symlink);

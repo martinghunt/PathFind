@@ -56,7 +56,7 @@ has '_given_destination' => (
     required => 0,
     writer   => '_set__given_destination'
 );
-has 'rename' => ( is => 'ro', isa => 'Bool', required => 0 );
+has 'rename_links' => ( is => 'ro', isa => 'Bool', required => 0 );
 
 sub _build__checked_name {
     my ($self) = @_;
@@ -151,7 +151,7 @@ sub _create_symlinks {
     foreach my $lane (@lanes) {
         my $l = $lane->{lane};
         my $cmd;
-        if ( $self->rename ) {
+        if ( $self->rename_links ) {
 			my $link_name = _unique_name($l);
 			$cmd = "ln -s $l$default_type $destination/$name/$link_name";
 			print "$cmd\n";
