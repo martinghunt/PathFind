@@ -107,10 +107,10 @@ die "The archive and symlink options cannot be used together\n"
 
 
 my %type_extensions = (
-  coverage    => 'coverageplot\.gz$',
-  intergenic  => 'tab\.gz$',
-  bam         => 'corrected\.bam$',
-  spreadsheet => 'expression\.csv$',
+  coverage    => '*coverageplot.gz',
+  intergenic  => '*tab.gz',
+  bam         => '*corrected.bam',
+  spreadsheet => '*expression.csv',
   );
 
 my $lane_filter;

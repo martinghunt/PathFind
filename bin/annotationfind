@@ -135,9 +135,9 @@ my @sub_directories =
 
 # set file type extension regular expressions
 my %type_extensions = (
-    gff => '\.gff$',
-    faa => '\.faa$',
-    ffn => '\.ffn$'
+    gff => '*.gff',
+    faa => '*.faa',
+    ffn => '*.ffn'
 );
 
 if ($gene) {

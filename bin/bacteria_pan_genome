@@ -82,7 +82,7 @@ USAGE
 my @sub_directories = ( '/velvet_assembly/annotation', '/spades_assembly/annotation' );
 
 # set file type extension regular expressions
-my %type_extensions = ( gff => '\.gff$' );
+my %type_extensions = ( gff => '*.gff' );
 my $filetype        = 'gff';
 my $symlink         = 1;
 

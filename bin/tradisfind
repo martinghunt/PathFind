@@ -116,10 +116,10 @@ die "The archive and symlink options cannot be used together\n"
 
 # set file type extension regular expressions
 my %type_extensions = (
-    coverage    => 'insert_site_plot\.gz$',
-    intergenic  => 'tab\.gz$',
-    bam         => 'corrected\.bam$',
-    spreadsheet => 'insertion\.csv$',
+    coverage    => '*insert_site_plot.gz',
+    intergenic  => '*tab.gz',
+    bam         => '*corrected.bam',
+    spreadsheet => '*insertion.csv',
 );
 
 my ( $lane_filter, $vb );

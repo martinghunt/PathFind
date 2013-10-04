@@ -114,7 +114,7 @@ die "The archive and symlink options cannot be used together\n"
   if ( defined $archive && defined $symlink );
 
 # set file type extension regular expressions
-my %type_extensions = ( bam => 'markdup\.bam$', );
+my %type_extensions = ( bam => '*markdup.bam', );
 
 my $lane_filter;
 my $found = 0;
