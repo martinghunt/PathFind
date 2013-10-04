@@ -154,6 +154,7 @@ sub _create_symlinks {
         if ( $self->rename ) {
 			my $link_name = _unique_name($l);
 			$cmd = "ln -s $l$default_type $destination/$name/$link_name";
+			print "$cmd\n";
         }
         else {
             $cmd = "ln -s $l$default_type $destination/$name";

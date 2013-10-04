@@ -172,7 +172,7 @@ for my $database (@pathogen_databases) {
             lanes            => \@matching_lanes,
             name             => $name,
             use_default_type => $use_default,
-			rename => 
+            rename           => 1
         );
 
         $linker->sym_links if ($symlink);
@@ -180,25 +180,26 @@ for my $database (@pathogen_databases) {
     }
 
     if (@matching_lanes) {
-		$found = 1;
+        $found = 1;
         if ($verbose) {
             foreach my $ml (@matching_lanes) {
-				my $l = $ml->{lane};
-				my $r = $ml->{ref};
-				my $m = $ml->{mapper};
-				my $d = $ml->{date};
+                my $l = $ml->{lane};
+                my $r = $ml->{ref};
+                my $m = $ml->{mapper};
+                my $d = $ml->{date};
                 print "$l\t$r\t$m\t$d\n";
             }
         }
         else {
             foreach my $ml (@matching_lanes) {
-				my $l = $ml->{lane};
+                my $l = $ml->{lane};
                 print "$l\n";
             }
         }
     }
-	
+
     $dbh->disconnect();
+
     #no need to look in the next database if relevant data has been found
     exit if ($found);
 }
