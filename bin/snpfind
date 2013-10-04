@@ -127,7 +127,6 @@ for my $database (@pathogen_databases) {
     # Connect to database and get info
     my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
 
-	#print "Path::Find::Lanes\n";
     my $find_lanes = Path::Find::Lanes->new(
         search_type    => $type,
         search_id      => $id,
@@ -142,7 +141,6 @@ for my $database (@pathogen_databases) {
         next;
     }
 
-	#print "Path::Find::Filter\n";
     # filter lanes
     $filetype = "bam" if ( $verbose || $date || $ref || $mapper );
     $lane_filter = Path::Find::Filter->new(
@@ -157,7 +155,6 @@ for my $database (@pathogen_databases) {
     );
     my @matching_lanes = $lane_filter->filter;
 
-	#print "Path::Find::Linker\n";
     # Set up to symlink/archive. Check whether default filetype should be used
     my $use_default = 0;
     $use_default = 1 if ( !defined $filetype );
@@ -174,7 +171,8 @@ for my $database (@pathogen_databases) {
         my $linker = Path::Find::Linker->new(
             lanes            => \@matching_lanes,
             name             => $name,
-            use_default_type => $use_default
+            use_default_type => $use_default,
+			rename => 
         );
 
         $linker->sym_links if ($symlink);

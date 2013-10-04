@@ -42,25 +42,37 @@ has '_checked_name' =>
   ( is => 'rw', isa => 'Str', lazy => 1, builder => '_build__checked_name' );
 has 'destination' =>
   ( is => 'ro', isa => 'Str', required => 0, writer => '_set_destination' );
-has '_default_type' => (is => 'ro', isa => 'Str', required => 0, lazy => 1, builder => '_build__default_type');
-has 'use_default_type' => (is => 'ro', isa => 'Bool', required => 1);
-has '_given_destination' => (is => 'ro', isa => 'Str', required => 0, writer => '_set__given_destination');
+has '_default_type' => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 0,
+    lazy     => 1,
+    builder  => '_build__default_type'
+);
+has 'use_default_type' => ( is => 'ro', isa => 'Bool', required => 1 );
+has '_given_destination' => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 0,
+    writer   => '_set__given_destination'
+);
+has 'rename' => ( is => 'ro', isa => 'Bool', required => 0 );
 
 sub _build__checked_name {
     my ($self) = @_;
     my $name = $self->name;
 
-	# check if full path, if so, set given destination
-	# if not, set given destination to CWD
-	if($name =~ /^\//){
-		my @dirs = split('/', $name);
-		$name = pop(@dirs);
-		$self->_set__given_destination(join('/', @dirs));
-	}
-	else{
-		my $current_cwd = getcwd;
-		$self->_set__given_destination($current_cwd);
-	}
+    # check if full path, if so, set given destination
+    # if not, set given destination to CWD
+    if ( $name =~ /^\// ) {
+        my @dirs = split( '/', $name );
+        $name = pop(@dirs);
+        $self->_set__given_destination( join( '/', @dirs ) );
+    }
+    else {
+        my $current_cwd = getcwd;
+        $self->_set__given_destination($current_cwd);
+    }
     $name =~ s/\s+/_/;
     return $name;
 }
@@ -82,16 +94,16 @@ sub _build__default_type {
         tradisfind     => '/*insertion.csv',
     );
 
-	# capture calling script name
-	$0 =~ /([^\/]+$)/;
+    # capture calling script name
+    $0 =~ /([^\/]+$)/;
     return $default_ft{$1};
 }
 
 sub archive {
     my ($self) = @_;
 
-	my $c_name = $self->_checked_name;
-	my $final_dest = $self->_given_destination;
+    my $c_name     = $self->_checked_name;
+    my $final_dest = $self->_given_destination;
 
     #set destination for symlinks
     my $tmp_dir = $self->_tmp_dir;
@@ -109,35 +121,43 @@ sub archive {
 
 sub sym_links {
     my ($self) = @_;
-	my $s_d = $self->_checked_name;
-	
+    my $s_d = $self->_checked_name;
+
     #set destination for symlinks
     my $dest = $self->_given_destination;
     $self->_set_destination($dest);
 
     #create symlinks
     $self->_create_symlinks;
-	print "Symlinks created in $dest/$s_d\n";
+    print "Symlinks created in $dest/$s_d\n";
 }
 
 sub _create_symlinks {
-    my ($self)      = @_;
+    my ($self) = @_;
+
     #my @lanes       = @{ $self->_dehashed_lanes };
-	my @lanes       = @{ $self->lanes };
+    my @lanes       = @{ $self->lanes };
     my $destination = $self->destination;
     my $name        = $self->_checked_name;
 
     #check destination exists and create if not
     $self->_check_dest("$destination/$name");
 
-	#set default filetype if not already specified
-	my $default_type = "";
-	$default_type = $self->_default_type if($self->use_default_type);
+    #set default filetype if not already specified
+    my $default_type = "";
+    $default_type = $self->_default_type if ( $self->use_default_type );
 
     #create symlink
     foreach my $lane (@lanes) {
-		my $l = $lane->{lane};
-        my $cmd = "ln -s $l$default_type $destination/$name";
+        my $l = $lane->{lane};
+        my $cmd;
+        if ( $self->rename ) {
+			my $link_name = _unique_name($l);
+			$cmd = "ln -s $l$default_type $destination/$name/$link_name";
+        }
+        else {
+            $cmd = "ln -s $l$default_type $destination/$name";
+        }
         system($cmd) == 0
           or die
 "Could not create symlink for $lane in $destination/$name: error code $?\n";
@@ -155,12 +175,18 @@ sub _check_dest {
     return 1;
 }
 
+sub _unique_name {
+	my ($self, $lane) = @_;
+	$lane =~ m!TRACKING/.+/.+/.+/.+/.+/(\d+).+/(.+)$!;
+	return "$1.$2";
+}
+
 sub _tar {
-    my ($self)   = @_;
-    my $tmp_dir  = $self->_tmp_dir;
-    my $arc_name = $self->_checked_name;
-	my $final_destination = $self->_given_destination;
-    my $error    = 0;
+    my ($self)            = @_;
+    my $tmp_dir           = $self->_tmp_dir;
+    my $arc_name          = $self->_checked_name;
+    my $final_destination = $self->_given_destination;
+    my $error             = 0;
 
     system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name") == 0
       or $error = 1;
@@ -172,7 +198,8 @@ sub _tar {
         return 0;
     }
     else {
-        system("mv $tmp_dir/archive.tar.gz $final_destination/$arc_name.tar.gz") == 0
+        system("mv $tmp_dir/archive.tar.gz $final_destination/$arc_name.tar.gz")
+          == 0
           or die
           "An error occurred while writing archive $arc_name: error code $?\n";
         File::Temp::cleanup();
