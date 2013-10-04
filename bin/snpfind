@@ -177,8 +177,8 @@ for my $database (@pathogen_databases) {
             rename_links     => 1
         );
 
-        $linker->sym_links if ($symlink);
-        $linker->archive   if ($archive);
+        $linker->sym_links if (defined $symlink);
+        $linker->archive   if (defined $archive);
     }
 
     if (@matching_lanes) {
