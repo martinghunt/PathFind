@@ -168,7 +168,7 @@ for my $database (@pathogen_databases) {
         }
         $name = "snpfind_$id" if ( $name eq '' );
 
-        my %link_names = $self->_link_rename( \@matching_lanes );
+        my %link_names = link_rename_hash( \@matching_lanes );
 
         my $linker = Path::Find::Linker->new(
             lanes            => \@matching_lanes,
@@ -212,7 +212,7 @@ unless ($found) {
 
 }
 
-sub _link_rename {
+sub link_rename_hash {
     my ( $self, $mlanes ) = @_;
     my @matching_lanes = @{$mlanes};
 
