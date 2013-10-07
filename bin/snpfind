@@ -184,7 +184,7 @@ for my $database (@pathogen_databases) {
     if (@matching_lanes) {
         $found = 1;
         if ($verbose) {
-            foreach my $ml (@matching_lanes) {
+            foreach my $ml (sort @matching_lanes) {
                 my $l = $ml->{lane};
                 my $r = $ml->{ref};
                 my $m = $ml->{mapper};
@@ -193,7 +193,7 @@ for my $database (@pathogen_databases) {
             }
         }
         else {
-            foreach my $ml (@matching_lanes) {
+            foreach my $ml (sort @matching_lanes) {
                 my $l = $ml->{lane};
                 print "$l\n";
             }
