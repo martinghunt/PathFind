@@ -132,12 +132,17 @@ for my $database (@pathogen_databases) {
 
     my $cwd = getcwd();
 
+	print Dumper \@matching_lanes;
+	exit;
     
     # symlink
+	my %link_names = link_rename_hash( \@matching_lanes );
+
     Path::Find::Linker->new(
         lanes            => \@matching_lanes,
         name             => $output_directory,
-        use_default_type => 0
+        use_default_type => 0,
+		rename_links => \%link_names
     )->sym_links;
 
 
@@ -158,3 +163,9 @@ unless ( $lane_filter->found ) {
     print "Could not find lanes or files for input data \n";
 }
 
+sub link_rename_hash {
+	my ($mlanes) = @_;
+	my @matching_lanes = @{ $mlanes };
+	
+	
+}
