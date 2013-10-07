@@ -11,6 +11,7 @@ Logic to create symlinks or archives for a list of lanes
      lanes => \@lanes,
      name => <symlink_destination|archive_name>,
 	 use_default_type => <1|0>
+	 rename_links => <hash ref linking lane path (key) to desired name (value)>
    );
    
    $obj->sym_links;
@@ -56,7 +57,7 @@ has '_given_destination' => (
     required => 0,
     writer   => '_set__given_destination'
 );
-has 'rename_links' => ( is => 'ro', isa => 'Bool', required => 0 );
+has 'rename_links' => ( is => 'ro', isa => 'HashRef', required => 0 );
 
 sub _build__checked_name {
     my ($self) = @_;
@@ -89,8 +90,8 @@ sub _build__default_type {
         assemblyfind   => 'contigs',
         annotationfind => '/*.gff',
         mapfind        => '/*markdup.bam',
-        snpfind        => '/*.markdup.snp/mpileup.unfilt.vcf.gz',
-        rnaseqfind     => 'spreadsheet',
+        snpfind        => '/*.snp/mpileup.unfilt.vcf.gz',
+        rnaseqfind     => '/*expression.csv',
         tradisfind     => '/*insertion.csv',
     );
 
@@ -176,14 +177,15 @@ sub _link_names {
     my ( $self, $lane, $dt ) = @_;
     my $destination = $self->destination;
     my $name        = $self->_checked_name;
+	my $linknames = $self->rename_links;
 
 	my @files2link;
     my @matching_files = `ls $lane$dt`;
-    if ( $self->rename_links ) {
+    if ( $linknames ) {
         foreach my $mf (@matching_files) {
 			chomp $mf;
-            $mf =~ /(\d+)[^\/]+\/([^\/]+)$/;
-            push( @files2link, [$mf, "$destination/$name/$1.$2"] );
+            my $lf = $linknames->{$mf};
+            push( @files2link, [$mf, "$destination/$name/$lf"] );
         }
     }
     else {

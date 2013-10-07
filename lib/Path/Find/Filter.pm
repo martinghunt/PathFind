@@ -140,20 +140,10 @@ sub _make_lane_hash {
             date   => $self->_date_changed($lane_obj),
         };
 
-		#mapstat => $self->_get_mapstat_id($lane_obj)
-
     }
     else {
         return { lane => $path };
     }
-}
-
-sub _get_mapstat_id {
-	my ($self, $lane) = @_;
-	
-	my $mapstat = $lane->mappings();
-	print Dumper $mapstat;
-	return $mapstat->id;
 }
 
 sub _get_full_path {
