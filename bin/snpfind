@@ -113,8 +113,8 @@ die "Please specify a reference to base the pseudogenome on\n"
 
 # set file type extension regular expressions
 my %type_extensions = (
-    vcf          => 'MAPSTAT_ID.*.snp/mpileup.unfilt.vcf.gz',
-    pseudogenome => 'MAPSTAT_ID.*.snp/pseudo_genome.fasta'
+    vcf          => '*.snp/mpileup.unfilt.vcf.gz',
+    pseudogenome => '*.snp/pseudo_genome.fasta'
 );
 
 my ( $lane_filter, $vb );

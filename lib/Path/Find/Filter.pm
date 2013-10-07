@@ -138,8 +138,9 @@ sub _make_lane_hash {
             ref    => $self->_reference_name($lane_obj),
             mapper => $self->_get_mapper($lane_obj),
             date   => $self->_date_changed($lane_obj),
-			mapstat => $self->_get_mapstat_id($lane_obj)
         };
+
+		#mapstat => $self->_get_mapstat_id($lane_obj)
 
     }
     else {
