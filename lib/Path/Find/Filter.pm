@@ -151,7 +151,8 @@ sub _get_mapstat_id {
 	my ($self, $lane) = @_;
 	
 	my $mapstat = $lane->mappings();
-	return $mapstat->{id};
+	print Dumper $mapstat;
+	return $mapstat->id;
 }
 
 sub _get_full_path {
