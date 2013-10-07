@@ -76,7 +76,7 @@ sub filter {
         my $l = $_;
 
 		# check if type exension should include mapstat id
-		if($type_extn =~ /MAPSTAT_ID/){
+		if($filetype && $type_extn =~ /MAPSTAT_ID/){
 			my $ms_id = $self->_get_mapstat_id($l);
 			$type_extn =~ s/MAPSTAT_ID/$ms_id/;
 		}
