@@ -113,8 +113,8 @@ die "Please specify a reference to base the pseudogenome on\n"
 
 # set file type extension regular expressions
 my %type_extensions = (
-    vcf          => '*.markdup.snp/mpileup.unfilt.vcf.gz',
-    pseudogenome => '*.markdup.snp/pseudo_genome.fasta'
+    vcf          => 'MAPSTAT_ID.*.snp/mpileup.unfilt.vcf.gz',
+    pseudogenome => 'MAPSTAT_ID.*.snp/pseudo_genome.fasta'
 );
 
 my ( $lane_filter, $vb );
@@ -168,8 +168,6 @@ for my $database (@pathogen_databases) {
         }
         $name = "snpfind_$id" if ( $name eq '' );
 
-		print "LINKING TO $name\n";
-
         my $linker = Path::Find::Linker->new(
             lanes            => \@matching_lanes,
             name             => $name,
@@ -210,4 +208,28 @@ unless ($found) {
 
     print "Could not find lanes or files for input data \n";
 
+}
+
+sub find_reference
+{
+  my $passed_in_reference = shift;
+  return undef unless(defined( $passed_in_reference));
+  my $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/refs.index';
+  
+  open(my $fh, $index_file) or die 'Couldnt open index file';
+  while(<$fh>)
+  {
+    chomp;
+    my $line = $_;
+    my $search_query = $passed_in_reference.'.fa$';
+    if($line =~ m/$search_query/i)
+    {
+      my @ref_details = split(/\t/,$line );
+      if(-e $ref_details[1])
+      {
+        return $ref_details[1];
+      }
+    }
+  }
+  return undef;
 }

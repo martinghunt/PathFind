@@ -154,7 +154,6 @@ sub _create_symlinks {
         foreach my $linkf (@files2link) {
 			my ($source, $dest) = @{ $linkf };
             my $cmd = "ln -s $source $dest";
-			print "CMD: $cmd\n";
             system($cmd) == 0
               or die
 "Could not create symlink for $lane in $destination/$name: error code $?\n";

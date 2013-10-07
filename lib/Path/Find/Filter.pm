@@ -75,6 +75,12 @@ sub filter {
     foreach (@lanes) {
         my $l = $_;
 
+		# check if type exension should include mapstat id
+		if($type_extn =~ /MAPSTAT_ID/){
+			my $ms_id = $self->_get_mapstat_id($l);
+			$type_extn =~ s/MAPSTAT_ID/$ms_id/;
+		}
+
         # check ref, date or mapper matches
         next if ( $ref    && !$self->_reference_matches($l) );
         next if ( $mapper && !$self->_mapper_matches($l) );
@@ -131,13 +137,21 @@ sub _make_lane_hash {
             lane   => $path,
             ref    => $self->_reference_name($lane_obj),
             mapper => $self->_get_mapper($lane_obj),
-            date   => $self->_date_changed($lane_obj)
+            date   => $self->_date_changed($lane_obj),
+			mapstat => $self->_get_mapstat_id($lane_obj)
         };
 
     }
     else {
         return { lane => $path };
     }
+}
+
+sub _get_mapstat_id {
+	my ($self, $lane) = @_;
+	
+	my $mapstat = $lane->mappings();
+	return $mapstat->id;
 }
 
 sub _get_full_path {
