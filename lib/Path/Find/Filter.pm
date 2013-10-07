@@ -119,7 +119,8 @@ sub filter {
 sub find_files {
     my ( $self, $full_path ) = @_;
 
-    my @matches = `ls $full_path`;
+    my @matches = `ls $full_path 2> pathfinderr.txt`;
+	unlink("pathfinderr.txt");
     if ( @matches ) {
         return \@matches;
     }
