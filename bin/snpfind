@@ -25,6 +25,7 @@ use strict;
 use warnings;
 no warnings 'uninitialized';
 
+use Data::Dumper;
 use Cwd;
 use File::chdir;
 use File::Temp;
