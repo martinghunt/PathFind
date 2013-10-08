@@ -66,7 +66,7 @@ GetOptions(
     'r|reference=s' => \$ref,
     'd|date=s'      => \$date,
     'm|mapper=s'    => \$mapper,
-    'p|pseudo=s'    => \$pseudogenome,
+    'p|pseudo'    => \$pseudogenome,
     'q|qc=s'        => \$qc
 );
 
