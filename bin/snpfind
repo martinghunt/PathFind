@@ -66,7 +66,7 @@ GetOptions(
     'r|reference=s' => \$ref,
     'd|date=s'      => \$date,
     'm|mapper=s'    => \$mapper,
-    'p|pseudo'    => \$pseudogenome,
+    'p|pseudo'      => \$pseudogenome,
     'q|qc=s'        => \$qc
 );
 
@@ -151,9 +151,12 @@ for my $database (@pathogen_databases) {
         type_extensions => \%type_extensions,
         reference       => $ref,
         mapper          => $mapper,
-        date            => $date
+        date            => $date,
+        verbose         => $verbose
     );
     my @matching_lanes = $lane_filter->filter;
+
+	print Dumper \@matching_lanes;
 
     # Set up to symlink/archive. Check whether default filetype should be used
     my $use_default = 0;
@@ -223,34 +226,33 @@ sub create_pseudogenome {
     my @matching_lanes = @{$mlanes};
 
     my $pg_filename = pseudogenome_filename();
-	
-	# first add reference as one sequence
-	if(defined $ref){
-		my $ref_path = find_reference($ref);
-		system("echo \">$ref\" >> $pg_filename");
-		system("grep -v \">\" $ref_path >> $pg_filename");
-	}
-	
-	# next, add all found sequences
-	foreach my $ml (@matching_lanes){
-		my $ml_path = $ml->{lane};
-		system("cat $ml_path >> $pg_filename");
-	}
-	return 1;
+
+    # first add reference as one sequence
+    if ( defined $ref ) {
+        my $ref_path = find_reference($ref);
+        system("echo \">$ref\" >> $pg_filename");
+        system("grep -v \">\" $ref_path >> $pg_filename");
+    }
+
+    # next, add all found sequences
+    foreach my $ml (@matching_lanes) {
+        my $ml_path = $ml->{lane};
+        system("cat $ml_path >> $pg_filename");
+    }
+    return 1;
 }
 
 sub pseudogenome_filename {
     my $pseudo_genome_filename = "concatenated";
     if ( defined($ref) ) {
-        $pseudo_genome_filename =
-          $ref . "_" . $pseudo_genome_filename;
+        $pseudo_genome_filename = $ref . "_" . $pseudo_genome_filename;
     }
 
     $pseudo_genome_filename = $id . "_" . $pseudo_genome_filename;
     $pseudo_genome_filename =~ s![\W]!_!gi;
     $pseudo_genome_filename .= '.aln';
     `touch $pseudo_genome_filename`;
-	return $pseudo_genome_filename;
+    return $pseudo_genome_filename;
 }
 
 sub link_rename_hash {
