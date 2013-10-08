@@ -142,7 +142,7 @@ for my $database (@pathogen_databases) {
     }
 
     # filter lanes
-    $filetype = "bam" if ( $verbose || $date || $ref || $mapper );
+    $filetype = "pseudogenome" if ( defined $pseudogenome );
     $lane_filter = Path::Find::Filter->new(
         lanes           => \@lanes,
         filetype        => $filetype,
@@ -181,10 +181,14 @@ for my $database (@pathogen_databases) {
         $linker->archive   if ( defined $archive );
     }
 
+    create_pseudogenome( \@matching_lanes ) if ( defined $pseudogenome );
+
     if (@matching_lanes) {
         $found = 1;
         if ($verbose) {
-            foreach my $ml (sort { $a->{lane} cmp $b->{lane} } @matching_lanes) {
+            foreach
+              my $ml ( sort { $a->{lane} cmp $b->{lane} } @matching_lanes )
+            {
                 my $l = $ml->{lane};
                 my $r = $ml->{ref};
                 my $m = $ml->{mapper};
@@ -193,7 +197,9 @@ for my $database (@pathogen_databases) {
             }
         }
         else {
-            foreach my $ml (sort { $a->{lane} cmp $b->{lane} } @matching_lanes) {
+            foreach
+              my $ml ( sort { $a->{lane} cmp $b->{lane} } @matching_lanes )
+            {
                 my $l = $ml->{lane};
                 print "$l\n";
             }
@@ -212,16 +218,51 @@ unless ($found) {
 
 }
 
-sub link_rename_hash {
-    my ( $self, $mlanes ) = @_;
+sub create_pseudogenome {
+    my ($mlanes) = @_;
     my @matching_lanes = @{$mlanes};
 
-	my %link_names;
+    my $pg_filename = pseudogenome_filename();
+	
+	# first add reference as one sequence
+	if(defined $ref){
+		my $ref_path = find_reference($ref);
+		system("echo \">$ref\" >> $pg_filename");
+		system("grep -v \">\" $ref_path >> $pg_filename");
+	}
+	
+	# next, add all found sequences
+	foreach my $ml (@matching_lanes){
+		my $ml_path = $ml->{lane};
+		system("cat $ml_path >> $pg_filename");
+	}
+	return 1;
+}
+
+sub pseudogenome_filename {
+    my $pseudo_genome_filename = "concatenated";
+    if ( defined($target_reference) ) {
+        $pseudo_genome_filename =
+          $target_reference . "_" . $pseudo_genome_filename;
+    }
+
+    $pseudo_genome_filename = $id . "_" . $pseudo_genome_filename;
+    $pseudo_genome_filename =~ s![\W]!_!gi;
+    $pseudo_genome_filename .= '.aln';
+    `touch $pseudo_genome_filename`;
+	return $pseudo_genome_filename;
+}
+
+sub link_rename_hash {
+    my ($mlanes) = @_;
+    my @matching_lanes = @{$mlanes};
+
+    my %link_names;
     foreach my $mf (@matching_lanes) {
         $mf =~ /(\d+)[^\/]+\/([^\/]+)$/;
-		$link_names{$mf} = "$1.$2";
+        $link_names{$mf} = "$1.$2";
     }
-	return %link_names;
+    return %link_names;
 }
 
 sub find_reference {

@@ -144,7 +144,6 @@ for my $database (@pathogen_databases) {
         rename_links     => \%link_names
     )->sym_links;
 
-	exit;
     `create_pan_genome *.gff`;
 
     chdir($cwd);
