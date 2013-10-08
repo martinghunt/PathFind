@@ -180,5 +180,5 @@ sub link_rename_hash {
 sub get_lane_from_path {
 	my ($path) = @_;
 	$path =~ /([^\/]+)\/velvet/;
-	return $1;
+	return "$1.gff";
 }
