@@ -171,7 +171,8 @@ sub link_rename_hash {
     my @matching_lanes = @{$mlanes};
 	my %link_names;
 	foreach my $l (@matching_lanes){
-		$link_names{$l} = get_lane_from_path($l);
+		my $p = $l->{lane}
+		$link_names{$p} = get_lane_from_path($p);
 	}
 	return %link_names;
 }
