@@ -108,7 +108,7 @@ for my $database (@pathogen_databases) {
         search_id      => $id,
         pathtrack      => $pathtrack,
         dbh            => $dbh,
-        processed_flag => 1
+        processed_flag => 2048
     );
     my @lanes = @{ $find_lanes->lanes };
 
@@ -139,6 +139,7 @@ for my $database (@pathogen_databases) {
 
     # symlink
     my %link_names = link_rename_hash( \@matching_lanes );
+	print Dumper \%link_names;
 
     Path::Find::Linker->new(
         lanes            => \@matching_lanes,
@@ -167,5 +168,15 @@ unless ( $lane_filter->found ) {
 sub link_rename_hash {
     my ($mlanes) = @_;
     my @matching_lanes = @{$mlanes};
+	my %link_names;
+	foreach my $l (@matching_lanes){
+		$link_names{$l} = get_lane_from_path($l);
+	}
+	return %link_names;
+}
 
+sub get_lane_from_path {
+	my ($path) = @_;
+	$path =~ /([^\/]+)\/velvet/;
+	return $1;
 }
