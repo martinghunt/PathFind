@@ -241,9 +241,9 @@ sub create_pseudogenome {
 
 sub pseudogenome_filename {
     my $pseudo_genome_filename = "concatenated";
-    if ( defined($target_reference) ) {
+    if ( defined($ref) ) {
         $pseudo_genome_filename =
-          $target_reference . "_" . $pseudo_genome_filename;
+          $ref . "_" . $pseudo_genome_filename;
     }
 
     $pseudo_genome_filename = $id . "_" . $pseudo_genome_filename;
