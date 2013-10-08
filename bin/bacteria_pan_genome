@@ -135,12 +135,13 @@ for my $database (@pathogen_databases) {
     my $cwd = getcwd();
 
     print Dumper \@matching_lanes;
-    exit;
+
 
     # symlink
     my %link_names = link_rename_hash( \@matching_lanes );
 	print Dumper \%link_names;
-
+	exit;
+	
     Path::Find::Linker->new(
         lanes            => \@matching_lanes,
         name             => $output_directory,
