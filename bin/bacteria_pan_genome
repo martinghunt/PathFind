@@ -134,13 +134,8 @@ for my $database (@pathogen_databases) {
 
     my $cwd = getcwd();
 
-    print Dumper \@matching_lanes;
-
-
     # symlink
     my %link_names = link_rename_hash( \@matching_lanes );
-	print Dumper \%link_names;
-	exit;
 	
     Path::Find::Linker->new(
         lanes            => \@matching_lanes,
@@ -149,6 +144,7 @@ for my $database (@pathogen_databases) {
         rename_links     => \%link_names
     )->sym_links;
 
+	exit;
     `create_pan_genome *.gff`;
 
     chdir($cwd);
