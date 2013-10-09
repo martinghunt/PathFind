@@ -29,6 +29,8 @@ use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
+use lib "../lib";
+
 use Getopt::Long;
 use VertRes::Parser::bamcheck;
 use Bio::MLST::Databases;
