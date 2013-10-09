@@ -155,24 +155,16 @@ $filetype =
 my $filetype_directory = $assembly_stage_directory{$filetype};
 my $filetype_suffix    = $assembly_stage_suffix{$filetype};
 
-# set archive name from $id
-my $archive_from_id = set_archive_name_from_id( $id, $type );
-$archive_from_id .= '.assembly.tar.gz';
-
-# option for user-defined archive name
-my $archive_name_input =
-  ( defined($archive) && $archive ) ? $archive : $archive_from_id;
-
-# set archive path folder_name and suffix
-my ( $archive_path, $archive_name, $archive_suffix ) =
-  set_archive_name($archive_name_input);
-
 for my $database (@pathogen_databases) {
 
     # Connect to database and get info
     my ( $pathtrack, $dbh, $seq_root ) = Path::Find->get_db_info($database);
     my $root = $seq_root;
     $root =~ s/seq-pipelines/assemblies/;
+
+	print "SEQ_ROOT: $seq_root\n";
+	print "ROOT: $root\n";
+	exit;
 
     my $find_lanes = Path::Find::Lanes->new(
         search_type    => $type,

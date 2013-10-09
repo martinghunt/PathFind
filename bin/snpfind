@@ -183,7 +183,8 @@ for my $database (@pathogen_databases) {
         $linker->archive   if ( defined $archive );
     }
 
-    create_pseudogenome( \@matching_lanes ) if ( defined $pseudogenome );
+    create_pseudogenome( \@matching_lanes )
+      if ( defined $pseudogenome && @matching_lanes );
 
     if (@matching_lanes) {
         $found = 1;
