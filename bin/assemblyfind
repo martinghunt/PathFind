@@ -51,6 +51,8 @@ eval {
 };
 
 my ( $type, $id, $symlink, $output, $stats, $filetype, $archive, $help );
+my ( $qc, $found, $destination, $tmpdirectory_name, $archive_name, $all_stats,
+    $archive_path, $archive_suffix );
 
 GetOptions(
     't|type=s'     => \$type,
@@ -164,9 +166,9 @@ for my $database (@pathogen_databases) {
     my $root = $seq_root;
     $root =~ s/seq-pipelines/assemblies/;
 
-	print "SEQ_ROOT: $seq_root\n";
-	print "ROOT: $root\n";
-	exit;
+    print "SEQ_ROOT: $seq_root\n";
+    print "ROOT: $root\n";
+    exit;
 
     my $find_lanes = Path::Find::Lanes->new(
         search_type    => $type,
