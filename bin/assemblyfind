@@ -180,7 +180,7 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
-    
+    foreach my $l (@lanes){
         # get stats
         if ( defined($stats) || defined($archive) ) {
 
