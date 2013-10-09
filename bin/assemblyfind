@@ -168,7 +168,8 @@ for my $database (@pathogen_databases) {
 
     print "SEQ_ROOT: $seq_root\n";
     print "ROOT: $root\n";
-    exit;
+	print "HIERARCHY TEMPLATE: $hierarchy_template\n";
+	exit;
 
     my $find_lanes = Path::Find::Lanes->new(
         search_type    => $type,
@@ -179,99 +180,7 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
-    # scan through db lanes
-    foreach (@lanes) {
-        my $l = $_;
-        if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
-            if ( $filetype ne 'auto' ) {
-                my @stages_to_find =
-                    ( $filetype eq 'user' || $filetype eq 'all' )
-                  ? ( 'velvet', 'columbus', 'scaffold' )
-                  : ($filetype);
-                for my $user_stage (@stages_to_find) {
-                    my $user_stage_directory =
-                      $assembly_stage_directory{$user_stage};
-                    my $user_stage_suffix = $assembly_stage_suffix{$user_stage};
-
-                    my $path = $l->name;
-
-                    my $full_path =
-                      "$root/$path/$user_stage_directory/contigs.fa";
-                    if (
-                        $user_stage eq 'velvet'
-                        && (
-                            -e "$root/$path/$user_stage_directory/unscaffolded_contigs.fa"
-                        )
-                      )
-                    {
-                        $full_path =
-"$root/$path/$user_stage_directory/unscaffolded_contigs.fa";
-                    }
-
-                    if ( -e "$full_path" ) {
-                        $found = 1;
-                        print "$full_path\n";
-                        if ( $symlink || defined $archive ) {
-                            my $humanised_destination = '';
-                            $humanised_destination =
-                                $destination . '/'
-                              . $l->name
-                              . $user_stage_suffix
-                              if $symlink;
-                            $humanised_destination =
-                                $tmpdirectory_name . '/'
-                              . $archive_name . '/'
-                              . $l->name
-                              . $user_stage_suffix
-                              if defined $archive;
-                            my $cmd =
-                              qq[ ln -s $full_path $humanised_destination ];
-                            qx( $cmd );
-                        }
-                    }
-                }
-            }
-
-            if ( $filetype eq 'auto' || $filetype eq 'all' ) {
-                my $pipeline_path =
-                  $pathtrack->hierarchy_path_of_lane( $l, $hierarchy_template );
-
-                # Search for velvet and spades assemblies
-                for my $pipeline_stage ( 'velvet', 'spades' ) {
-                    my $pipeline_stage_directory =
-                      $assembly_stage_directory{$pipeline_stage};
-                    my $pipeline_stage_suffix =
-                      $assembly_stage_suffix{$pipeline_stage};
-                    my $full_path =
-"$seq_root/$pipeline_path/$pipeline_stage_directory/contigs.fa";
-
-                    if ( -e "$full_path" ) {
-                        $found = 1;
-                        print "$full_path\n";
-                        if ( $symlink || defined $archive ) {
-                            my $humanised_destination = '';
-                            $humanised_destination =
-                                $destination . '/'
-                              . $l->name
-                              . '_automated'
-                              . $pipeline_stage_suffix
-                              if $symlink;
-                            $humanised_destination =
-                                $tmpdirectory_name . '/'
-                              . $archive_name . '/'
-                              . $l->name
-                              . '_automated'
-                              . $pipeline_stage_suffix
-                              if defined $archive;
-                            my $cmd =
-                              qq[ ln -s $full_path $humanised_destination ];
-                            qx( $cmd );
-                        }
-                    }
-                }
-            }
-        }
-
+    
         # get stats
         if ( defined($stats) || defined($archive) ) {
 
@@ -317,9 +226,8 @@ for my $database (@pathogen_databases) {
     }
     $dbh->disconnect();
 
-    if ( $found
-      )    #no need to look in the next database if relevant data has been found
-    {
+	#no need to look in the next database if relevant data has been found
+    if ( $found ) {
         # create stats file
         if ( defined($stats) || defined($archive) ) {
             my $filename_id = $id;
