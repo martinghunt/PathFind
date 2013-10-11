@@ -255,7 +255,6 @@ sub link_rename_hash {
         my $sf = $link_names{$lane} = "$lane_name.$filename";
     }
 
-    print Dumper \%link_names;
     return %link_names;
 }
 

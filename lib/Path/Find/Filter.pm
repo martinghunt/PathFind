@@ -155,23 +155,16 @@ sub _get_full_path {
     my @subdirs = @{ $self->subdirectories };
 
     my ( @fps, $lane_path );
-    if ( $root =~ /assemblies/ ) {
-		foreach my $subdir (@subdirs) {
-			$lane_path = $lane->name;
-	        push( @fps, "$root/$lane_path$subdir" );
-	    }
-    }
-    else {
-        my $hierarchy_template = $self->hierarchy_template;
-        my $pathtrack          = $self->pathtrack;
 
-        $lane_path =
-          $pathtrack->hierarchy_path_of_lane( $lane, $hierarchy_template );
-		foreach my $subdir (@subdirs) {
-	        push( @fps, "$root/$lane_path$subdir" );
-	    }
+    my $hierarchy_template = $self->hierarchy_template;
+    my $pathtrack          = $self->pathtrack;
+
+    $lane_path =
+      $pathtrack->hierarchy_path_of_lane( $lane, $hierarchy_template );
+    foreach my $subdir (@subdirs) {
+        push( @fps, "$root/$lane_path$subdir" );
     }
-    
+
     return @fps;
 }
 
