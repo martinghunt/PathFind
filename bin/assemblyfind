@@ -129,19 +129,19 @@ my @pathogen_databases = Path::Find->pathogen_databases;
 my @sub_directories;
 if ($filetype) {
     if ( $filetype eq 'scaffold' ) {
-        @sub_directories = ('scaffolding_results');
+        @sub_directories = ('/scaffolding_results');
     }
     elsif ( $filetype eq 'contigs' ) {
         @sub_directories = (
-            'velvet_assembly', 'velvet_assembly_with_reference',
-            'spades_assembly'
+            '/velvet_assembly', '/velvet_assembly_with_reference',
+            '/spades_assembly'
         );
     }
 }
 else {
     $filetype = 'contigs';
-    @sub_directories = ( 'velvet_assembly', 'velvet_assembly_with_reference',
-        'spades_assembly' );
+    @sub_directories = ( '/velvet_assembly', '/velvet_assembly_with_reference',
+        '/spades_assembly' );
 }
 
 # set file type extension wildcard
