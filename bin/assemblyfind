@@ -126,13 +126,13 @@ USAGE
 my @pathogen_databases = Path::Find->pathogen_databases;
 
 # Set assembly subdirectories
-my @subdirectories;
+my @sub_directories;
 if ($filetype) {
     if ( $filetype eq 'scaffold' ) {
-        @subdirectories = ('scaffolding_results');
+        @sub_directories = ('scaffolding_results');
     }
     elsif ( $filetype eq 'contigs' ) {
-        @subdirectories = (
+        @sub_directories = (
             'velvet_assembly', 'velvet_assembly_with_reference',
             'spades_assembly'
         );
@@ -140,7 +140,7 @@ if ($filetype) {
 }
 else {
     $filetype = 'contigs';
-    @subdirectories = ( 'velvet_assembly', 'velvet_assembly_with_reference',
+    @sub_directories = ( 'velvet_assembly', 'velvet_assembly_with_reference',
         'spades_assembly' );
 }
 
@@ -149,6 +149,8 @@ my %type_extensions = (
     contigs  => '*contigs.fa',
     scaffold => 'contigs.fa',
 );
+
+my $lane_filter;
 
 for my $database (@pathogen_databases) {
 
