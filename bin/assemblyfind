@@ -25,6 +25,7 @@ use warnings;
 no warnings 'uninitialized';
 
 use Cwd;
+use Data::Dumper;
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
