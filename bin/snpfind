@@ -172,6 +172,9 @@ for my $database (@pathogen_databases) {
 
         my %link_names = link_rename_hash( \@matching_lanes );
 
+		print "LINK_NAMES:\n";
+		print Dumper \%link_names;
+
         my $linker = Path::Find::Linker->new(
             lanes            => \@matching_lanes,
             name             => $name,
