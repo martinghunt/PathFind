@@ -133,7 +133,7 @@ my $lane_filter;
 my @sub_directories =
   ( '/velvet_assembly/annotation', '/spades_assembly/annotation' );
 
-# set file type extension regular expressions
+# set file type extension wildcard
 my %type_extensions = (
     gff => '*.gff',
     faa => '*.faa',

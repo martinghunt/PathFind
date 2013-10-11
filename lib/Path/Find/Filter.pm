@@ -75,11 +75,11 @@ sub filter {
     foreach (@lanes) {
         my $l = $_;
 
-		# check if type exension should include mapstat id
-		if($filetype && $type_extn =~ /MAPSTAT_ID/){
-			my $ms_id = $self->_get_mapstat_id($l);
-			$type_extn =~ s/MAPSTAT_ID/$ms_id/;
-		}
+        # check if type exension should include mapstat id
+        if ( $filetype && $type_extn =~ /MAPSTAT_ID/ ) {
+            my $ms_id = $self->_get_mapstat_id($l);
+            $type_extn =~ s/MAPSTAT_ID/$ms_id/;
+        }
 
         # check ref, date or mapper matches
         next if ( $ref    && !$self->_reference_matches($l) );
@@ -91,22 +91,24 @@ sub filter {
 
             foreach my $full_path (@paths) {
                 if ($filetype) {
-					my $search_path = "$full_path/$type_extn";
+                    my $search_path = "$full_path/$type_extn";
                     next
                       unless my $matching_files =
-                      $self->find_files( $search_path );
+                      $self->find_files($search_path);
                     for my $m ( @{$matching_files} ) {
                         chomp $m;
                         if ( -e $m ) {
                             $self->_set_found(1);
-                            push(@matching_paths, $self->_make_lane_hash( $m, $l ));
+                            push( @matching_paths,
+                                $self->_make_lane_hash( $m, $l ) );
                         }
                     }
                 }
                 else {
                     if ( -e $full_path ) {
                         $self->_set_found(1);
-                        push(@matching_paths, $self->_make_lane_hash( $full_path, $l ));
+                        push( @matching_paths,
+                            $self->_make_lane_hash( $full_path, $l ) );
                     }
                 }
             }
@@ -120,8 +122,8 @@ sub find_files {
     my ( $self, $full_path ) = @_;
 
     my @matches = `ls $full_path 2> pathfinderr.txt`;
-	unlink("pathfinderr.txt");
-    if ( @matches ) {
+    unlink("pathfinderr.txt");
+    if (@matches) {
         return \@matches;
     }
     else {
@@ -149,18 +151,27 @@ sub _make_lane_hash {
 
 sub _get_full_path {
     my ( $self, $lane ) = @_;
-    my $hierarchy_template = $self->hierarchy_template;
-    my $root               = $self->root;
-    my $pathtrack          = $self->pathtrack;
-    my @subdirs            = @{ $self->subdirectories };
+    my $root    = $self->root;
+    my @subdirs = @{ $self->subdirectories };
 
-    my $lane_path =
-      $pathtrack->hierarchy_path_of_lane( $lane, $hierarchy_template );
-    my @fps;
-    foreach my $subdir (@subdirs) {
-        push( @fps, "$root/$lane_path$subdir" );
+    my ( @fps, $lane_path );
+    if ( $root =~ /assemblies/ ) {
+		foreach my $subdir (@subdirs) {
+			$lane_path = $lane->name;
+	        push( @fps, "$root/$lane_path$subdir" );
+	    }
     }
+    else {
+        my $hierarchy_template = $self->hierarchy_template;
+        my $pathtrack          = $self->pathtrack;
 
+        $lane_path =
+          $pathtrack->hierarchy_path_of_lane( $lane, $hierarchy_template );
+		foreach my $subdir (@subdirs) {
+	        push( @fps, "$root/$lane_path$subdir" );
+	    }
+    }
+    
     return @fps;
 }
 
@@ -241,8 +252,8 @@ sub _get_mapper {
 
 sub _date_changed {
     my ( $self, $lane ) = @_;
-	
-	my $lc = $lane->changed;
+
+    my $lc = $lane->changed;
     my ( $date, $time ) = split( /\s+/, $lc );
     my @date_elements = split( '-', $date );
     return join( '-', reverse @date_elements );

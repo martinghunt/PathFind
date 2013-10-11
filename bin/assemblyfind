@@ -78,11 +78,7 @@ GetOptions(
         !$filetype
         || (
             $filetype
-            && (   $filetype eq 'auto'
-                || $filetype eq 'all'
-                || $filetype eq 'user'
-                || $filetype eq 'velvet'
-                || $filetype eq 'columbus'
+            && (   $filetype eq 'contigs'
                 || $filetype eq 'scaffold' )
         )
       )
@@ -115,15 +111,11 @@ assemblyfind -t study -id "My study" -symlink
 assemblyfind -t lane -id 1234_5#6 
 
 # create a CSV file of assembly statistics for all assemblies in the given study
-assemblyfind -t study -id 123 -stats
+assemblyfind -t study -id 123 -s
 
 # create a compressed archive containing all assemblies for a study and a CSV file of assembly statistics
 assemblyfind -t study -id 123 -archive 
 assemblyfind -t study -id 123 -archive study_123_assemblies.tgz
-
-# find an assembly from the assemble_lanes pipeline
-assemblyfind -t lane -id 1234_5#6 -stage user
-assemblyfind -t lane -id 1234_5#6 -stage velvet
 
 # find all assemblies
 assemblyfind -t lane -id 1234_5#6 -stage all
@@ -132,32 +124,31 @@ USAGE
 
 # Get databases
 my @pathogen_databases = Path::Find->pathogen_databases;
-my $hierarchy_template = Path::Find->hierarchy_template;
 
-# Set assembly stage
-my %assembly_stage_directory = (
-    'velvet'   => 'velvet_assembly',
-    'columbus' => 'velvet_assembly_with_reference',
-    'scaffold' => 'scaffolding_results',
-    'auto'     => 'velvet_assembly',
-    'all'      => 'velvet_assembly',
-    'spades'   => 'spades_assembly'
-);
-my %assembly_stage_suffix = (
-    'velvet'   => '_velvet.fa',
-    'columbus' => '_columbus.fa',
-    'scaffold' => '_scaffolded.fa',
-    'auto'     => '.fa',
-    'all'      => '.fa',
-    'spades'   => '_spades.fa'
-);
+# Set assembly subdirectories
+my @subdirectories;
+if ($filetype) {
+    if ( $filetype eq 'scaffold' ) {
+        @subdirectories = ('scaffolding_results');
+    }
+    elsif ( $filetype eq 'contigs' ) {
+        @subdirectories = (
+            'velvet_assembly', 'velvet_assembly_with_reference',
+            'spades_assembly'
+        );
+    }
+}
+else {
+    $filetype = 'contigs';
+    @subdirectories = ( 'velvet_assembly', 'velvet_assembly_with_reference',
+        'spades_assembly' );
+}
 
-$filetype =
-    $filetype
-  ? $filetype
-  : 'auto';    # Assembly stage defaults to automated pipeline.
-my $filetype_directory = $assembly_stage_directory{$filetype};
-my $filetype_suffix    = $assembly_stage_suffix{$filetype};
+# set file type extension wildcard
+my %type_extensions = (
+    contigs  => '*contigs.fa',
+    scaffold => 'contigs.fa',
+);
 
 for my $database (@pathogen_databases) {
 
@@ -165,11 +156,6 @@ for my $database (@pathogen_databases) {
     my ( $pathtrack, $dbh, $seq_root ) = Path::Find->get_db_info($database);
     my $root = $seq_root;
     $root =~ s/seq-pipelines/assemblies/;
-
-    print "SEQ_ROOT: $seq_root\n";
-    print "ROOT: $root\n";
-	print "HIERARCHY TEMPLATE: $hierarchy_template\n";
-	exit;
 
     my $find_lanes = Path::Find::Lanes->new(
         search_type    => $type,
@@ -180,78 +166,59 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
-    foreach my $l (@lanes){
-        # get stats
-        if ( defined($stats) || defined($archive) ) {
-
-            if ( $filetype eq 'auto' || $filetype eq 'all' ) {
-                my $pipeline_path =
-                  $pathtrack->hierarchy_path_of_lane( $l, $hierarchy_template );
-                my $pipeline_velvet_row =
-                  generate_pipeline_row( "$seq_root/$pipeline_path", $l->name,
-                    'velvet_assembly', 'Velvet+Improvement' );
-
-                if ( defined($pipeline_velvet_row) ) {
-                    $all_stats .= $pipeline_velvet_row;
-                }
-                my $pipeline_spades_row = generate_pipeline_row(
-                    "$seq_root/$pipeline_path", $l->name,
-                    'spades_assembly',          'SPAdes'
-                );
-                if ( defined($pipeline_spades_row) ) {
-                    $all_stats .= $pipeline_spades_row;
-                }
-            }
-
-            if ( $filetype ne 'auto' ) {
-                my $velvet_row =
-                  generate_row( $root, $l->name, 'velvet_assembly', 'Velvet' );
-                my $columbus_row = generate_row( $root, $l->name,
-                    'velvet_assembly_with_reference', 'Columbus' );
-                my $final_row =
-                  generate_row( $root, $l->name, 'scaffolding_results',
-                    'Velvet+Columbus+SSpace' );
-
-                if ( defined($velvet_row) ) {
-                    $all_stats .= $velvet_row;
-                }
-                if ( defined($columbus_row) ) {
-                    $all_stats .= $columbus_row;
-                }
-                if ( defined($final_row) ) {
-                    $all_stats .= $final_row;
-                }
-            }
-        }
+    unless (@lanes) {
+        $dbh->disconnect();
+        next;
     }
+
+    # check directories exist, find & filter by file type
+    $lane_filter = Path::Find::Filter->new(
+        lanes           => \@lanes,
+        filetype        => $filetype,
+        type_extensions => \%type_extensions,
+        root            => $root,
+        pathtrack       => $pathtrack,
+        subdirectories  => \@sub_directories
+    );
+    my @matching_lanes = $lane_filter->filter;
+
+    # symlink or archive
+    # Set up to symlink/archive. Check whether default filetype should be used
+    my $use_default = 0;
+    $use_default = 1 if ( !defined $filetype );
+    if ( $lane_filter->found && ( defined $symlink || defined $archive ) ) {
+        my $name;
+        if ( defined $symlink ) {
+            $name = $symlink;
+        }
+        elsif ( defined $archive ) {
+            $name = $archive;
+        }
+        $name = "assemblyfind_$id" if ( $name eq '' );
+
+        my %link_names = link_rename_hash( \@matching_lanes );
+
+        my $linker = Path::Find::Linker->new(
+            lanes            => \@matching_lanes,
+            name             => $name,
+            use_default_type => $use_default,
+            rename_links     => \%link_names
+        );
+
+        $linker->sym_links if ( defined $symlink );
+        $linker->archive   if ( defined $archive );
+    }
+
+    # print out the paths
+    foreach my $ml (@matching_lanes) {
+        my $l = $ml->{lane};
+        print "$l\n";
+    }
+
     $dbh->disconnect();
 
-	#no need to look in the next database if relevant data has been found
-    if ( $found ) {
-        # create stats file
-        if ( defined($stats) || defined($archive) ) {
-            my $filename_id = $id;
-            $filename_id =~ s/[\W]//gi;
-            $filename_id =
-              $tmpdirectory_name . '/' . $archive_name . '/' . $filename_id
-              if defined($archive);    # save to archive in temp dir
-            open( my $output_stats_fh,
-                '+>' . $filename_id . '_assembly_statistics.csv' )
-              or die "Couldnt create assembly stats file $!\n";
-
-            print {$output_stats_fh} stats_header() . "\n";
-            print {$output_stats_fh} $all_stats;
-            close($output_stats_fh);
-            print "Assembly statistics save to "
-              . $filename_id
-              . '_assembly_statistics.csv' . "\n"
-              if defined($stats);
-
-            # create archive in temp directory and move to output destination
-            archive_lanes( $tmpdirectory_name, $archive_name,
-                $archive_path . $archive_name . $archive_suffix )
-              if defined $archive;
-        }
+    #no need to look in the next database if relevant data has been found
+    if ($found) {
         exit;
     }
 }
@@ -261,6 +228,97 @@ unless ($found) {
     print "Could not find lanes or files for input data\n";
 
 }
+
+sub link_rename_hash {
+    my ($mlanes) = @_;
+    my @matching_lanes = @{$mlanes};
+
+    my %suffixes = (
+        'velvet_assembly'                => '_velvet.fa',
+        'velvet_assembly_with_reference' => '_columbus.fa',
+        'spades_assembly'                => '_spades.fa',
+        'scaffolding_results'            => '_scaffolded.fa'
+    );
+
+    my %link_names;
+    foreach my $mf (@matching_lanes) {
+        $mf =~ /(\d+)[^\/]+\/([^\/]+)\.fa$/;
+		my $sf = 
+        $link_names{$mf} = "$1.$2";
+    }
+    return %link_names;
+}
+
+##### UPDATE #########
+#sub generate_stats {
+#	# get stats
+#    if ( defined($stats) || defined($archive) ) {
+#
+#        if ( $filetype eq 'auto' || $filetype eq 'all' ) {
+#            my $pipeline_path =
+#              $pathtrack->hierarchy_path_of_lane( $l, $hierarchy_template );
+#            my $pipeline_velvet_row =
+#              generate_pipeline_row( "$seq_root/$pipeline_path", $l->name,
+#                'velvet_assembly', 'Velvet+Improvement' );
+#
+#            if ( defined($pipeline_velvet_row) ) {
+#                $all_stats .= $pipeline_velvet_row;
+#            }
+#            my $pipeline_spades_row = generate_pipeline_row(
+#                "$seq_root/$pipeline_path", $l->name,
+#                'spades_assembly',          'SPAdes'
+#            );
+#            if ( defined($pipeline_spades_row) ) {
+#                $all_stats .= $pipeline_spades_row;
+#            }
+#        }
+#
+#        if ( $filetype ne 'auto' ) {
+#            my $velvet_row =
+#              generate_row( $root, $l->name, 'velvet_assembly', 'Velvet' );
+#            my $columbus_row = generate_row( $root, $l->name,
+#                'velvet_assembly_with_reference', 'Columbus' );
+#            my $final_row =
+#              generate_row( $root, $l->name, 'scaffolding_results',
+#                'Velvet+Columbus+SSpace' );
+#
+#            if ( defined($velvet_row) ) {
+#                $all_stats .= $velvet_row;
+#            }
+#            if ( defined($columbus_row) ) {
+#                $all_stats .= $columbus_row;
+#            }
+#            if ( defined($final_row) ) {
+#                $all_stats .= $final_row;
+#            }
+#        }
+#    }
+#	# create stats file
+#    if ( defined($stats) || defined($archive) ) {
+#        my $filename_id = $id;
+#        $filename_id =~ s/[\W]//gi;
+#        $filename_id =
+#          $tmpdirectory_name . '/' . $archive_name . '/' . $filename_id
+#          if defined($archive);    # save to archive in temp dir
+#        open( my $output_stats_fh,
+#            '+>' . $filename_id . '_assembly_statistics.csv' )
+#          or die "Couldnt create assembly stats file $!\n";
+#
+#        print {$output_stats_fh} stats_header() . "\n";
+#        print {$output_stats_fh} $all_stats;
+#        close($output_stats_fh);
+#        print "Assembly statistics save to "
+#          . $filename_id
+#          . '_assembly_statistics.csv' . "\n"
+#          if defined($stats);
+#
+#        # create archive in temp directory and move to output destination
+#        archive_lanes( $tmpdirectory_name, $archive_name,
+#            $archive_path . $archive_name . $archive_suffix )
+#          if defined $archive;
+#    }
+#
+#}
 
 sub generate_pipeline_row {
     my ( $root, $path, $subdirectory, $type ) = @_;
@@ -436,71 +494,6 @@ sub stats_header {
             'Insert Size Std Dev'
         )
     );
-}
-
-# Set archive_path, archive_name and archive_suffix
-sub set_archive_name {
-    my ($archive_submitted_name) = @_;
-    my ( @path, $path, $name, $suff );
-
-    @path = split( /\//, $archive_submitted_name );
-    $name = pop @path;
-    $path = scalar @path ? join( '/', @path ) . '/' : '';
-
-    $name =~ m/(\.tgz|\.tar\.gz)$/;
-    $suff = $1 ? $1 : '.tar.gz';
-    $name =~ s/\.tgz$|\.tar\.gz$//;
-
-    $name =~ s/\s+/_/gi;    # replace whitespace in name
-
-    # verify output directory
-    if ( $path && !( -d $path && -e $path ) ) {
-        chop $path;         # remove '/'
-        print "Error: Cannot find directory: $path\n";
-        exit;
-    }
-
-    return ( $path, $name, $suff );
-}
-
-# Create archive for lanes
-# Note: The tar command has to be run in the temporary directory.
-sub archive_lanes {
-    my ( $tmpdirectory_name, $archive_name, $archive_full ) = @_;
-    my $error = 0;
-
-    # create compressed tar archive in temporary directory
-    # tar follows lane symlinks
-    {
-        local $CWD = $tmpdirectory_name;
-        print "Archiving lanes:\n";
-        system("tar -cvahf archive.tar.gz $archive_name") == 0 or $error = 1;
-    }
-
-    # return without moving archive if error during creation
-    if ($error) {
-        print "An error occured while creating the archive: $archive_name\n";
-        print "No output written to $archive_full\n";
-        return 0;
-    }
-
-    # move temp archive to archive destination
-    move( $tmpdirectory_name . '/archive.tar.gz', $archive_full ) or $error = 1;
-
-    print "An error occured while writing $archive_full: $!\n" if $error;
-    return $error;
-}
-
-sub set_archive_name_from_id {
-    my ( $id, $type ) = @_;
-
-    # only remove path for 'file' some studies have '/' in title.
-    my @path = split( /\//, $id );
-    my $name = $type eq 'file' ? pop @path : $id;
-    $name =~ s/\s+/_/gi;
-    $name =~ s/[^\w\.]+/_/gi;
-
-    return $name;
 }
 
 # Sort routine for multiplexed lane names (eg 1234_5#6)
