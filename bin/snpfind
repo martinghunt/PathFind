@@ -143,7 +143,12 @@ for my $database (@pathogen_databases) {
     }
 
     # filter lanes
-    $filetype = "pseudogenome" if ( defined $pseudogenome );
+    if ( defined $pseudogenome ) {
+        $filetype = "pseudogenome";
+    }
+    elsif ( (defined $symlink || defined $archive) && !defined $filetype ) {
+        $filetype = "vcf";
+    }
     $lane_filter = Path::Find::Filter->new(
         lanes           => \@lanes,
         filetype        => $filetype,
@@ -172,8 +177,8 @@ for my $database (@pathogen_databases) {
 
         my %link_names = link_rename_hash( \@matching_lanes );
 
-		print "LINK_NAMES:\n";
-		print Dumper \%link_names;
+        print "LINK_NAMES:\n";
+        print Dumper \%link_names;
 
         my $linker = Path::Find::Linker->new(
             lanes            => \@matching_lanes,
@@ -264,7 +269,7 @@ sub link_rename_hash {
 
     my %link_names;
     foreach my $mf (@matching_lanes) {
-		my $lane = $mf->{lane};
+        my $lane = $mf->{lane};
         $lane =~ /(\d+)[^\/]+\/([^\/]+)$/;
         $link_names{$lane} = "$1.$2";
     }
