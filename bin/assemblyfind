@@ -27,8 +27,9 @@ no warnings 'uninitialized';
 use Cwd;
 use Data::Dumper;
 
-use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
-  ;    #Change accordingly once we have a stable checkout
+#Change accordingly once we have a stable checkout
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";
+
 use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
@@ -129,25 +130,22 @@ my @pathogen_databases = Path::Find->pathogen_databases;
 # Set assembly subdirectories
 my @sub_directories;
 if ($filetype) {
-    if ( $filetype eq 'scaffold' ) {
-        @sub_directories = ('/scaffolding_results');
-    }
-    elsif ( $filetype eq 'contigs' ) {
-        @sub_directories = (
-            '/velvet_assembly', '/velvet_assembly_with_reference',
-            '/spades_assembly'
-        );
-    }
+    @sub_directories = (
+        '/velvet_assembly', '/velvet_assembly_with_reference',
+        '/spades_assembly'
+    );
 }
 else {
-    $filetype = 'contigs';
-    @sub_directories = ( '/velvet_assembly', '/velvet_assembly_with_reference',
-        '/spades_assembly' );
+    $filetype        = 'contigs';
+    @sub_directories = (
+        '/velvet_assembly', '/velvet_assembly_with_reference',
+        '/spades_assembly'
+    );
 }
 
 # set file type extension wildcard
 my %type_extensions = (
-    contigs  => '*contigs.fa',
+    contigs  => 'unscaffolded_contigs.fa',
     scaffold => 'contigs.fa',
 );
 
@@ -157,8 +155,6 @@ for my $database (@pathogen_databases) {
 
     # Connect to database and get info
     my ( $pathtrack, $dbh, $seq_root ) = Path::Find->get_db_info($database);
-    my $root = $seq_root;
-    #$root =~ s/seq-pipelines/assemblies/;
 
     my $find_lanes = Path::Find::Lanes->new(
         search_type    => $type,
@@ -175,7 +171,7 @@ for my $database (@pathogen_databases) {
     }
 
     # check directories exist, find & filter by file type
-	if ( (defined $symlink || defined $archive) && !defined $filetype ) {
+    if ( ( defined $symlink || defined $archive ) && !defined $filetype ) {
         $filetype = "contigs";
     }
     $lane_filter = Path::Find::Filter->new(
@@ -224,12 +220,12 @@ for my $database (@pathogen_databases) {
     $dbh->disconnect();
 
     #no need to look in the next database if relevant data has been found
-    if ($lane_filter->found) {
+    if ( $lane_filter->found ) {
         exit;
     }
 }
 
-unless ($lane_filter->found) {
+unless ( $lane_filter->found ) {
 
     print "Could not find lanes or files for input data\n";
 
@@ -248,18 +244,18 @@ sub link_rename_hash {
 
     my %link_names;
     foreach my $mf (@matching_lanes) {
-		my $lane = $mf->{lane};
-        my @dirs = split("/", $lane);
-		my $filename = pop @dirs;
-		my $subdir = pop @dirs;
-		my $lane_name = pop @dirs;
-		my $suffix = $suffixes{$subdir};
-		
-		$filename =~ s/\.fa/$suffix/;
-		my $sf = $link_names{$lane} = "$lane_name.$filename";
+        my $lane      = $mf->{lane};
+        my @dirs      = split( "/", $lane );
+        my $filename  = pop @dirs;
+        my $subdir    = pop @dirs;
+        my $lane_name = pop @dirs;
+        my $suffix    = $suffixes{$subdir};
+
+        $filename =~ s/\.fa/$suffix/;
+        my $sf = $link_names{$lane} = "$lane_name.$filename";
     }
 
-	print Dumper \%link_names;
+    print Dumper \%link_names;
     return %link_names;
 }
 
