@@ -163,8 +163,6 @@ for my $database (@pathogen_databases) {
     my @matching_lanes = $lane_filter->filter;
 
     # Set up to symlink/archive. Check whether default filetype should be used
-    my $use_default = 0;
-    $use_default = 1 if ( !defined $filetype );
     if ( @matching_lanes && ( defined $symlink || defined $archive ) ) {
         my $name;
         if ( defined $symlink ) {
@@ -177,13 +175,9 @@ for my $database (@pathogen_databases) {
 
         my %link_names = link_rename_hash( \@matching_lanes );
 
-        print "LINK_NAMES:\n";
-        print Dumper \%link_names;
-
         my $linker = Path::Find::Linker->new(
             lanes            => \@matching_lanes,
             name             => $name,
-            use_default_type => $use_default,
             rename_links     => \%link_names
         );
 
