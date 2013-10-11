@@ -264,8 +264,9 @@ sub link_rename_hash {
 
     my %link_names;
     foreach my $mf (@matching_lanes) {
-        $mf =~ /(\d+)[^\/]+\/([^\/]+)$/;
-        $link_names{$mf} = "$1.$2";
+		my $lane = $mf->{lane};
+        $lane =~ /(\d+)[^\/]+\/([^\/]+)$/;
+        $link_names{$lane} = "$1.$2";
     }
     return %link_names;
 }
