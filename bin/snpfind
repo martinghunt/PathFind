@@ -178,6 +178,7 @@ for my $database (@pathogen_databases) {
         my $linker = Path::Find::Linker->new(
             lanes            => \@matching_lanes,
             name             => $name,
+			use_default_type => 0,
             rename_links     => \%link_names
         );
 
