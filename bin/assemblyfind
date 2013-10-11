@@ -156,6 +156,8 @@ for my $database (@pathogen_databases) {
     # Connect to database and get info
     my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
 
+	print "Finding lanes...\n";
+
     my $find_lanes = Path::Find::Lanes->new(
         search_type    => $type,
         search_id      => $id,
@@ -174,6 +176,7 @@ for my $database (@pathogen_databases) {
     if ( ( defined $symlink || defined $archive ) && !defined $filetype ) {
         $filetype = "contigs";
     }
+	print "Filtering lanes...\n";
     $lane_filter = Path::Find::Filter->new(
         lanes           => \@lanes,
         filetype        => $filetype,
@@ -199,6 +202,8 @@ for my $database (@pathogen_databases) {
         $name = "assemblyfind_$id" if ( $name eq '' );
 
         my %link_names = link_rename_hash( \@matching_lanes );
+
+		print "Linking lanes...\n";
 
         my $linker = Path::Find::Linker->new(
             lanes            => \@matching_lanes,
