@@ -154,7 +154,7 @@ my $lane_filter;
 for my $database (@pathogen_databases) {
 
     # Connect to database and get info
-    my ( $pathtrack, $dbh, $seq_root ) = Path::Find->get_db_info($database);
+    my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
 
     my $find_lanes = Path::Find::Lanes->new(
         search_type    => $type,
