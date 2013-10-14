@@ -89,10 +89,10 @@ sub filter {
         next if ( $date   && !$self->_date_is_later($l) );
 
         if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
-			print STDERR "get full paths\n";
+			#print STDERR "get full paths\n";
             my @paths = $self->_get_full_path($l);
 
-			print STDERR "loop through paths\n";
+			#print STDERR "loop through paths\n";
             foreach my $full_path (@paths) {
                 if ($filetype) {
 					#print STDERR "filtering by filetype\n";
