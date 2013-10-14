@@ -27,12 +27,15 @@ no warnings 'uninitialized';
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"; #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
+use lib "../lib";
+
 use Getopt::Long;
 use WWW::Mechanize;
-use PathfindLog;
-eval{ PathfindLog->new(logfile => '/nfs/pathnfs05/log/pathfindlog/accessionfind.log', args => \@ARGV)->commandline(); };
-use Pathfind;
-use FindLanes;
+
+use Path::Find;
+use Path::Find::Lanes;
+use Path::Find::Log;
+eval{ Path::Find::Log->new(logfile => '/nfs/pathnfs05/log/pathfindlog/accessionfind.log', args => \@ARGV)->commandline(); };
 
 $ENV{'http_proxy'} = 'http://webcache.sanger.ac.uk:3128/';
 
@@ -42,7 +45,7 @@ GetOptions(
     't|type=s'      =>  \$type,
     'i|id=s'        =>  \$id,
     'h|help'        =>  \$help,
-    'e|external'    =>  \$external,
+    'f|fastq'    =>  \$external,
     's|submitted'   =>  \$submitted,
     'o|outfile=s'   =>  \$outfile,
     );
@@ -50,12 +53,12 @@ GetOptions(
 ( $type && ( $type eq 'study' || $type eq 'lane' || $type eq 'file' || $type eq 'sample' || $type eq 'species' || $type eq 'database')
   && $id  && !$help ) or die <<USAGE;
     Usage: $0   
-                --type      <study|lane|file|sample|species>
-                --id        <study id|study name|lane name|file of lane names|lane accession|sample accession>
-                --external  <generate ftp addresses for fastq file download from ENA>
-                --submitted <generate ftp addresses for submitted file download. Format varies>
-                --outfile   <file to write output to. If not given, defaults to accessionfind.out>
-                --help      <this message>
+                t|type      <study|lane|file|sample|species>
+                i|id        <study id|study name|lane name|file of lane names|lane accession|sample accession>
+                f|fastq     <generate ftp addresses for fastq file download from ENA>
+                s|submitted <generate ftp addresses for submitted file download. Format varies>
+                o|outfile   <file to write output to. If not given, defaults to accessionfind.out>
+                h|help      <this message>
 USAGE
 
     if(! $outfile){
@@ -63,22 +66,26 @@ USAGE
 }
 
 # Get databases
-my @pathogen_databases = Pathfind->pathogen_databases;
+my @pathogen_databases = Path::Find->pathogen_databases;
 my $lanes_found = 0;
 
 for my $database (@pathogen_databases)
 {
-    my $pathtrack = Pathfind->instantiate_vrtrack($database) or die "Failed to create VRTrack object for '$database'\n";
-    my $dbh       = Pathfind->instantiate_dbi($database)     or die "Failed to create DBI object for '$database'\n";
+    my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
 
-    my $findlanes = FindLanes->new( search_type => $type,
-                                    search_id   => $id,
-                                    pathtrack   => $pathtrack,
-                                    dbh         => $dbh,
-                                    processed_flag => 0 );
+    my $find_lanes = Path::Find::Lanes->new(
+        search_type    => $type,
+        search_id      => $id,
+        pathtrack      => $pathtrack,
+        dbh            => $dbh,
+        processed_flag => 0
+    );
+    my @lanes = @{ $find_lanes->lanes };
 
-    my @lanes = @{ $findlanes->lanes };
-
+    unless (@lanes) {
+        $dbh->disconnect();
+        next;
+    }
     for my $lane (@lanes)
     {
         # get sample and lane accessions
