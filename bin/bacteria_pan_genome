@@ -144,7 +144,7 @@ for my $database (@pathogen_databases) {
         rename_links     => \%link_names
     )->sym_links;
 
-    `create_pan_genome *.gff`;
+    `cd $output_directory; create_pan_genome *.gff`;
 
     chdir($cwd);
     $dbh->disconnect();
