@@ -27,8 +27,10 @@ use strict;
 use warnings;
 no warnings 'uninitialized';
 
-use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
+  ;    #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
+use lib "../lib";
 
 #use Getopt::Long qw(:config no_ignore_case bundling);
 use Getopt::Long;
@@ -37,24 +39,34 @@ use DBI;
 use VRTrack::VRTrack;
 use VRTrack::Lane;
 use VertRes::Utils::VRTrackFactory;
-use PathfindLog;
-eval{ PathfindLog->new(logfile => '/nfs/pathnfs05/log/pathfindlog/plexfind.log', args => \@ARGV)->commandline(); };
+use Path::Find::Log;
+eval {
+    Path::Find::Log->new(
+        logfile => '/nfs/pathnfs05/log/pathfindlog/plexfind.log',
+        args    => \@ARGV
+    )->commandline();
+};
 
-my ( $study, $lane, $tag, $help );
+my ( $type, $id, $tag, $help );
 
 GetOptions(
-    's|study=s' => \$study,
-    'l|lane=s'  => \$lane,
-    't|tag=s'   => \$tag,
-    'h|help'    => \$help,
+    't|type=s' => \$type,
+    'i|id=s'   => \$id,
+    'tag=s'    => \$tag,
+    'h|help'   => \$help,
 );
 
-( $lane || $study ) or die <<USAGE;
+(
+    $type
+      && ( $type eq 'study'
+        || $type eq 'lane' )
+      && $id
+) or die <<USAGE;
 
 Usage: $0
-     -s|study <study id|study name>
-     -l|lane  <lane id>
-     -t|tag   <tag>
+     -t|type <study|lane>
+     -i|id <study id|study name|lane id>
+     -tag   <tag>
      -h|help  <print this message>
 
 Given a study name or study id this script will return a list of multiplex lanes for the study along with the list of samples in each multiplex lane 
@@ -79,18 +91,23 @@ my %connection_details = (
     password => ""
 );
 
-my $hierarchy_template = "genus:species-subspecies:TRACKING:projectssid:sample:technology:library:lane";
+my $hierarchy_template =
+"genus:species-subspecies:TRACKING:projectssid:sample:technology:library:lane";
 
 my $track;
 my $study_obj;
 my $lane_obj;
 
-if ($study) {
+if ($type eq 'study') {
+	my $study = $id;
     my %data;
     foreach ( keys %databases ) {
         $connection_details{database} = $databases{$_};
         $track = VRTrack::VRTrack->new( {%connection_details} );
-        $study_obj = $study =~ m/(\d)/ ? $track->get_project_by_ssid($study) : $track->get_project_by_name($study);
+        $study_obj =
+            $study =~ m/(\d)/
+          ? $track->get_project_by_ssid($study)
+          : $track->get_project_by_name($study);
         if ($study_obj) {
             my $samples = $study_obj->samples();
             foreach my $sample (@$samples) {
@@ -112,7 +129,8 @@ if ($study) {
     }
 }
 
-if ( $lane && $tag ) {
+if ( $type eq 'lane' && $tag ) {
+	my $lane = $id;
     my $lane_name = $lane . '#' . $tag;
     foreach ( keys %databases ) {
         $connection_details{database} = $databases{$_};
@@ -121,8 +139,12 @@ if ( $lane && $tag ) {
         if ($lne) {
             my $sample      = get_sample($lne);
             my $sample_name = $sample->name();
-            my $npg_qc      = defined( $lne->npg_qc_status() ) ? $lne->npg_qc_status() : "not defined";
-            my $qc          = defined( $lne->qc_status() ) ? $lne->qc_status() : "not defined";
+            my $npg_qc =
+              defined( $lne->npg_qc_status() )
+              ? $lne->npg_qc_status()
+              : "not defined";
+            my $qc =
+              defined( $lne->qc_status() ) ? $lne->qc_status() : "not defined";
             print "Sample : $sample_name\n";
             print "NPG QC : $npg_qc\n";
             print "QC : $qc\n";
@@ -131,27 +153,41 @@ if ( $lane && $tag ) {
     }
 }
 
-if ($lane) {
+if ($type eq 'lane') {
+	my $lane = $id;
     my %data;
     foreach ( keys %databases ) {
         $connection_details{database} = $databases{$_};
         $track = VRTrack::VRTrack->new( {%connection_details} );
-        
+
         # raw database connection
-        my $dbi_connect = "DBI:mysql:dbname=".$connection_details{database}.";host=".$connection_details{host}.";port=".$connection_details{port};
-     	  my $dbh = DBI->connect($dbi_connect, $connection_details{user}) or die "Can't connect to database: $DBI::errstr\n";
-        
-        my $lane_names = $dbh->selectall_arrayref('select name from latest_lane where name like "'.$lane.'#%"');
-        for my $lane_name (@$lane_names)
-        {
-            my $lne = VRTrack::Lane->new_by_name($track, @$lane_name[0]);
+        my $dbi_connect =
+            "DBI:mysql:dbname="
+          . $connection_details{database}
+          . ";host="
+          . $connection_details{host}
+          . ";port="
+          . $connection_details{port};
+        my $dbh = DBI->connect( $dbi_connect, $connection_details{user} )
+          or die "Can't connect to database: $DBI::errstr\n";
+
+        my $lane_names = $dbh->selectall_arrayref(
+            'select name from latest_lane where name like "' . $lane . '#%"' );
+        for my $lane_name (@$lane_names) {
+            my $lne = VRTrack::Lane->new_by_name( $track, @$lane_name[0] );
             if ($lne) {
                 my $sample      = get_sample($lne);
                 my $sample_name = $sample->name();
-                my $npg_qc      = defined( $lne->npg_qc_status() ) ? $lne->npg_qc_status() : "not defined";
-                my $qc          = defined( $lne->qc_status() ) ? $lne->qc_status() : "not defined";
+                my $npg_qc =
+                  defined( $lne->npg_qc_status() )
+                  ? $lne->npg_qc_status()
+                  : "not defined";
+                my $qc =
+                  defined( $lne->qc_status() )
+                  ? $lne->qc_status()
+                  : "not defined";
                 my @multiplex_lanes;
-                push( @multiplex_lanes, @$lane_name[0]."#$npg_qc#$qc" );
+                push( @multiplex_lanes, @$lane_name[0] . "#$npg_qc#$qc" );
                 $data{$sample_name} = \@multiplex_lanes;
             }
         }
@@ -177,8 +213,14 @@ sub get_multiplex_lanes {
         foreach my $lane (@$lanes) {
             my $lane_name = $lane->name();
             if ( $lane_name =~ m/#/ ) {
-                my $npg_qc = defined( $lane->npg_qc_status() ) ? $lane->npg_qc_status() : "not defined";
-                my $qc     = defined( $lane->qc_status() )     ? $lane->qc_status()     : "not defined";
+                my $npg_qc =
+                  defined( $lane->npg_qc_status() )
+                  ? $lane->npg_qc_status()
+                  : "not defined";
+                my $qc =
+                  defined( $lane->qc_status() )
+                  ? $lane->qc_status()
+                  : "not defined";
                 push( @multiplex_lanes, "$lane_name#$npg_qc#$qc" );
             }
         }
