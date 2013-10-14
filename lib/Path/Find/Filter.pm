@@ -125,12 +125,24 @@ sub filter {
     return @matching_paths;
 }
 
-sub find_files {
+sub find_files_ls {
     my ( $self, $full_path ) = @_;
 
     my @matches = `ls $full_path 2> pathfinderr.txt`;
     unlink("pathfinderr.txt");
     if (@matches) {
+        return \@matches;
+    }
+    else {
+        return undef;
+    }
+}
+
+sub find_files {
+	my ( $self, $full_path ) = @_;
+	
+	my @matches = glob $full_path;
+	if (@matches) {
         return \@matches;
     }
     else {
