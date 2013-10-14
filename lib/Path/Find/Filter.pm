@@ -76,14 +76,14 @@ sub filter {
         my $l = $_;
 
         # check if type exension should include mapstat id
-		print STDERR "check if type exension should include mapstat id\n";
+		#print STDERR "check if type exension should include mapstat id\n";
         if ( $filetype && $type_extn =~ /MAPSTAT_ID/ ) {
             my $ms_id = $self->_get_mapstat_id($l);
             $type_extn =~ s/MAPSTAT_ID/$ms_id/;
         }
 
         # check ref, date or mapper matches
-		print STDERR "check ref, date or mapper matches\n";
+		#print STDERR "check ref, date or mapper matches\n";
         next if ( $ref    && !$self->_reference_matches($l) );
         next if ( $mapper && !$self->_mapper_matches($l) );
         next if ( $date   && !$self->_date_is_later($l) );
@@ -95,12 +95,12 @@ sub filter {
 			print STDERR "loop through paths\n";
             foreach my $full_path (@paths) {
                 if ($filetype) {
-					print STDERR "filtering by filetype\n";
+					#print STDERR "filtering by filetype\n";
                     my $search_path = "$full_path/$type_extn";
                     next
                       unless my $matching_files =
                       $self->find_files($search_path);
-					print STDERR "add files to print\n";
+					#print STDERR "add files to print\n";
                     for my $m ( @{$matching_files} ) {
                         chomp $m;
                         if ( -e $m ) {
@@ -111,7 +111,7 @@ sub filter {
                     }
                 }
                 else {
-					print STDERR "no need to filter..add to print\n";
+					#print STDERR "no need to filter..add to print\n";
                     if ( -e $full_path ) {
                         $self->_set_found(1);
                         push( @matching_paths,
