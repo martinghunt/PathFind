@@ -119,8 +119,6 @@ sub _lookup_by_study {
           . ' order by lane.name asc'
     );
 
-	print Dumper $lane_names;
-
     for my $lane_name (@$lane_names) {
         my $lane =
           VRTrack::Lane->new_by_name( $self->pathtrack, @$lane_name[0] );
