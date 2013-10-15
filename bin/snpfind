@@ -191,6 +191,7 @@ for my $database (@pathogen_databases) {
 
     if (@matching_lanes) {
         $found = 1;
+		print "PATHTRACK: $pathtrack\n\n";
         if ($verbose) {
             foreach
               my $ml ( sort { $a->{lane} cmp $b->{lane} } @matching_lanes )
