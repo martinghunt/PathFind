@@ -26,6 +26,7 @@ Returns an array of matching VRTrack::Lane objects
 use Moose;
 use VRTrack::Lane;
 use VRTrack::Individual;
+use Data::Dumper;
 
 has 'search_type'    => ( is => 'ro', isa => 'Str', required => 1 );
 has 'search_id'      => ( is => 'ro', isa => 'Str', required => 1 );
@@ -117,6 +118,9 @@ sub _lookup_by_study {
           . $self->processed_flag
           . ' order by lane.name asc'
     );
+
+	print Dumper $lane_names;
+
     for my $lane_name (@$lane_names) {
         my $lane =
           VRTrack::Lane->new_by_name( $self->pathtrack, @$lane_name[0] );
