@@ -29,29 +29,34 @@ use VRTrack::Individual;
 use Path::Find;
 use Data::Dumper;
 
+# required
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has 'hierarchy_template' =>
-  ( is => 'rw', required => 0, builder => '_build_hierarchy_template' );
-has 'filetype'        => ( is => 'ro', required => 0 );
-has 'type_extensions' => ( is => 'rw', required => 0, isa => 'HashRef' );
-has 'qc'              => ( is => 'ro', required => 0 );
-has 'root'            => ( is => 'ro', required => 1 );
-has 'found' =>
-  ( is => 'rw', required => 0, default => 0, writer => '_set_found' );
+has 'root'      => ( is => 'ro', required => 1 );
 has 'pathtrack' => ( is => 'ro', required => 1 );
+# end required
+
+#optional
+has 'hierarchy_template' =>
+  ( is => 'rw', builder => '_build_hierarchy_template', required => 0 );
+has 'filetype'        => ( is => 'ro', required => 0 );
+has 'type_extensions' => ( is => 'rw', isa      => 'HashRef', required => 0 );
+has 'qc'              => ( is => 'ro', required => 0 );
+has 'found' =>
+  ( is => 'rw', default => 0, writer => '_set_found', required => 0 );
 has 'subdirectories' => (
-    is       => 'ro',
-    isa      => 'ArrayRef',
-    required => 0,
-    default  => sub {
+    is      => 'ro',
+    isa     => 'ArrayRef',
+    default => sub {
         my @empty = ("");
         return \@empty;
-    }
+    },
+    required => 0
 );
 has 'reference' => ( is => 'ro', required => 0 );
 has 'mapper'    => ( is => 'rw', required => 0 );
 has 'date'      => ( is => 'ro', required => 0 );
-has 'verbose' => ( is => 'ro', isa => 'Bool', required => 0, default => 0 );
+has 'verbose' => ( is => 'ro', isa => 'Bool', default => 0, required => 0 );
+# end optional
 
 sub _build_hierarchy_template {
     my ($self) = @_;
@@ -76,31 +81,34 @@ sub filter {
         my $l = $_;
 
         # check if type exension should include mapstat id
-		#print STDERR "check if type exension should include mapstat id\n";
+        #print STDERR "check if type exension should include mapstat id\n";
         if ( $filetype && $type_extn =~ /MAPSTAT_ID/ ) {
             my $ms_id = $self->_get_mapstat_id($l);
             $type_extn =~ s/MAPSTAT_ID/$ms_id/;
         }
 
         # check ref, date or mapper matches
-		#print STDERR "check ref, date or mapper matches\n";
+        #print STDERR "check ref, date or mapper matches\n";
         next if ( $ref    && !$self->_reference_matches($l) );
         next if ( $mapper && !$self->_mapper_matches($l) );
         next if ( $date   && !$self->_date_is_later($l) );
 
         if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
-			#print STDERR "get full paths\n";
+
+            #print STDERR "get full paths\n";
             my @paths = $self->_get_full_path($l);
 
-			#print STDERR "loop through paths\n";
+            #print STDERR "loop through paths\n";
             foreach my $full_path (@paths) {
                 if ($filetype) {
-					#print STDERR "filtering by filetype\n";
+
+                    #print STDERR "filtering by filetype\n";
                     my $search_path = "$full_path/$type_extn";
                     next
                       unless my $matching_files =
                       $self->find_files($search_path);
-					#print STDERR "add files to print\n";
+
+                    #print STDERR "add files to print\n";
                     for my $m ( @{$matching_files} ) {
                         if ( -e $m ) {
                             $self->_set_found(1);
@@ -110,7 +118,7 @@ sub filter {
                     }
                 }
                 else {
-					#print STDERR "no need to filter..add to print\n";
+                    #print STDERR "no need to filter..add to print\n";
                     if ( -e $full_path ) {
                         $self->_set_found(1);
                         push( @matching_paths,
@@ -125,10 +133,10 @@ sub filter {
 }
 
 sub find_files {
-	my ( $self, $full_path ) = @_;
-	
-	my @matches = glob $full_path;
-	if (@matches) {
+    my ( $self, $full_path ) = @_;
+
+    my @matches = glob $full_path;
+    if (@matches) {
         return \@matches;
     }
     else {
