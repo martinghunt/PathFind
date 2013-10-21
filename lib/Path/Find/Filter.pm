@@ -105,11 +105,14 @@ sub filter {
                     #print STDERR "filtering by filetype\n";
                     my $search_path = "$full_path/$type_extn";
                     next
-                      unless my $matching_files =
-                      $self->find_files($search_path);
+                      unless my @matching_files =
+                      @{ $self->find_files($search_path) };
+
+					# exclude pool_1.fastq.gz files
+					@matching_files = grep {!/pool_1.fastq.gz/} @matching_files;
 
                     #print STDERR "add files to print\n";
-                    for my $m ( @{$matching_files} ) {
+                    for my $m ( @matching_files ) {
                         if ( -e $m ) {
                             $self->_set_found(1);
                             push( @matching_paths,
