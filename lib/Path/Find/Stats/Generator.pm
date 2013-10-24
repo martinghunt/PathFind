@@ -77,7 +77,6 @@ sub pathfind {
     my $vrtrack = $self->vrtrack;
     foreach my $l (@lanes) {
         my $mapstat = $self->_select_mapstat( $l->qc_mappings );
-        print Dumper $mapstat;
         my $row = Path::Find::Stats::Row->new(
             lane     => $l,
             mapstats => $mapstat,
@@ -147,7 +146,6 @@ sub mapfind {
     my $vrtrack = $self->vrtrack;
     foreach my $l (@lanes) {
         my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
-        print Dumper $mapstat;
         my $row = Path::Find::Stats::Row->new(
             lane     => $l,
             mapstats => $mapstat,
