@@ -76,7 +76,7 @@ sub pathfind {
     #loop through lanes and print info to file
     my $vrtrack = $self->vrtrack;
     foreach my $l (@lanes) {
-        my $mapstat = $l->qc_mappings;
+        my $mapstat = $self->_select_mapstat($l->qc_mappings);
 		print Dumper $mapstat;
         my $row     = Path::Find::Stats::Row->new(
             lane     => $l,
@@ -97,6 +97,13 @@ sub mapfind {
     my ($self) = @_;
 
     $self->output_mapping_report;
+}
+
+sub _select_mapstat {
+	my ($self, $mapstats) = @_;
+	
+	my @sorted_mapstats  = sort {$a->row_id <=> $b->row_id} @{$mapstats};
+	return pop(@sorted_mapstats);
 }
 
 no Moose;
