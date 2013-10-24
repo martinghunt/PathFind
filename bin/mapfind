@@ -202,27 +202,20 @@ for my $database (@pathogen_databases) {
         }
     }
 
-    # Output CSV file
-    if ( defined $stats && $found ) {
-
-        # set default stats file name
-        my $csv_file = $stats;
-        $csv_file = $id if ( $csv_file eq '' );
-        $csv_file =~ s/\s+/_/g;
-        $csv_file .= ".csv";
-
-        # output lanes to file
-        Path::Find::Stats->new(
-            lanes   => \@lanes,
-            output  => $csv_file,
-            vrtrack => $pathtrack
-        )->mapfind;
-    }
-
     $dbh->disconnect();
-    if ( $found
-      )    #no need to look in the next database if relevant data has been found
-    {
+
+    #no need to look in the next database if relevant data has been found
+    if ( $found ) {
+
+        if ( defined $stats ) {
+			$stats = "$id.csv" if($stats eq '');
+			$stats =~ s/\s+/_/g;
+            Path::Find::Stats::Generator->new(
+	            lanes   => \@lanes,
+	            output  => $stats,
+	            vrtrack => $pathtrack
+	        )->mapfind;
+        }
         exit;
     }
 }
