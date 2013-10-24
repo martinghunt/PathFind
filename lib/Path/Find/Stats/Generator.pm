@@ -14,6 +14,8 @@ use Moose;
 use Pathogens::Reports::Mapping::Report;
 use Path::Find::Stats::Row;
 
+use Data::Dumper;
+
 has 'lanes'  => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'output' => ( is => 'ro', isa => 'Str',      required => 1 );
 has 'vrtrack' => ( is => 'rw', required => 1 );
@@ -75,6 +77,7 @@ sub pathfind {
     my $vrtrack = $self->vrtrack;
     foreach my $l (@lanes) {
         my $mapstat = $l->qc_mappings;
+		print Dumper $mapstat;
         my $row     = Path::Find::Stats::Row->new(
             lane     => $l,
             mapstats => $mapstat,
