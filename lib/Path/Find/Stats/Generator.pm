@@ -85,7 +85,8 @@ sub pathfind {
 
         my @info;
         foreach my $c (@columns) {
-            push( @info, $row->$c );
+            my $i = defined($row->$c) ? $row->$c:"NA"; 
+            push( @info, $i );
         }
         my $row_joined = join( ',', @info );
         print OUT "$row_joined\n";
@@ -154,7 +155,8 @@ sub mapfind {
 
         my @info;
         foreach my $c (@columns) {
-            push( @info, $row->$c );
+			my $i = defined($row->$c) ? $row->$c:"NA"; 
+            push( @info, $i );
         }
         my $row_joined = join( ',', @info );
         print OUT "$row_joined\n";
