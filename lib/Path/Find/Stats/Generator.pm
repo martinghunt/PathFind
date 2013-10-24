@@ -12,6 +12,7 @@ package Path::Find::Stats::Generator;
 
 use Moose;
 use Pathogens::Reports::Mapping::Report;
+use Path::Find::Stats::Row;
 
 has 'lanes'  => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'output' => ( is => 'ro', isa => 'Str',      required => 1 );
