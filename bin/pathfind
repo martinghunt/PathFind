@@ -53,7 +53,7 @@ GetOptions(
     'f|filetype=s' => \$filetype,
     'l|symlink:s'  => \$symlink,    # ':' means arg is optional
     'a|archive:s'  => \$archive,
-    's|stats'      => \$stats,
+    's|stats:s'    => \$stats,
     'q|qc=s'       => \$qc,
     'h|help'       => \$help
 );
@@ -120,7 +120,7 @@ for my $database (@pathogen_databases) {
     );
     my @lanes = @{ $find_lanes->lanes };
 
-	unless (@lanes) {
+    unless (@lanes) {
         $dbh->disconnect();
         next;
     }
@@ -155,8 +155,8 @@ for my $database (@pathogen_databases) {
             use_default_type => $use_default
         );
 
-        $linker->sym_links if (defined $symlink);
-        $linker->archive   if (defined $archive);
+        $linker->sym_links if ( defined $symlink );
+        $linker->archive   if ( defined $archive );
     }
 
     foreach my $ml (@matching_lanes) {
@@ -169,7 +169,15 @@ for my $database (@pathogen_databases) {
     #no need to look in the next database if relevant data has been found
     if ( $lane_filter->found ) {
 
-        #Path::Find::Stats->new()->write_stats;
+        if ( defined $stats ) {
+			$stats = "$id.csv" if($stats eq '');
+			$stats =~ s/\s+/_/g;
+            Path::Find::Stats::Generator->new(
+	            lanes   => \@lanes,
+	            output  => $stats,
+	            vrtrack => $pathtrack
+	        )->pathfind;
+        }
         exit;
     }
 }
