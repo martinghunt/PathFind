@@ -16,16 +16,16 @@ use Path::Find::Stats::Row;
 
 use Data::Dumper;
 
-has 'lanes'  => ( is => 'ro', isa => 'ArrayRef[VRTrack::Lane]', required => 1 );
-has 'output' => ( is => 'ro', isa => 'Str',      required => 1 );
+has 'lanes' => ( is => 'ro', isa => 'ArrayRef[VRTrack::Lane]', required => 1 );
+has 'output' => ( is => 'ro', isa => 'Str', required => 1 );
 has 'vrtrack' => ( is => 'rw', required => 1 );
-has 'filepaths' => (is => 'rw', isa => 'ArrayRef', required => 0);
+has 'filepaths' => ( is => 'rw', isa => 'ArrayRef', required => 0 );
 
 sub pathfind {
     my ($self) = @_;
     my @lanes = @{ $self->lanes };
 
-	print Dumper \@lanes;
+    print Dumper \@lanes;
 
     # set up headers and info to retrieve for each row
     my @headers = (
@@ -80,7 +80,7 @@ sub pathfind {
     my $vrtrack = $self->vrtrack;
     foreach my $l (@lanes) {
         my $mapstat = $self->_select_mapstat( $l->qc_mappings );
-        my $row = Path::Find::Stats::Row->new(
+        my $row     = Path::Find::Stats::Row->new(
             lane     => $l,
             mapstats => $mapstat,
             vrtrack  => $vrtrack
@@ -88,7 +88,7 @@ sub pathfind {
 
         my @info;
         foreach my $c (@columns) {
-            my $i = defined($row->$c) ? $row->$c:"NA"; 
+            my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
         my $row_joined = join( ',', @info );
@@ -126,16 +126,16 @@ sub mapfind {
     );
 
     my @columns = (
-        'study_id',            'sample',
-        'lanename',            'cycles',
-        'reads',               'bases',
-        'map_type',            'reference',
-        'reference_size',      'mapper',
-        'mapstats_id',         'mapped_perc',
-        'paired_perc',         'mean_insert_size',
-        'depth_of_coverage',   'depth_of_coverage_sd',
-        'genome_covered_1x',   'genome_covered_5x',
-        'genome_covered_10x',  'genome_covered_50x',
+        'study_id',           'sample',
+        'lanename',           'cycles',
+        'reads',              'bases',
+        'map_type',           'reference',
+        'reference_size',     'mapper',
+        'mapstats_id',        'mapped_perc',
+        'paired_perc',        'mean_insert_size',
+        'depth_of_coverage',  'depth_of_coverage_sd',
+        'genome_covered_1x',  'genome_covered_5x',
+        'genome_covered_10x', 'genome_covered_50x',
         'genome_covered_100x'
     );
 
@@ -150,7 +150,7 @@ sub mapfind {
     my $vrtrack = $self->vrtrack;
     foreach my $l (@lanes) {
         my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
-        my $row = Path::Find::Stats::Row->new(
+        my $row     = Path::Find::Stats::Row->new(
             lane     => $l,
             mapstats => $mapstat,
             vrtrack  => $vrtrack
@@ -158,7 +158,7 @@ sub mapfind {
 
         my @info;
         foreach my $c (@columns) {
-			my $i = defined($row->$c) ? $row->$c:"NA"; 
+            my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
         my $row_joined = join( ',', @info );
@@ -166,18 +166,67 @@ sub mapfind {
     }
 }
 
-sub assembly_find {
-	my ($self) = @_;
-	my @lane_paths = @{ $self->filepaths };
-	
-	# find path to stats and bamcheck files and parse them
-	foreach my $p (@lane_paths){
-		$p =~ s/[^\/]+$//;
-		my $stats_file = $p . "contigs.fa.stats";
-		my $bamcheck = $p . "contigs.mapped.sorted.bam.bc";
-		
-		
-	}
+sub assemblyfind {
+    my ($self) = @_;
+
+    my @headers = (
+        'Lane',
+        'Assembly Type',
+        'Total Length',
+        'No Contigs',
+        'Avg Contig Length',
+        'Largest Contig',
+        'N50',
+        'Contigs in N50',
+        'N60',
+        'Contigs in N60',
+        'N70',
+        'Contigs in N70',
+        'N80',
+        'Contigs in N80',
+        'N90',
+        'Contigs in N90',
+        'N100',
+        'Contigs in N100',
+        'No scaffolded bases (N)',
+        'Total Raw Reads',
+        'Reads Mapped',
+        'Reads Unmapped',
+        'Reads Paired',
+        'Reads Unpaired',
+        'Total Raw Bases',
+        'Total Bases Mapped',
+        'Total Bases Mapped (Cigar)',
+        'Average Read Length',
+        'Maximum Read Length',
+        'Average Quality',
+        'Insert Size Average',
+        'Insert Size Std Dev'
+    );
+    my @columns = (
+        'total_length',          'num_contigs',
+        'average_contig_length', 'largest_contig',
+        'n50',                   'n50_n',
+        'n60',                   'n60_n',
+        'n70',                   'n70_n',
+        'n80',                   'n80_n',
+        'n90',                   'n90_n',
+        'n100',                  'n100_n',
+        'n_count',               'sequences',
+        'reads_mapped',          'reads_unmapped',
+        'reads_paired',          'reads_unpaired',
+        'total_length',          'bases_mapped',
+        'bases_mapped_cigar',    'avg_length',
+        'max_length',            'avg_qual',
+        'avg_insert_size',       'sd_insert_size'
+    );
+
+    my $vrtrack = $self->vrtrack;
+    my $row     = Path::Find::Stats::Row->new(
+        lane     => $l,
+        mapstats => $mapstat,
+        vrtrack  => $vrtrack
+    );
 }
 
 sub _select_mapstat {

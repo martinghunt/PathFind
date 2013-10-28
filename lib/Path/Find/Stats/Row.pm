@@ -4,40 +4,23 @@ use Moose;
 use VRTrack::VRTrack;    # Includes Lane, Mapstats, Etc.
 use VertRes::Parser::bamcheck;
 
-has 'vrtrack' => ( is => 'ro', isa => 'VRTrack::VRTrack', required => 1 )
-  ;                      # database
-has 'lane' => ( is => 'ro', isa => 'VRTrack::Lane', required => 1 );    # lane
-has 'mapstats' => ( is => 'ro', isa => 'VRTrack::Mapstats', required => 1 )
-  ;    # mapstats
-has 'stats_file' => ( is => 'ro', isa => 'Str', required => 0 )
-  ;    # assembly stats file
-has 'bamcheck' => ( is => 'ro', isa => 'Str', required => 0 )
-  ;    # assembly bamcheck file
+has 'vrtrack'    => ( is => 'ro', isa => 'VRTrack::VRTrack',  required => 1 );    # database
+has 'lane'       => ( is => 'ro', isa => 'VRTrack::Lane',     required => 1 );    # lane
+has 'mapstats'   => ( is => 'ro', isa => 'VRTrack::Mapstats', required => 1 );    # mapstats
+has 'stats_file' => ( is => 'ro', isa => 'Str',               required => 0 );    # assembly stats file
+has 'bamcheck'   => ( is => 'ro', isa => 'Str',               required => 0 );    # assembly bamcheck file
 
 # Checks
-has 'is_qc_mapstats' => ( is => 'ro', isa => 'Bool', lazy_build => 1 )
-  ;    # qc or mapping mapstats.
-has 'is_mapping_complete' =>
-  ( is => 'ro', isa => 'Maybe[Bool]', lazy_build => 1 );    # Mapping completed
+has 'is_qc_mapstats'      => ( is => 'ro', isa => 'Bool',        lazy_build => 1 );    # qc or mapping mapstats.
+has 'is_mapping_complete' => ( is => 'ro', isa => 'Maybe[Bool]', lazy_build => 1 );    # Mapping completed
 
 # Internals
-has '_vrtrack_project' =>
-  ( is => 'ro', isa => 'VRTrack::Project', lazy_build => 1 )
-  ;    # Assembly - from mapststs
-has '_vrtrack_sample' =>
-  ( is => 'ro', isa => 'VRTrack::Sample', lazy_build => 1 )
-  ;    # Mapper - from mapstats
-has '_vrtrack_assembly' =>
-  ( is => 'ro', isa => 'VRTrack::Assembly', lazy_build => 1 )
-  ;    # Assembly - from mapststs
-has '_vrtrack_mapper' =>
-  ( is => 'ro', isa => 'VRTrack::Mapper', lazy_build => 1 )
-  ;    # Mapper - from mapstats
-has '_bamcheck_obj' =>
-  ( is => 'ro', isa => 'VertRes::Parser::bamcheck', lazy_build => 1 )
-  ;    # Bamcheck - for assemblies
-has '_basic_assembly_stats' =>
-  ( is => 'ro', isa => 'HashRef', lazy_build => 1 );
+has '_vrtrack_project'      => ( is => 'ro', isa => 'VRTrack::Project',          lazy_build => 1 );    # Assembly - from mapststs
+has '_vrtrack_sample'       => ( is => 'ro', isa => 'VRTrack::Sample',           lazy_build => 1 );    # Mapper - from mapstats
+has '_vrtrack_assembly'     => ( is => 'ro', isa => 'VRTrack::Assembly',         lazy_build => 1 );    # Assembly - from mapststs
+has '_vrtrack_mapper'       => ( is => 'ro', isa => 'VRTrack::Mapper',           lazy_build => 1 );    # Mapper - from mapstats
+has '_bamcheck_obj'         => ( is => 'ro', isa => 'VertRes::Parser::bamcheck', lazy_build => 1 );    # Bamcheck - for assemblies
+has '_basic_assembly_stats' => ( is => 'ro', isa => 'HashRef',                   lazy_build => 1 );
 
 # Cells
 # Mapping
@@ -71,125 +54,25 @@ has 'npg_qc'               => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1
 has 'manual_qc'            => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );    # manual qc
 
 # Assembly
-has 'total_length' => (
-    is   => 'ro',
-    isa  => 'Maybe[Num]',
-    lazy => 1,
-    builder =>
-      sub { my ($self) = @_; return $self->_basic_assembly_stats->total_length }
-);
-has 'num_contigs' => (
-    is   => 'ro',
-    isa  => 'Maybe[Num]',
-    lazy => 1,
-    builder =>
-      sub { my ($self) = @_; return $self->_basic_assembly_stats->num_contigs }
-);
-has 'average_contig_length' => (
-    is      => 'ro',
-    isa     => 'Maybe[Num]',
-    lazy    => 1,
-    builder => sub {
-        my ($self) = @_;
-        return $self->_basic_assembly_stats->average_contig_length;
-    }
-);
-has 'largest_contig' => (
-    is      => 'ro',
-    isa     => 'Maybe[Num]',
-    lazy    => 1,
-    builder => sub {
-        my ($self) = @_;
-        return $self->_basic_assembly_stats->largest_contig;
-    }
-);
-has 'n50' => (
-    is      => 'ro',
-    isa     => 'Maybe[Num]',
-    lazy    => 1,
-    builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n50 }
-);
-has 'n50_n' => (
-    is   => 'ro',
-    isa  => 'Maybe[Num]',
-    lazy => 1,
-    builder =>
-      sub { my ($self) = @_; return $self->_basic_assembly_stats->n50_n }
-);
-has 'n60' => (
-    is      => 'ro',
-    isa     => 'Maybe[Num]',
-    lazy    => 1,
-    builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n60 }
-);
-has 'n60_n' => (
-    is   => 'ro',
-    isa  => 'Maybe[Num]',
-    lazy => 1,
-    builder =>
-      sub { my ($self) = @_; return $self->_basic_assembly_stats->n60_n }
-);
-has 'n70' => (
-    is      => 'ro',
-    isa     => 'Maybe[Num]',
-    lazy    => 1,
-    builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n70 }
-);
-has 'n70_n' => (
-    is   => 'ro',
-    isa  => 'Maybe[Num]',
-    lazy => 1,
-    builder =>
-      sub { my ($self) = @_; return $self->_basic_assembly_stats->n70_n }
-);
-has 'n80' => (
-    is      => 'ro',
-    isa     => 'Maybe[Num]',
-    lazy    => 1,
-    builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n80 }
-);
-has 'n80_n' => (
-    is   => 'ro',
-    isa  => 'Maybe[Num]',
-    lazy => 1,
-    builder =>
-      sub { my ($self) = @_; return $self->_basic_assembly_stats->n80_n }
-);
-has 'n90' => (
-    is      => 'ro',
-    isa     => 'Maybe[Num]',
-    lazy    => 1,
-    builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n90 }
-);
-has 'n90_n' => (
-    is   => 'ro',
-    isa  => 'Maybe[Num]',
-    lazy => 1,
-    builder =>
-      sub { my ($self) = @_; return $self->_basic_assembly_stats->n90_n }
-);
-has 'n100' => (
-    is   => 'ro',
-    isa  => 'Maybe[Num]',
-    lazy => 1,
-    builder =>
-      sub { my ($self) = @_; return $self->_basic_assembly_stats->n100 }
-);
-has 'n100_n' => (
-    is   => 'ro',
-    isa  => 'Maybe[Num]',
-    lazy => 1,
-    builder =>
-      sub { my ($self) = @_; return $self->_basic_assembly_stats->n100_n }
-);
-has 'n_count' => (
-    is   => 'ro',
-    isa  => 'Maybe[Num]',
-    lazy => 1,
-    builder =>
-      sub { my ($self) = @_; return $self->_basic_assembly_stats->n_count }
-);
-
+# From stats file
+has 'total_length'          => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->total_length } );
+has 'num_contigs'           => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->num_contigs } );
+has 'average_contig_length' => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->average_contig_length; } );
+has 'largest_contig'        => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->largest_contig;} );
+has 'n50'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n50; } );
+has 'n50_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n50_n; } );
+has 'n60'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n60; } );
+has 'n60_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n60_n; } );
+has 'n70'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n70; } );
+has 'n70_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n70_n; } );
+has 'n80'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n80; } );
+has 'n80_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n80_n; } );
+has 'n90'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n90; } );
+has 'n90_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n90_n; } );
+has 'n100'                  => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n100; } );
+has 'n100_n'                => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n100_n; } );
+has 'n_count'               => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n_count; } );
+# From bamcheck file
 has 'sequences'          => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
 has 'reads_mapped'       => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
 has 'reads_unmapped'     => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );

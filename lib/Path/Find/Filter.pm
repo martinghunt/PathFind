@@ -115,8 +115,8 @@ sub filter {
                     for my $m ( @matching_files ) {
                         if ( -e $m ) {
                             $self->_set_found(1);
-                            push( @matching_paths,
-                                $self->_make_lane_hash( $m, $l ) );
+							my %lane_hash = $self->_make_lane_hash( $m, $l );
+                            push( @matching_paths, \%lane_hash );
                         }
                     }
                 }
@@ -150,10 +150,11 @@ sub find_files {
 sub _make_lane_hash {
     my ( $self, $path, $lane_obj ) = @_;
     my $vb = $self->verbose;
-
+	
     if ($vb) {
         return {
-            lane   => $path,
+            lane   => $lane_obj,
+			path   => $path,
             ref    => $self->_reference_name($lane_obj),
             mapper => $self->_get_mapper($lane_obj),
             date   => $self->_date_changed($lane_obj),
@@ -161,7 +162,10 @@ sub _make_lane_hash {
 
     }
     else {
-        return { lane => $path };
+        return { 
+			lane => $lane_obj,
+			path => $path 
+		};
     }
 }
 
@@ -182,6 +186,21 @@ sub _get_full_path {
     }
 
     return @fps;
+}
+
+sub _get_stats_paths {
+	my ($self, $lane_obj) = @_;
+	my @lane_paths = $self->_get_full_path($lane_obj);
+	my @stats_paths;
+	foreach my $l ( @lane_paths ){
+		foreach my $sf ( @{ $stats } ){
+			if(-e "$l/$sf"){
+				push(@stats_paths, "$l/$sf");
+			}
+		}
+		return \@stats_paths if( @stats_paths );
+	}
+	return undef;
 }
 
 sub get_verbose_info {
