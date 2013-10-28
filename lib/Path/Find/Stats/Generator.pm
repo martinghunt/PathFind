@@ -16,9 +16,10 @@ use Path::Find::Stats::Row;
 
 use Data::Dumper;
 
-has 'lanes'  => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'lanes'  => ( is => 'ro', isa => 'ArrayRef[VRTrack::Lane]', required => 1 );
 has 'output' => ( is => 'ro', isa => 'Str',      required => 1 );
 has 'vrtrack' => ( is => 'rw', required => 1 );
+has 'filepaths' => (is => 'rw', isa => 'ArrayRef', required => 0);
 
 sub pathfind {
     my ($self) = @_;
@@ -163,6 +164,20 @@ sub mapfind {
         my $row_joined = join( ',', @info );
         print OUT "$row_joined\n";
     }
+}
+
+sub assembly_find {
+	my ($self) = @_;
+	my @lane_paths = @{ $self->filepaths };
+	
+	# find path to stats and bamcheck files and parse them
+	foreach my $p (@lane_paths){
+		$p =~ s/[^\/]+$//;
+		my $stats_file = $p . "contigs.fa.stats";
+		my $bamcheck = $p . "contigs.mapped.sorted.bam.bc";
+		
+		
+	}
 }
 
 sub _select_mapstat {
