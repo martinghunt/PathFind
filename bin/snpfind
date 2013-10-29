@@ -194,9 +194,9 @@ for my $database (@pathogen_databases) {
 		print "DATABASE: $database\n\n";
         if ($verbose) {
             foreach
-              my $ml ( sort { $a->{lane} cmp $b->{lane} } @matching_lanes )
+              my $ml ( sort { $a->{path} cmp $b->{path} } @matching_lanes )
             {
-                my $l = $ml->{lane};
+                my $l = $ml->{path};
                 my $r = $ml->{ref};
                 my $m = $ml->{mapper};
                 my $d = $ml->{date};
@@ -205,9 +205,9 @@ for my $database (@pathogen_databases) {
         }
         else {
             foreach
-              my $ml ( sort { $a->{lane} cmp $b->{lane} } @matching_lanes )
+              my $ml ( sort { $a->{path} cmp $b->{path} } @matching_lanes )
             {
-                my $l = $ml->{lane};
+                my $l = $ml->{path};
                 print "$l\n";
             }
         }
@@ -240,7 +240,7 @@ sub create_pseudogenome {
 
     # next, add all found sequences
     foreach my $ml (@matching_lanes) {
-        my $ml_path = $ml->{lane};
+        my $ml_path = $ml->{path};
         system("cat $ml_path >> $pg_filename");
     }
     return 1;
@@ -265,7 +265,7 @@ sub link_rename_hash {
 
     my %link_names;
     foreach my $mf (@matching_lanes) {
-        my $lane = $mf->{lane};
+        my $lane = $mf->{path};
         $lane =~ /(\d+)[^\/]+\/([^\/]+)$/;
         $link_names{$lane} = "$1.$2";
     }

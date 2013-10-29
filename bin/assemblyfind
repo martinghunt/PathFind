@@ -213,7 +213,7 @@ for my $database (@pathogen_databases) {
 
     # print out the paths
     foreach my $ml (@matching_lanes) {
-        my $l = $ml->{lane};
+        my $l = $ml->{path};
         print "$l\n";
     }
 
@@ -244,7 +244,7 @@ sub link_rename_hash {
 
     my %link_names;
     foreach my $mf (@matching_lanes) {
-        my $lane      = $mf->{lane};
+        my $lane      = $mf->{path};
         my @dirs      = split( "/", $lane );
         my $filename  = pop @dirs;
         my $subdir    = pop @dirs;

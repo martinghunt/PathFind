@@ -16,16 +16,15 @@ use Path::Find::Stats::Row;
 
 use Data::Dumper;
 
-has 'lanes' => ( is => 'ro', isa => 'ArrayRef[VRTrack::Lane]', required => 1 );
-has 'output' => ( is => 'ro', isa => 'Str', required => 1 );
-has 'vrtrack' => ( is => 'rw', required => 1 );
-has 'filepaths' => ( is => 'rw', isa => 'ArrayRef', required => 0 );
+has 'lane_hashes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'lanes'       => ( is => 'ro', isa => 'ArrayRef[VRTrack::Lane]', required => 0,  );
+has 'output'      => ( is => 'ro', isa => 'Str', required => 1 );
+has 'vrtrack'     => ( is => 'rw', required => 1 );
+has 'filepaths'   => ( is => 'rw', isa => 'ArrayRef', required => 0 );
 
 sub pathfind {
     my ($self) = @_;
-    my @lanes = @{ $self->lanes };
-
-    print Dumper \@lanes;
+    my @lanes = @{ $self->lane_hashes };
 
     # set up headers and info to retrieve for each row
     my @headers = (
@@ -78,7 +77,8 @@ sub pathfind {
 
     #loop through lanes and print info to file
     my $vrtrack = $self->vrtrack;
-    foreach my $l (@lanes) {
+    foreach my $l_h (@lanes) {
+		my $l = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->qc_mappings );
         my $row     = Path::Find::Stats::Row->new(
             lane     => $l,
@@ -98,7 +98,7 @@ sub pathfind {
 
 sub mapfind {
     my ($self) = @_;
-    my @lanes = @{ $self->lanes };
+    my @lanes = @{ $self->lane_hashes };
 
     # set up headers and info to retrieve for each row
     my @headers = (
@@ -148,7 +148,8 @@ sub mapfind {
 
     #loop through lanes and print info to file
     my $vrtrack = $self->vrtrack;
-    foreach my $l (@lanes) {
+    foreach my $l_h (@lanes) {
+		my $l = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
         my $row     = Path::Find::Stats::Row->new(
             lane     => $l,
@@ -168,6 +169,7 @@ sub mapfind {
 
 sub assemblyfind {
     my ($self) = @_;
+	my @lanes = @{ $self->lane_hashes };
 
     my @headers = (
         'Lane',
@@ -221,12 +223,36 @@ sub assemblyfind {
         'avg_insert_size',       'sd_insert_size'
     );
 
+    # set up output file handle
+    open( OUT, ">", $self->output );
+
+    #output headers
+    my $header_line = join( ",", @headers );
+    print OUT "$header_line\n";
+
+    #loop through lanes and print info to file
     my $vrtrack = $self->vrtrack;
-    my $row     = Path::Find::Stats::Row->new(
-        lane     => $l,
-        mapstats => $mapstat,
-        vrtrack  => $vrtrack
-    );
+    foreach my $l_h (@lanes) {
+		my $l = $l_h->{lane};
+        my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
+		my ($stats_file, $bamcheck_file) = @{ $l->{stats} };
+		die "Stats file not found at $stats_file" unless(-e $stats_file);
+        my $row     = Path::Find::Stats::Row->new(
+            lane          => $l,
+            mapstats      => $mapstat,
+            vrtrack       => $vrtrack,
+			stats_file    => $stats_files,
+			bamcheck      => $bamcheck_file
+        );
+
+        my @info;
+        foreach my $c (@columns) {
+            my $i = defined( $row->$c ) ? $row->$c : "NA";
+            push( @info, $i );
+        }
+        my $row_joined = join( ',', @info );
+        print OUT "$row_joined\n";
+    }
 }
 
 sub _select_mapstat {

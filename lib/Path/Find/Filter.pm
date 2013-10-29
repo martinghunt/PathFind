@@ -124,8 +124,8 @@ sub filter {
                     #print STDERR "no need to filter..add to print\n";
                     if ( -e $full_path ) {
                         $self->_set_found(1);
-                        push( @matching_paths,
-                            $self->_make_lane_hash( $full_path, $l ) );
+						my %lane_hash = $self->_make_lane_hash( $full_path, $l );
+                        push( @matching_paths, \%lane_hash);
                     }
                 }
             }
@@ -150,23 +150,31 @@ sub find_files {
 sub _make_lane_hash {
     my ( $self, $path, $lane_obj ) = @_;
     my $vb = $self->verbose;
+	my $stats = $self->stats;
 	
+	my %lane_hash;
     if ($vb) {
-        return {
+        %lane_hash = (
             lane   => $lane_obj,
 			path   => $path,
             ref    => $self->_reference_name($lane_obj),
             mapper => $self->_get_mapper($lane_obj),
             date   => $self->_date_changed($lane_obj),
-        };
+        );
 
     }
     else {
-        return { 
+        %lane_hash = ( 
 			lane => $lane_obj,
 			path => $path 
-		};
+		);
     }
+
+	if(defined $stats){
+		$lane_hash{stats} = $self->_get_stats_paths($lane_obj);
+	}
+	
+	return %lane_hash;
 }
 
 sub _get_full_path {

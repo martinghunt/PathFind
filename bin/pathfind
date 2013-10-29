@@ -161,7 +161,7 @@ for my $database (@pathogen_databases) {
     }
 
     foreach my $ml (@matching_lanes) {
-        my $l = $ml->{lane};
+        my $l = $ml->{path};
         print "$l\n";
     }
 
