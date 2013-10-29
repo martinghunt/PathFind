@@ -4,11 +4,11 @@ use Moose;
 use VRTrack::VRTrack;    # Includes Lane, Mapstats, Etc.
 use VertRes::Parser::bamcheck;
 
-has 'vrtrack'    => ( is => 'ro', isa => 'VRTrack::VRTrack',  required => 1 );    # database
-has 'lane'       => ( is => 'ro', isa => 'VRTrack::Lane',     required => 1 );    # lane
-has 'mapstats'   => ( is => 'ro', isa => 'VRTrack::Mapstats', required => 1 );    # mapstats
-has 'stats_file' => ( is => 'ro', isa => 'Str',               required => 0 );    # assembly stats file
-has 'bamcheck'   => ( is => 'ro', isa => 'Str',               required => 0 );    # assembly bamcheck file
+has 'vrtrack'    => ( is => 'ro', isa => 'VRTrack::VRTrack',         required => 1 );    # database
+has 'lane'       => ( is => 'ro', isa => 'VRTrack::Lane',            required => 1 );    # lane
+has 'mapstats'   => ( is => 'ro', isa => 'Maybe[VRTrack::Mapstats]', required => 0 );    # mapstats
+has 'stats_file' => ( is => 'ro', isa => 'Str',                      required => 0 );    # assembly stats file
+has 'bamcheck'   => ( is => 'ro', isa => 'Str',                      required => 0 );    # assembly bamcheck file
 
 # Checks
 has 'is_qc_mapstats'      => ( is => 'ro', isa => 'Bool',        lazy_build => 1 );    # qc or mapping mapstats.
