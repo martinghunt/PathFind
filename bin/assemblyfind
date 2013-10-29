@@ -45,6 +45,7 @@ use Path::Find::Lanes;
 use Path::Find::Filter;
 use Path::Find::Linker;
 use Path::Find::Log;
+use Path::Find::Stats::Generator;
 eval {
     Path::Find::Log->new(
         logfile => '/nfs/pathnfs05/log/pathfindlog/assemblyfind.log',
