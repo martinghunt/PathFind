@@ -238,7 +238,6 @@ sub assemblyfind {
 		my $l = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
 		my ($stats_file, $bamcheck_file) = @{ $l_h->{stats} };
-		print "STATS FILE:\n$stats_file\n\n";
 		die "Stats file not found at $stats_file" unless(-e $stats_file);
         my $row     = Path::Find::Stats::Row->new(
             lane          => $l,
