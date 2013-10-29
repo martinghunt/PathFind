@@ -207,6 +207,7 @@ sub assemblyfind {
         'Insert Size Std Dev'
     );
     my @columns = (
+		'lanename',				 'assembly_type',
         'total_length',          'num_contigs',
         'average_contig_length', 'largest_contig',
         'n50',                   'n50_n',
@@ -228,7 +229,7 @@ sub assemblyfind {
     open( OUT, ">", $self->output );
 
     #output headers
-    my $header_line = join( ",", @headers );
+    my $header_line = join( "\t", @headers );
     print OUT "$header_line\n";
 
     #loop through lanes and print info to file
@@ -237,6 +238,7 @@ sub assemblyfind {
 		my $l = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
 		my ($stats_file, $bamcheck_file) = @{ $l_h->{stats} };
+		print "STATS FILE:\n$stats_file\n\n";
 		die "Stats file not found at $stats_file" unless(-e $stats_file);
         my $row     = Path::Find::Stats::Row->new(
             lane          => $l,
@@ -251,7 +253,7 @@ sub assemblyfind {
             my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
-        my $row_joined = join( ',', @info );
+        my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
 }

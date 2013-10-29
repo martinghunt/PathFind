@@ -55,23 +55,24 @@ has 'manual_qc'            => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1
 
 # Assembly
 # From stats file
-has 'total_length'          => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'num_contigs'           => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'average_contig_length' => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'largest_contig'        => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'n50'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'n50_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'n60'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'n60_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'n70'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'n70_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'n80'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'n80_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'n90'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'n90_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'n100'                  => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'n100_n'                => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
-has 'n_count'               => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'assembly_type'         => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+has 'total_length'          => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'num_contigs'           => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'average_contig_length' => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'largest_contig'        => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'n50'                   => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'n50_n'                 => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'n60'                   => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'n60_n'                 => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'n70'                   => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'n70_n'                 => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'n80'                   => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'n80_n'                 => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'n90'                   => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'n90_n'                 => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'n100'                  => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'n100_n'                => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'n_count'               => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 
 # From bamcheck file
 has 'sequences'          => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
@@ -460,6 +461,10 @@ sub _build_is_mapping_complete {
 
     # Assembly Cells
     {
+		sub _build_assembly_type {
+			my ($self) = @_;
+			my $sf = $self->stats_file;
+		}
 
         sub _build_sequences {
             my ($self) = @_;
