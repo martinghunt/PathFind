@@ -560,103 +560,103 @@ sub _build_is_mapping_complete {
 		sub _build_total_length{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->total_length : undef;
+			return $bas ? $bas->{total_length} : undef;
 		} 
 
 		sub _build_num_contigs{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->num_contigs : undef;
+			return $bas ? $bas->{num_contigs} : undef;
 		}
 
 		sub _build_average_contig_length{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->average_contig_length : undef;
+			return $bas ? $bas->{average_contig_length} : undef;
 		}
 
 		sub _build_largest_contig{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->largest_contig : undef;
+			return $bas ? $bas->{largest_contig} : undef;
 		}
 
 		sub _build_n50{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->n50 : undef;
+			return $bas ? $bas->{n50} : undef;
 		}
 
 		sub _build_n50_n{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->n50_n : undef;
+			return $bas ? $bas->{n50_n} : undef;
 		}
 
 		sub _build_n60{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->n60 : undef;
+			return $bas ? $bas->{n60} : undef;
 		}
 
 		sub _build_n60_n{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->n60_n : undef;
+			return $bas ? $bas->{n60_n} : undef;
 		}
 
 		sub _build_n70{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->n70 : undef;
+			return $bas ? $bas->{n70} : undef;
 		}
 
 		sub _build_n70_n{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->n70_n : undef;
+			return $bas ? $bas->{n70_n} : undef;
 		}
 
 		sub _build_n80{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->n80 : undef;
+			return $bas ? $bas->{n80} : undef;
 		}
 
 		sub _build_n80_n{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->n80_n : undef;
+			return $bas ? $bas->{n80_n} : undef;
 		}
 
 		sub _build_n90{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->n90 : undef;
+			return $bas ? $bas->{n90} : undef;
 		}
 
 		sub _build_n90_n{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->n90_n : undef;
+			return $bas ? $bas->{n90_n} : undef;
 		}
 
 		sub _build_n100{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->n100 : undef;
+			return $bas ? $bas->{n100} : undef;
 		}
 
 		sub _build_n100_n{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->n100_n : undef;
+			return $bas ? $bas->{n100_n} : undef;
 		}
 
 		sub _build_n_count{
 			my ($self) = @_;
 			my $bas = $self->_basic_assembly_stats;
-			return $bas ? $bas->n_count : undef;
+			return $bas ? $bas->{n_count} : undef;
 		}
     }
 
