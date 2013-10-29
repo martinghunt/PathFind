@@ -16,11 +16,12 @@ use Path::Find::Stats::Row;
 
 use Data::Dumper;
 
-has 'lane_hashes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+# lane_hashes || lanes is required
+has 'lane_hashes' => ( is => 'ro', isa => 'ArrayRef', required => 0 );
 has 'lanes'       => ( is => 'ro', isa => 'ArrayRef[VRTrack::Lane]', required => 0,  );
+
 has 'output'      => ( is => 'ro', isa => 'Str', required => 1 );
 has 'vrtrack'     => ( is => 'rw', required => 1 );
-has 'filepaths'   => ( is => 'rw', isa => 'ArrayRef', required => 0 );
 
 sub pathfind {
     my ($self) = @_;

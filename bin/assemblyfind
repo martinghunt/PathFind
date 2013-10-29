@@ -63,7 +63,7 @@ GetOptions(
     'f|filetype=s' => \$filetype,
     'l|symlink:s'  => \$symlink,
     'a|archive:s'  => \$archive,
-    's|stats'      => \$stats,
+    's|stats:s'    => \$stats,
 );
 
 (
@@ -174,13 +174,15 @@ for my $database (@pathogen_databases) {
     if ( ( defined $symlink || defined $archive ) && !defined $filetype ) {
         $filetype = "contigs";
     }
+	my @req_stats = ('contigs.fa.stats', 'contigs.mapped.sorted.bam.bc');
     $lane_filter = Path::Find::Filter->new(
         lanes           => \@lanes,
         filetype        => $filetype,
         type_extensions => \%type_extensions,
         root            => $root,
         pathtrack       => $pathtrack,
-        subdirectories  => \@sub_directories
+        subdirectories  => \@sub_directories,
+		stats           => \@req_stats
     );
     my @matching_lanes = $lane_filter->filter;
 
@@ -221,6 +223,17 @@ for my $database (@pathogen_databases) {
 
     #no need to look in the next database if relevant data has been found
     if ( $lane_filter->found ) {
+		if(defined $stats){
+			$stats = "$id.assembly_stats.csv" if($stats eq '');
+			$stats =~ s/\s+/_/g;
+            Path::Find::Stats::Generator->new(
+	            lane_hashes => \@matching_lanes,
+	            output      => $stats,
+	            vrtrack     => $pathtrack
+	        )->assemblyfind;
+			
+		}
+	
         exit;
     }
 }

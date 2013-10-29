@@ -199,6 +199,8 @@ sub _get_full_path {
 sub _get_stats_paths {
 	my ($self, $lane_obj) = @_;
 	my @lane_paths = $self->_get_full_path($lane_obj);
+	my $stats = $self->stats;
+	
 	my @stats_paths;
 	foreach my $l ( @lane_paths ){
 		foreach my $sf ( @{ $stats } ){
