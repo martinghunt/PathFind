@@ -55,23 +55,24 @@ has 'manual_qc'            => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1
 
 # Assembly
 # From stats file
-has 'total_length'          => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->total_length } );
-has 'num_contigs'           => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->num_contigs } );
-has 'average_contig_length' => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->average_contig_length; } );
-has 'largest_contig'        => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->largest_contig;} );
-has 'n50'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n50; } );
-has 'n50_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n50_n; } );
-has 'n60'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n60; } );
-has 'n60_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n60_n; } );
-has 'n70'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n70; } );
-has 'n70_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n70_n; } );
-has 'n80'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n80; } );
-has 'n80_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n80_n; } );
-has 'n90'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n90; } );
-has 'n90_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n90_n; } );
-has 'n100'                  => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n100; } );
-has 'n100_n'                => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n100_n; } );
-has 'n_count'               => ( is   => 'ro', isa  => 'Maybe[Num]', lazy => 1, builder => sub { my ($self) = @_; return $self->_basic_assembly_stats->n_count; } );
+has 'total_length'          => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'num_contigs'           => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'average_contig_length' => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'largest_contig'        => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'n50'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'n50_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'n60'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'n60_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'n70'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'n70_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'n80'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'n80_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'n90'                   => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'n90_n'                 => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'n100'                  => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'n100_n'                => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+has 'n_count'               => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
+
 # From bamcheck file
 has 'sequences'          => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
 has 'reads_mapped'       => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
@@ -554,7 +555,108 @@ sub _build_is_mapping_complete {
                 return $self->_bamcheck_obj->get('sd_insert_size');
             }
         }
-		
+
+		sub _build_total_length{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->total_length : undef;
+		} 
+
+		sub _build_num_contigs{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->num_contigs : undef;
+		}
+
+		sub _build_average_contig_length{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->average_contig_length : undef;
+		}
+
+		sub _build_largest_contig{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->largest_contig : undef;
+		}
+
+		sub _build_n50{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->n50 : undef;
+		}
+
+		sub _build_n50_n{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->n50_n : undef;
+		}
+
+		sub _build_n60{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->n60 : undef;
+		}
+
+		sub _build_n60_n{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->n60_n : undef;
+		}
+
+		sub _build_n70{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->n70 : undef;
+		}
+
+		sub _build_n70_n{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->n70_n : undef;
+		}
+
+		sub _build_n80{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->n80 : undef;
+		}
+
+		sub _build_n80_n{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->n80_n : undef;
+		}
+
+		sub _build_n90{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->n90 : undef;
+		}
+
+		sub _build_n90_n{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->n90_n : undef;
+		}
+
+		sub _build_n100{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->n100 : undef;
+		}
+
+		sub _build_n100_n{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->n100_n : undef;
+		}
+
+		sub _build_n_count{
+			my ($self) = @_;
+			my $bas = $self->_basic_assembly_stats;
+			return $bas ? $bas->n_count : undef;
+		}
     }
 
     #End Assembly Cells
