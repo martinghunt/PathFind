@@ -79,7 +79,7 @@ has 'reads_mapped'       => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 )
 has 'reads_unmapped'     => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'reads_paired'       => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'reads_unpaired'     => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
-has 'total_length'       => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'raw_bases'          => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'bases_mapped'       => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'bases_mapped_cigar' => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'avg_length'         => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
@@ -501,7 +501,7 @@ sub _build_is_mapping_complete {
             }
         }
 
-		sub _build_total_length {
+		sub _build_raw_bases {
             my ($self) = @_;
             my $bc = $self->_bamcheck_obj;
             if ( defined($bc) ) {

@@ -218,7 +218,7 @@ sub assemblyfind {
         'n_count',               'sequences',
         'reads_mapped',          'reads_unmapped',
         'reads_paired',          'reads_unpaired',
-        'total_length',          'bases_mapped',
+        'raw_bases',             'bases_mapped',
         'bases_mapped_cigar',    'avg_length',
         'max_length',            'avg_qual',
         'avg_insert_size',       'sd_insert_size'
@@ -242,7 +242,7 @@ sub assemblyfind {
             lane          => $l,
             mapstats      => $mapstat,
             vrtrack       => $vrtrack,
-			stats_file    => $stats_files,
+			stats_file    => $stats_file,
 			bamcheck      => $bamcheck_file
         );
 
