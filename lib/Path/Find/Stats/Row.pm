@@ -464,6 +464,13 @@ sub _build_is_mapping_complete {
 		sub _build_assembly_type {
 			my ($self) = @_;
 			my $sf = $self->stats_file;
+			$sf =~ /([^\/]+_assembly[^\/]*)/;
+			my %types = (
+				'velvet_assembly' => 'Velvet',
+				'spades_assembly' => 'SPAdes',
+				'velvet_assembly_with_reference' => 'Columbus'
+			);
+			return $types[$1];
 		}
 
         sub _build_sequences {
