@@ -250,6 +250,7 @@ sub assemblyfind {
         foreach my $c (@columns) {
             my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
+			print Dumper \@info;
         }
         my $row_joined = join( ',', @info );
         print OUT "$row_joined\n";
