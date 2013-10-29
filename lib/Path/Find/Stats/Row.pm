@@ -549,6 +549,14 @@ sub _build_is_mapping_complete {
             }
         }
 
+		sub _build_avg_insert_size {
+            my ($self) = @_;
+            my $bc = $self->_bamcheck_obj;
+            if ( defined($bc) ) {
+                return $self->_bamcheck_obj->get('avg_insert_size');
+            }
+        }
+
 		sub _build_sd_insert_size {
             my ($self) = @_;
             my $bc = $self->_bamcheck_obj;
