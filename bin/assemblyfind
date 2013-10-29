@@ -225,6 +225,8 @@ for my $database (@pathogen_databases) {
     #no need to look in the next database if relevant data has been found
     if ( $lane_filter->found ) {
 		if(defined $stats){
+			print Dumper \@matching_lanes;
+			
 			$stats = "$id.assembly_stats.csv" if($stats eq '');
 			$stats =~ s/\s+/_/g;
             Path::Find::Stats::Generator->new(
