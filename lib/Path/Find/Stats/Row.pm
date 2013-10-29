@@ -470,7 +470,7 @@ sub _build_is_mapping_complete {
 				'spades_assembly' => 'SPAdes',
 				'velvet_assembly_with_reference' => 'Columbus'
 			);
-			return $types[$1];
+			return $types{$1};
 		}
 
         sub _build_sequences {
