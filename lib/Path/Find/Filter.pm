@@ -55,7 +55,8 @@ has 'subdirectories' => (
 has 'reference' => ( is => 'ro', required => 0 );
 has 'mapper'    => ( is => 'rw', required => 0 );
 has 'date'      => ( is => 'ro', required => 0 );
-has 'verbose' => ( is => 'ro', isa => 'Bool', default => 0, required => 0 );
+has 'verbose'   => ( is => 'ro', isa => 'Bool', default => 0, required => 0 );
+has 'stats'     => ( is => 'ro', isa => 'ArrayRef', required => 0 );
 # end optional
 
 sub _build_hierarchy_template {
