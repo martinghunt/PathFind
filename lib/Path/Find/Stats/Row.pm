@@ -74,19 +74,20 @@ has 'n100_n'                => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build 
 has 'n_count'               => ( is   => 'ro', isa  => 'Maybe[Num]', lazy_build => 1 );
 
 # From bamcheck file
-has 'sequences'          => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
-has 'reads_mapped'       => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
-has 'reads_unmapped'     => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
-has 'reads_paired'       => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
-has 'reads_unpaired'     => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
-has 'total_length'       => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
-has 'bases_mapped'       => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
-has 'bases_mapped_cigar' => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
-has 'avg_length'         => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
-has 'max_length'         => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
-has 'avg_qual'           => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
-has 'avg_insert_size'    => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
-has 'sd_insert_size'     => ( is => 'ro', isa => 'Maybe[Num]', lazy => 1 );
+has 'sequences'          => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'reads_mapped'       => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'reads_unmapped'     => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'reads_paired'       => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'reads_unpaired'     => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'total_length'       => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'bases_mapped'       => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'bases_mapped_cigar' => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'avg_length'         => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'max_length'         => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'avg_qual'           => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'avg_insert_size'    => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'sd_insert_size'     => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+
 
 # Is mapstats entry from QC or Mapping
 sub _build_is_qc_mapstats {
