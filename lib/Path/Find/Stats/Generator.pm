@@ -92,7 +92,7 @@ sub pathfind {
             my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
-        my $row_joined = join( '\t', @info );
+        my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
 }
@@ -163,7 +163,7 @@ sub mapfind {
             my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
-        my $row_joined = join( '\t', @info );
+        my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
 }
@@ -325,7 +325,7 @@ sub rnaseqfind {
             my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
-        my $row_joined = join( '\t', @info );
+        my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
 }
@@ -377,14 +377,13 @@ sub annotationfind {
         my $l       = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->qc_mappings );
 		my ( $stats_file, $bamcheck_file, $gff_file ) = @{ $l_h->{stats} };
-		print "GFF FILE:\t$gff_file\n";
         my $row = Path::Find::Stats::Row->new(
             lane       => $l,
             mapstats   => $mapstat,
             vrtrack    => $vrtrack,
             stats_file => $stats_file,
             bamcheck   => $bamcheck_file,
-			gff        => $gff_file
+			gff_file   => $gff_file
         );
 
         my @info;
@@ -392,7 +391,7 @@ sub annotationfind {
             my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
-        my $row_joined = join( '\t', @info );
+        my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
 }
