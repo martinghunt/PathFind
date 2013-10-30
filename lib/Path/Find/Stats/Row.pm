@@ -693,7 +693,7 @@ sub _build_is_mapping_complete {
 			my ($self) = @_;
 			my $gff = $self->gff_file;
 			return undef unless(defined $gff);
-			my $gene_count = `grep "^>" $gff`;
+			my $gene_count = `grep -c "^>" $gff`;
 			chomp $gene_count;
 			return $gene_count;
 		}
@@ -702,7 +702,7 @@ sub _build_is_mapping_complete {
 			my ($self) = @_;
 			my $gff = $self->gff_file;
 			return undef unless(defined $gff);
-			my $cds_count = `grep CDS $gff`;
+			my $cds_count = `grep -c CDS $gff`;
 			chomp $cds_count;
 			return $cds_count;
 		}
