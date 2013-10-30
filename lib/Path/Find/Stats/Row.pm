@@ -692,7 +692,6 @@ sub _build_is_mapping_complete {
 		sub _build_gene_n {
 			my ($self) = @_;
 			my $gff = $self->gff_file;
-			print "GFF FILE:\t'$gff'\t";
 			return undef unless(defined $gff);
 			my $gene_count = `grep "^>" $gff`;
 			chomp $gene_count;
