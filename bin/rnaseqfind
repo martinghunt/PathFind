@@ -220,7 +220,7 @@ for my $database (@pathogen_databases) {
 			foreach my $lh (@matching_lanes){
 				my ($s) = @{ $lh->{stats} };
 				$s =~ /\/(\d+)[^\/]+corrected.bam$/;
-				$ls->{mapstat_id} = $1;
+				$lh->{mapstat_id} = $1;
 			}
 	
 			print Dumper \@matching_lanes;
