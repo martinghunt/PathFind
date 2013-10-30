@@ -204,8 +204,11 @@ sub _get_stats_paths {
 	my @stats_paths;
 	foreach my $l ( @lane_paths ){
 		foreach my $sf ( @{ $stats } ){
-			if(-e "$l/$sf"){
-				push(@stats_paths, "$l/$sf");
+			my @stat_files = glob "$l/$sf";
+			foreach my $st_file ( @stat_files ){
+				if(-e $st_file){
+					push(@stats_paths, "$l/$sf");
+				}
 			}
 		}
 		return \@stats_paths if( @stats_paths );
