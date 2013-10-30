@@ -92,7 +92,7 @@ sub pathfind {
             my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
-        my $row_joined = join( ',', @info );
+        my $row_joined = join( '\t', @info );
         print OUT "$row_joined\n";
     }
 }
@@ -163,7 +163,7 @@ sub mapfind {
             my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
-        my $row_joined = join( ',', @info );
+        my $row_joined = join( '\t', @info );
         print OUT "$row_joined\n";
     }
 }
@@ -325,7 +325,7 @@ sub rnaseqfind {
             my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
-        my $row_joined = join( ',', @info );
+        my $row_joined = join( '\t', @info );
         print OUT "$row_joined\n";
     }
 }
@@ -391,7 +391,7 @@ sub annotationfind {
             my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
-        my $row_joined = join( ',', @info );
+        my $row_joined = join( '\t', @info );
         print OUT "$row_joined\n";
     }
 }
