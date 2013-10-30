@@ -225,14 +225,12 @@ for my $database (@pathogen_databases) {
 				$matching_lanes[$li]->{mapstat_id} = $1;
 			}
 	
-			print Dumper \@matching_lanes;
-	
             $stats = "$id.csv" if ( $stats eq '' );
             $stats =~ s/\s+/_/g;
             Path::Find::Stats::Generator->new(
                 lane_hashes   => \@matching_lanes,
-                output  => $stats,
-                vrtrack => $pathtrack
+                output        => $stats,
+                vrtrack       => $pathtrack
             )->rnaseqfind;
         }
         exit;

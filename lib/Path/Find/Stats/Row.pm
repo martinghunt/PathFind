@@ -9,6 +9,7 @@ has 'lane'       => ( is => 'ro', isa => 'VRTrack::Lane',            required =>
 has 'mapstats'   => ( is => 'ro', isa => 'Maybe[VRTrack::Mapstats]', required => 0 );    # mapstats
 has 'stats_file' => ( is => 'ro', isa => 'Str',                      required => 0 );    # assembly stats file
 has 'bamcheck'   => ( is => 'ro', isa => 'Str',                      required => 0 );    # assembly bamcheck file
+has 'gff_file'	 => ( is => 'ro', isa => 'Str',                      required => 0 );
 
 # Checks
 has 'is_qc_mapstats'      => ( is => 'ro', isa => 'Bool',        lazy_build => 1 );    # qc or mapping mapstats.
@@ -89,6 +90,10 @@ has 'avg_qual'           => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 )
 has 'avg_insert_size'    => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'sd_insert_size'     => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 
+# Annotation
+# from GFF
+has 'gene_n' => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'cds_n'  => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 
 # Is mapstats entry from QC or Mapping
 sub _build_is_qc_mapstats {
@@ -680,7 +685,29 @@ sub _build_is_mapping_complete {
 		}
     }
 
-    #End Assembly Cells
+    # End Assembly Cells
+
+	# Annotation Cells
+	{
+		sub _build_gene_n {
+			my ($self) = @_;
+			my $gff = $self->gff_file;
+			return undef unless(defined $gff);
+			my $gene_count = `grep "^>" $gff`;
+			chomp $gene_count;
+			return $gene_count;
+		}
+
+		sub _build_cds_n {
+			my ($self) = @_;
+			my $gff = $self->gff_file;
+			return undef unless(defined $gff);
+			my $cds_count = `grep CDS $gff`;
+			chomp $cds_count;
+			return $cds_count;
+		}
+		
+	}
 }
 
 #End Build Cells

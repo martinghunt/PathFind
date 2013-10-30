@@ -235,7 +235,6 @@ for my $database (@pathogen_databases) {
 	        )->assemblyfind;
 			
 		}
-	
         exit;
     }
 }
