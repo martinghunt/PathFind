@@ -207,7 +207,7 @@ sub _get_stats_paths {
 			my @stat_files = glob "$l/$sf";
 			foreach my $st_file ( @stat_files ){
 				if(-e $st_file){
-					push(@stats_paths, "$l/$sf");
+					push(@stats_paths, $st_file);
 				}
 			}
 		}
