@@ -693,8 +693,12 @@ sub _build_is_mapping_complete {
 			my ($self) = @_;
 			my $gff = $self->gff_file;
 			return undef unless(defined $gff);
-			my $gene_count = `grep -c "^>" $gff`;
-			chomp $gene_count;
+			open(GFF, "<", $gff);
+			my $gene_count = 0;
+			while(my $line = <GFF>){
+				last if($line =~ /##FASTA/);
+				$gene_count++ unless($line =~ /^##/);
+			}
 			return $gene_count;
 		}
 
