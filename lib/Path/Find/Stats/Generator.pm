@@ -377,6 +377,7 @@ sub annotationfind {
         my $l       = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->qc_mappings );
 		my ( $stats_file, $bamcheck_file, $gff_file ) = @{ $l_h->{stats} };
+		print "GFF FILE:\t$gff_file\n";
         my $row = Path::Find::Stats::Row->new(
             lane       => $l,
             mapstats   => $mapstat,

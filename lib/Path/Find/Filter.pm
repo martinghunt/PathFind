@@ -205,18 +205,12 @@ sub _get_stats_paths {
 	foreach my $l ( @lane_paths ){
 		$l =~ s/annotation//;
 		foreach my $sf ( @{ $stats } ){
-			print "STATS PATHS GLOBBING:\t$l/$sf\t";
 			my @stat_files = glob "$l/$sf";
 			foreach my $st_file ( @stat_files ){
 				if(-e $st_file){
 					push(@stats_paths, $st_file);
-					print "FOUND\n";
-				}
-				else {
-					print "NOT FOUND\n";
 				}
 			}
-			print "\n\n";
 		}
 		return \@stats_paths if( @stats_paths );
 	}
