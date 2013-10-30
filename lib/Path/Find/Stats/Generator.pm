@@ -311,7 +311,8 @@ sub rnaseqfind {
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
 		my $l = $l_h->{lane};
-        my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
+		my $ms_id = $l_h->{mapstat_id};
+        my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc, $ms_id );
         my $row     = Path::Find::Stats::Row->new(
             lane     => $l,
             mapstats => $mapstat,
@@ -330,13 +331,19 @@ sub rnaseqfind {
 
 
 sub _select_mapstat {
-    my ( $self, $mapstats ) = @_;
+    my ( $self, $mapstats, $id ) = @_;
 
-    my @sorted_mapstats = sort { $a->row_id <=> $b->row_id } @{$mapstats};
-
-	print Dumper \@sorted_mapstats;
-	
-    return pop(@sorted_mapstats);
+	if (defined $id){
+		foreach my $ms ( @{ $mapstats } ){
+			if ( $ms->id eq $id ){
+				return $ms;
+			}
+		}
+	}
+	else {
+    	my @sorted_mapstats = sort { $a->row_id <=> $b->row_id } @{$mapstats};	
+    	return pop(@sorted_mapstats);
+	}
 }
 
 no Moose;

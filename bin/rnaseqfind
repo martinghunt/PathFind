@@ -142,6 +142,9 @@ for my $database (@pathogen_databases) {
         next;
     }
 
+	my @req_stats;
+	@req_stats = ('*corrected.bam') if ( defined $stats );
+
     # filter lanes
     $lane_filter = Path::Find::Filter->new(
         lanes           => \@lanes,
@@ -153,7 +156,8 @@ for my $database (@pathogen_databases) {
         reference       => $ref,
         mapper          => $mapper,
         date            => $date,
-        verbose         => $verbose
+        verbose         => $verbose,
+		stats           => \@req_stats
     );
     my @matching_lanes = $lane_filter->filter;
 
@@ -212,6 +216,15 @@ for my $database (@pathogen_databases) {
 
     if ($found) {
         if ( defined $stats ) {
+			# add required mapstats ID to lane hash
+			foreach my $lh (@matching_lanes){
+				my ($s) = @{ $lh->{stats} };
+				$s =~ /\/(\d+)[^\/]+corrected.bam$/;
+				$ls->{mapstat_id} = $1;
+			}
+	
+			print Dumper \@matching_lanes;
+	
             $stats = "$id.csv" if ( $stats eq '' );
             $stats =~ s/\s+/_/g;
             Path::Find::Stats::Generator->new(
