@@ -219,10 +219,10 @@ for my $database (@pathogen_databases) {
     if ($found) {
         if ( defined $stats ) {
 			# add required mapstats ID to lane hash
-			foreach my $lh (@matching_lanes){
-				my ($s) = @{ $lh->{stats} };
+			foreach my $li (0 .. $#matching_lanes){
+				my ($s) = @{ $matching_lanes[$li]->{stats} };
 				$s =~ /\/(\d+)[^\/]+corrected.bam$/;
-				$lh->{mapstat_id} = $1;
+				$matching_lanes[$li]->{mapstat_id} = $1;
 			}
 	
 			print Dumper \@matching_lanes;
