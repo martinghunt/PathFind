@@ -314,14 +314,10 @@ sub rnaseqfind {
         my $ms_id = $l_h->{mapstat_id};
         my $mapstat =
           $self->_select_mapstat( $l->mappings_excluding_qc, $ms_id );
-		my ( $stats_file, $bamcheck_file, $gff_file ) = @{ $l_h->{stats} };
         my $row = Path::Find::Stats::Row->new(
             lane       => $l,
             mapstats   => $mapstat,
-            vrtrack    => $vrtrack,
-            stats_file => $stats_file,
-            bamcheck   => $bamcheck_file,
-			gff        => $gff_file
+            vrtrack    => $vrtrack
         );
 
         my @info;
@@ -380,10 +376,16 @@ sub annotationfind {
     foreach my $l_h (@lanes) {
         my $l       = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->qc_mappings );
-        my $row     = Path::Find::Stats::Row->new(
-            lane     => $l,
-            mapstats => $mapstat,
-            vrtrack  => $vrtrack
+
+		my ( $stats_file, $bamcheck_file, $gff_file ) = @{ $l_h->{stats} };
+		
+        my $row = Path::Find::Stats::Row->new(
+            lane       => $l,
+            mapstats   => $mapstat,
+            vrtrack    => $vrtrack,
+            stats_file => $stats_file,
+            bamcheck   => $bamcheck_file,
+			gff        => $gff_file
         );
 
         my @info;
