@@ -52,7 +52,7 @@ eval {
 my (
     $type,        $id,     $symlink, $help,
     $filetype,    $output, $gene,    $search_products,
-    $nucleotides, $archive
+    $nucleotides, $archive, $stats
 );
 
 GetOptions(
@@ -65,6 +65,7 @@ GetOptions(
     'g|gene=s'          => \$gene,
     'p|search_products' => \$search_products,
     'n|nucleotides'     => \$nucleotides,
+	's|stats:s'         => \$stats
 );
 
 (
