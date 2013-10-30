@@ -215,7 +215,7 @@ for my $database (@pathogen_databases) {
             $stats = "$id.csv" if ( $stats eq '' );
             $stats =~ s/\s+/_/g;
             Path::Find::Stats::Generator->new(
-                lanes   => \@lanes,
+                lane_hashes   => \@matching_lanes,
                 output  => $stats,
                 vrtrack => $pathtrack
             )->rnaseqfind;

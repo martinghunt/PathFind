@@ -155,7 +155,7 @@ for my $database (@pathogen_databases) {
     );
     my @matching_lanes = $lane_filter->filter;
 
-	unless (@matching_lanes) {
+    unless (@matching_lanes) {
         $dbh->disconnect();
         next;
     }
@@ -179,24 +179,24 @@ for my $database (@pathogen_databases) {
             use_default_type => $use_default
         );
 
-        $linker->sym_links if (defined $symlink);
-        $linker->archive   if (defined $archive);
+        $linker->sym_links if ( defined $symlink );
+        $linker->archive   if ( defined $archive );
     }
 
     if (@matching_lanes) {
-		$found = 1;
+        $found = 1;
         if ($verbose) {
             foreach my $ml (@matching_lanes) {
-				my $l = $ml->{path};
-				my $r = $ml->{ref};
-				my $m = $ml->{mapper};
-				my $d = $ml->{date};
+                my $l = $ml->{path};
+                my $r = $ml->{ref};
+                my $m = $ml->{mapper};
+                my $d = $ml->{date};
                 print "$l\t$r\t$m\t$d\n";
             }
         }
         else {
             foreach my $ml (@matching_lanes) {
-				my $l = $ml->{path};
+                my $l = $ml->{path};
                 print "$l\n";
             }
         }
@@ -205,16 +205,16 @@ for my $database (@pathogen_databases) {
     $dbh->disconnect();
 
     #no need to look in the next database if relevant data has been found
-    if ( $found ) {
+    if ($found) {
 
         if ( defined $stats ) {
-			$stats = "$id.csv" if($stats eq '');
-			$stats =~ s/\s+/_/g;
+            $stats = "$id.csv" if ( $stats eq '' );
+            $stats =~ s/\s+/_/g;
             Path::Find::Stats::Generator->new(
-	            lane_hashes   => \@matching_lanes,
-	            output  => $stats,
-	            vrtrack => $pathtrack
-	        )->mapfind;
+                lane_hashes => \@matching_lanes,
+                output      => $stats,
+                vrtrack     => $pathtrack
+            )->mapfind;
         }
         exit;
     }
