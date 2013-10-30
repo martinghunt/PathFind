@@ -203,7 +203,7 @@ sub _get_stats_paths {
 	
 	my @stats_paths;
 	foreach my $l ( @lane_paths ){
-		$l =~ s/annotation\///;
+		$l =~ s/annotation//;
 		foreach my $sf ( @{ $stats } ){
 			print "STATS PATHS GLOBBING:\t$l/$sf\t";
 			my @stat_files = glob "$l/$sf";
