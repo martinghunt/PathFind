@@ -157,7 +157,7 @@ sub _create_symlinks {
 			@files2link = $self->_link_names( $l, $default_type );
 		}
 		else {
-			@files2link = $self->_link_names( $l );
+			@files2link = $self->_link_names( $l, undef );
 		}
         foreach my $linkf (@files2link) {
             my ( $source, $dest ) = @{$linkf};
