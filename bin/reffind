@@ -50,12 +50,13 @@ eval {
     )->commandline();
 };
 
-my ( $species, $filetype, $symlink, $help );
+my ( $species, $filetype, $symlink, $archive, $help );
 
 GetOptions(
     's|species=s'  => \$species,
     'f|filetype=s' => \$filetype,
     'l|symlink:s'  => \$symlink,
+	'a|archive:s'  => \$archive,
     'h|help'       => \$help,
 );
 
