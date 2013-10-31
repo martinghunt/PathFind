@@ -40,6 +40,7 @@ use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
 use Cwd;
+use Cwd 'abs_path';
 use Getopt::Long;
 use Path::Find::Linker;
 use Path::Find::Log;
