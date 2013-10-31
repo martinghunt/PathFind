@@ -189,7 +189,6 @@ sub _link_names {
 
     my @files2link;
 	my @matching_files;
-	print "DT = '$dt'\tDEFINED?: " . defined($dt) . "\n";
     if ( $dt ) {
         @matching_files = `ls $lane$dt`;
     }
@@ -197,9 +196,7 @@ sub _link_names {
 		@matching_files = ($lane);
 	}
 	
-	print Dumper \@matching_files;
-	
-    if ($linknames) {
+	if ($linknames) {
         foreach my $mf (@matching_files) {
             chomp $mf;
             my $lf = $linknames->{$mf};
