@@ -183,6 +183,7 @@ sub _link_names {
 
     my @files2link;
 	my @matching_files;
+	print "DT = '$dt'\n";
     if ( $dt eq "" ) {
         @matching_files = `ls $lane$dt`;
     }
