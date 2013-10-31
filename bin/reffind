@@ -149,7 +149,7 @@ sub sym_archive {
     elsif ( defined $archive ) {
         $name = $archive;
     }
-    $name = "reffind_$id" if ( $name eq '' );
+    $name = "reffind_$species" if ( $name eq '' );
 
 	my $links = format_for_links($objects_to_link);
     my $linker = Path::Find::Linker->new(
