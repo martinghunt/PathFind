@@ -110,8 +110,6 @@ if ( @references >= 1 ) {
     $found = 1;
     @references = find_files_of_given_type( @references, $filetype )
       if ( defined $filetype );
-	print "REFS ARRAY:\n";
-	print Dumper \@references;
 	@references = remove_duplicates(\@references);
     sym_archive(@references) if ( defined $symlink || defined $archive );
     print_references(@references);
@@ -157,7 +155,6 @@ sub sym_archive {
     $name = "reffind_$species" if ( $name eq '' );
 
 	my $links = format_for_links($objects_to_link);
-	print Dumper $links;
     my $linker = Path::Find::Linker->new(
         lanes            => $links,
         name             => $name,
@@ -195,10 +192,6 @@ sub search_index_file_for_directories {
     }
 
     close(INDEX_FILE);
-
-	print "SEARCH RESULTS:\n";
-	print Dumper \@search_results;
-
     return @search_results;
 }
 
@@ -210,7 +203,5 @@ sub remove_duplicates {
         $file_hash{$file} = 1;
     }
 	my @ks = sort keys %file_hash;
-	print "UNIQUE NAMES:\n";
-	print Dumper \@ks;
     return \@ks;
 }
