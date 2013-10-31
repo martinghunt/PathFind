@@ -166,7 +166,7 @@ sub format_for_links {
 	
 	my @refs;
 	foreach my $r ( @{ $objects_to_link } ){
-		push(@refs, { path => $r });
+		push(@refs, { path => abs_path($r) });
 	}
 	return \@refs;
 }
