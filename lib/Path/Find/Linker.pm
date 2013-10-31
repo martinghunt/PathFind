@@ -189,6 +189,9 @@ sub _link_names {
 	else{
 		@matching_files = ($lane);
 	}
+	
+	print Dumper \@matching_files;
+	
     if ($linknames) {
         foreach my $mf (@matching_files) {
             chomp $mf;
