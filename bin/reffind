@@ -110,6 +110,7 @@ if ( @references >= 1 ) {
     $found = 1;
     @references = find_files_of_given_type( @references, $filetype )
       if ( defined $filetype );
+	@references = remove_duplicates(@references);
     sym_archive(@references) if ( defined $symlink || defined $archive );
     print_references(@references);
 }
@@ -131,7 +132,6 @@ sub find_files_of_given_type {
         }
         closedir(DIR);
     }
-    @found_files = remove_duplicates(@found_files);
     return \@found_files;
 }
 
