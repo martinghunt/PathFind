@@ -204,6 +204,8 @@ sub remove_duplicates {
     foreach my $file ( sort @file_list ) {
         $file_hash{$file} = 1;
     }
-
-    return sort keys %file_hash;
+	my @ks = sort keys %file_hash;
+	print "UNIQUE NAMES:\n";
+	print Dumper \@ks;
+    return \@ks;
 }
