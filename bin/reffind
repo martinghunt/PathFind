@@ -37,6 +37,8 @@ use strict;
 use warnings;
 no warnings 'uninitialized';
 use lib "/software/pathogen/internal/prod/lib";
+use lib "../lib";
+
 use Cwd;
 use Getopt::Long;
 use Path::Find::Linker;
