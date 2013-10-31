@@ -196,6 +196,9 @@ sub search_index_file_for_directories {
 
     close(INDEX_FILE);
 
+	print "SEARCH RESULTS:\n";
+	print Dumper \@search_results;
+
     return \@search_results;
 }
 
