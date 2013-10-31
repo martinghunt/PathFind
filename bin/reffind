@@ -167,6 +167,7 @@ sub format_for_links {
 	
 	my @refs;
 	foreach my $r ( @{ $objects_to_link } ){
+		print "ABS_PATH:\t" . abs_path($r) . "\n";
 		push(@refs, { path => abs_path($r) });
 	}
 	return \@refs;
