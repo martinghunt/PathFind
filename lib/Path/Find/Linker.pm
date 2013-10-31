@@ -50,7 +50,7 @@ has '_default_type' => (
     lazy     => 1,
     builder  => '_build__default_type'
 );
-has 'use_default_type' => ( is => 'ro', isa => 'Bool', required => 1 );
+has 'use_default_type' => ( is => 'ro', isa => 'Bool', required => 0, default => 0 );
 has '_given_destination' => (
     is       => 'ro',
     isa      => 'Str',
