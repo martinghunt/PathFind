@@ -112,7 +112,7 @@ if ( @references >= 1 ) {
       if ( defined $filetype );
 	print "REFS ARRAY:\n";
 	print Dumper \@references;
-	@references = remove_duplicates(@references);
+	@references = remove_duplicates(\@references);
     sym_archive(@references) if ( defined $symlink || defined $archive );
     print_references(@references);
 }
@@ -200,10 +200,10 @@ sub search_index_file_for_directories {
 }
 
 sub remove_duplicates {
-    my @file_list = @_;
+    my ($file_list) = @_;
     my %file_hash;
 
-    foreach my $file ( sort @file_list ) {
+    foreach my $file ( sort @{ $file_list } ) {
         $file_hash{$file} = 1;
     }
 	my @ks = sort keys %file_hash;
