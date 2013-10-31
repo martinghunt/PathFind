@@ -152,7 +152,7 @@ sub _create_symlinks {
     #create symlink
     foreach my $lane (@lanes) {
         my $l = $lane->{path};
-        my @files2link 
+        my @files2link;
 		if(defined $default_type){
 			@files2link = $self->_link_names( $l, $default_type );
 		}
