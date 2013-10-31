@@ -50,7 +50,8 @@ has '_default_type' => (
     lazy     => 1,
     builder  => '_build__default_type'
 );
-has 'use_default_type' => ( is => 'ro', isa => 'Bool', required => 0, default => 0 );
+has 'use_default_type' =>
+  ( is => 'ro', isa => 'Bool', required => 0, default => 0 );
 has '_given_destination' => (
     is       => 'ro',
     isa      => 'Str',
@@ -153,9 +154,9 @@ sub _create_symlinks {
         my $l = $lane->{path};
         my @files2link = $self->_link_names( $l, $default_type );
         foreach my $linkf (@files2link) {
-			my ($source, $dest) = @{ $linkf };
+            my ( $source, $dest ) = @{$linkf};
             my $cmd = "ln -s $source $dest";
-			print "LN -S:\t$cmd\n";
+            print "LN -S:\t$cmd\n";
             system($cmd) == 0
               or die
 "Could not create symlink for $lane in $destination/$name: error code $?\n";
@@ -178,25 +179,31 @@ sub _link_names {
     my ( $self, $lane, $dt ) = @_;
     my $destination = $self->destination;
     my $name        = $self->_checked_name;
-	my $linknames = $self->rename_links;
+    my $linknames   = $self->rename_links;
 
-	my @files2link;
-    my @matching_files = `ls $lane$dt`;
-    if ( $linknames ) {
+    my @files2link;
+	my @matching_files;
+    if ( $dt eq "" ) {
+        @matching_files = `ls $lane$dt`;
+    }
+	else{
+		@matching_files = ($lane);
+	}
+    if ($linknames) {
         foreach my $mf (@matching_files) {
-			chomp $mf;
+            chomp $mf;
             my $lf = $linknames->{$mf};
-            push( @files2link, [$mf, "$destination/$name/$lf"] );
+            push( @files2link, [ $mf, "$destination/$name/$lf" ] );
         }
     }
     else {
         foreach my $mf (@matching_files) {
-			chomp $mf;
+            chomp $mf;
             $mf =~ /([^\/]+)$/;
-            push( @files2link, [$mf, "$destination/$name/$1"] );
+            push( @files2link, [ $mf, "$destination/$name/$1" ] );
         }
     }
-	return @files2link;
+    return @files2link;
 }
 
 sub _tar {
