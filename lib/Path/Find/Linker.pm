@@ -152,7 +152,13 @@ sub _create_symlinks {
     #create symlink
     foreach my $lane (@lanes) {
         my $l = $lane->{path};
-        my @files2link = $self->_link_names( $l, $default_type );
+        my @files2link 
+		if(defined $default_type){
+			@files2link = $self->_link_names( $l, $default_type );
+		}
+		else {
+			@files2link = $self->_link_names( $l );
+		}
         foreach my $linkf (@files2link) {
             my ( $source, $dest ) = @{$linkf};
             my $cmd = "ln -s $source $dest";
@@ -184,7 +190,7 @@ sub _link_names {
     my @files2link;
 	my @matching_files;
 	print "DT = '$dt'\n";
-    if ( $dt eq "" ) {
+    if ( defined $dt ) {
         @matching_files = `ls $lane$dt`;
     }
 	else{
