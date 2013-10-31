@@ -189,7 +189,7 @@ sub _link_names {
 
     my @files2link;
 	my @matching_files;
-	print "DT = '$dt'\n";
+	print "DT = '$dt'\tDEFINED?: " . defined($dt) . "\n";
     if ( defined $dt ) {
         @matching_files = `ls $lane$dt`;
     }
