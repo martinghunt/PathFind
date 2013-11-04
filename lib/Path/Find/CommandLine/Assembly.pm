@@ -333,3 +333,7 @@ assemblyfind -t lane -id 1234_5#6 -stage all
 USAGE
     exit;
 }
+
+__PACKAGE__->meta->make_immutable;
+no Moose;
+1;
