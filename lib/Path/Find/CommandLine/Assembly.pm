@@ -23,6 +23,7 @@ path-help@sanger.ac.uk
 use strict;
 use warnings;
 no warnings 'uninitialized';
+use Moose;
 
 use Cwd;
 use Data::Dumper;

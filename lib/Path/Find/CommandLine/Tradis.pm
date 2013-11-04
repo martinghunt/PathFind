@@ -42,21 +42,21 @@ use Path::Find::Log;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'type' => ( is => 'rw', isa => 'Str', required => 0);
-has 'id' => ( is => 'rw', isa => 'Str', required => 0);
-has 'symlink' => ( is => 'rw', isa => 'Str', required => 0);
-has 'archive' => ( is => 'rw', isa => 'Str', required => 0);
-has 'help' => ( is => 'rw', isa => 'Str', required => 0);
-has 'verbose' => ( is => 'rw', isa => 'Str', required => 0);
-has 'stats' => ( is => 'rw', isa => 'Str', required => 0);
-has 'filetype' => ( is => 'rw', isa => 'Str', required => 0);
-has 'ref' => ( is => 'rw', isa => 'Str', required => 0);
-has 'date' => ( is => 'rw', isa => 'Str', required => 0);
-has 'mapper' => ( is => 'rw', isa => 'Str', required => 0);
+has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'symlink'     => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'verbose'     => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'stats'       => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'ref'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'date'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'mapper'      => ( is => 'rw', isa => 'Str',      required => 0 );
 
 sub BUILD {
-	my ($self) = @_;
-	
+    my ($self) = @_;
+
     my (
         $type,  $id,       $symlink, $archive, $help, $verbose,
         $stats, $filetype, $ref,     $date,    $mapper
@@ -77,17 +77,17 @@ sub BUILD {
         'm|mapper=s'    => \$mapper,
     );
 
-	$self->type( $type ) if ( defined $type );
-	$self->id( $id ) if ( defined $id );
-	$self->symlink( $symlink ) if ( defined $symlink );
-	$self->archive( $archive ) if ( defined $archive );
-	$self->help( $help ) if ( defined $help );
-	$self->verbose( $verbose ) if ( defined $verbose );
-	$self->stats( $stats ) if ( defined $stats );
-	$self->filetype( $filetype ) if ( defined $filetype );
-	$self->ref( $ref ) if ( defined $ref );
-	$self->date( $date ) if ( defined $date );
-	$self->mapper( $mapper ) if ( defined $mapper );
+    $self->type($type)         if ( defined $type );
+    $self->id($id)             if ( defined $id );
+    $self->symlink($symlink)   if ( defined $symlink );
+    $self->archive($archive)   if ( defined $archive );
+    $self->help($help)         if ( defined $help );
+    $self->verbose($verbose)   if ( defined $verbose );
+    $self->stats($stats)       if ( defined $stats );
+    $self->filetype($filetype) if ( defined $filetype );
+    $self->ref($ref)           if ( defined $ref );
+    $self->date($date)         if ( defined $date );
+    $self->mapper($mapper)     if ( defined $mapper );
 
     (
              $type
@@ -115,24 +115,24 @@ sub BUILD {
 sub run {
     my ($self) = @_;
 
-	# assign variables
-	my $type = $self->type;
-	my $id = $self->id;
-	my $symlink = $self->symlink;
-	my $archive = $self->archive;
-	my $verbose = $self->verbose;
-	my $stats = $self->stats;
-	my $filetype = $self->filetype;
-	my $ref = $self->ref;
-	my $date = $self->date;
-	my $mapper = $self->mapper;
-	
-	eval {
-	    Path::Find::Log->new(
-	        logfile => '/nfs/pathnfs05/log/pathfindlog/tradisfind.log',
-	        args    => $self->args
-	    )->commandline();
-	};
+    # assign variables
+    my $type     = $self->type;
+    my $id       = $self->id;
+    my $symlink  = $self->symlink;
+    my $archive  = $self->archive;
+    my $verbose  = $self->verbose;
+    my $stats    = $self->stats;
+    my $filetype = $self->filetype;
+    my $ref      = $self->ref;
+    my $date     = $self->date;
+    my $mapper   = $self->mapper;
+
+    eval {
+        Path::Find::Log->new(
+            logfile => '/nfs/pathnfs05/log/pathfindlog/tradisfind.log',
+            args    => $self->args
+        )->commandline();
+    };
 
     die "The archive and symlink options cannot be used together\n"
       if ( defined $archive && defined $symlink );
