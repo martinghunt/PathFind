@@ -60,8 +60,8 @@ has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
 
 sub BUILD {
-	my ($self) = @_;
-	
+    my ($self) = @_;
+
     my ( $type, $id, $symlink, $output, $stats, $filetype, $archive, $help );
 
     GetOptionsFromArray(
@@ -337,3 +337,4 @@ USAGE
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+

@@ -24,6 +24,7 @@ path-help@sanger.ac.uk
 use strict;
 use warnings;
 no warnings 'uninitialized';
+use Moose;
 
 use Cwd;
 
@@ -46,23 +47,23 @@ use Path::Find::Linker;
 use Path::Find::Stats::Generator;
 use Path::Find::Log;
 
-has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'type' => ( is => 'rw', isa => 'Str', required => 0);
-has 'id' => ( is => 'rw', isa => 'Str', required => 0);
-has 'symlink' => ( is => 'rw', isa => 'Str', required => 0);
-has 'help' => ( is => 'rw', isa => 'Str', required => 0);
-has 'filetype' => ( is => 'rw', isa => 'Str', required => 0);
-has 'output' => ( is => 'rw', isa => 'Str', required => 0);
-has 'gene' => ( is => 'rw', isa => 'Str', required => 0);
-has 'search_products' => ( is => 'rw', isa => 'Str', required => 0);
-has 'nucleotides' => ( is => 'rw', isa => 'Str', required => 0);
-has 'archive' => ( is => 'rw', isa => 'Str', required => 0);
-has 'stats' => ( is => 'rw', isa => 'Str', required => 0);
+has 'args'            => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'script_name'     => ( is => 'ro', isa => 'Str',      required => 1 );
+has 'type'            => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'id'              => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'symlink'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'help'            => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'filetype'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'output'          => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'gene'            => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'search_products' => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'nucleotides'     => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'archive'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'stats'           => ( is => 'rw', isa => 'Str',      required => 0 );
 
 sub BUILD {
-	my ($self) = @_;
-	
+    my ($self) = @_;
+
     my (
         $type,        $id,      $symlink, $help,
         $filetype,    $output,  $gene,    $search_products,
@@ -82,18 +83,17 @@ sub BUILD {
         's|stats:s'         => \$stats
     );
 
-	$self->type( $type ) if ( defined $type );
-	$self->id( $id ) if ( defined $id );
-	$self->symlink( $symlink ) if ( defined $symlink );
-	$self->help( $help ) if ( defined $help );
-	$self->filetype( $filetype ) if ( defined $filetype );
-	$self->output( $output ) if ( defined $output );
-	$self->gene( $gene ) if ( defined $gene );
-	$self->search_products( $search_products ) if ( defined $search_products );
-	$self->nucleotides( $nucleotides ) if ( defined $nucleotides );
-	$self->archive( $archive ) if ( defined $archive );
-	$self->stats( $stats ) if ( defined $stats );
-	
+    $self->type($type)                       if ( defined $type );
+    $self->id($id)                           if ( defined $id );
+    $self->symlink($symlink)                 if ( defined $symlink );
+    $self->help($help)                       if ( defined $help );
+    $self->filetype($filetype)               if ( defined $filetype );
+    $self->output($output)                   if ( defined $output );
+    $self->gene($gene)                       if ( defined $gene );
+    $self->search_products($search_products) if ( defined $search_products );
+    $self->nucleotides($nucleotides)         if ( defined $nucleotides );
+    $self->archive($archive)                 if ( defined $archive );
+    $self->stats($stats)                     if ( defined $stats );
 
     (
              $type
@@ -109,35 +109,37 @@ sub BUILD {
       )
       && (
         !$filetype
-        || ( $filetype
+        || (
+            $filetype
             && (   $filetype eq 'gff'
                 || $filetype eq 'faa'
-                || $filetype eq 'ffn' ) )
+                || $filetype eq 'ffn' )
+        )
       ) or die $self->usage_text;
 }
 
 sub run {
-	my ($self) = @_;
-	
-	# assign variables
-	my $type = $self->type;
-	my $id = $self->id;
-	my $symlink = $self->symlink;
-	my $filetype = $self->filetype;
-	my $output = $self->output;
-	my $gene = $self->gene;
-	my $search_products = $self->search_products;
-	my $nucleotides = $self->nucleotides;
-	my $archive = $self->archive;
-	my $stats = $self->stats;
-	
-	eval {
-	    Path::Find::Log->new(
-	        logfile => '/nfs/pathnfs05/log/pathfindlog/annotationfind.log',
-	        args    => $self->args
-	    )->commandline();
-	};
-	
+    my ($self) = @_;
+
+    # assign variables
+    my $type            = $self->type;
+    my $id              = $self->id;
+    my $symlink         = $self->symlink;
+    my $filetype        = $self->filetype;
+    my $output          = $self->output;
+    my $gene            = $self->gene;
+    my $search_products = $self->search_products;
+    my $nucleotides     = $self->nucleotides;
+    my $archive         = $self->archive;
+    my $stats           = $self->stats;
+
+    eval {
+        Path::Find::Log->new(
+            logfile => '/nfs/pathnfs05/log/pathfindlog/annotationfind.log',
+            args    => $self->args
+        )->commandline();
+    };
+
     die "The archive and symlink options cannot be used together\n"
       if ( defined $archive && defined $symlink );
 
@@ -313,3 +315,7 @@ annotationfind -t study -id 123 -archive study_123_annotations
 USAGE
     exit;
 }
+
+__PACKAGE__->meta->make_immutable;
+no Moose;
+1;

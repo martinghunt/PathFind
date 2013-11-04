@@ -23,6 +23,7 @@ path-help@sanger.ac.uk
 use strict;
 use warnings;
 no warnings 'uninitialized';
+use Moose;
 
 use Data::Dumper;
 use Cwd;
@@ -54,13 +55,13 @@ has 'output'      => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
 
 sub BUILD {
-	my ($self) = @_;
-	
+    my ($self) = @_;
+
     my ( $type, $id, $qc, $filetype, $archive, $stats, $symlink, $output,
         $help );
 
     GetOptionsFromArray(
-	    $self->args,
+        $self->args,
         't|type=s'     => \$type,
         'i|id=s'       => \$id,
         'f|filetype=s' => \$filetype,
@@ -104,15 +105,15 @@ sub BUILD {
 sub run {
     my ($self) = @_;
 
-	# assign variables
-	my $type = $self->type;
-	my $id = $self->id;
-	my $qc = $self->qc;
-	my $filetype = $self->filetype;
-	my $archive = $self->archive;
-	my $stats = $self->stats;
-	my $symlink = $self->symlink;
-	my $output = $self->output;
+    # assign variables
+    my $type     = $self->type;
+    my $id       = $self->id;
+    my $qc       = $self->qc;
+    my $filetype = $self->filetype;
+    my $archive  = $self->archive;
+    my $stats    = $self->stats;
+    my $symlink  = $self->symlink;
+    my $output   = $self->output;
 
     eval {
         Path::Find::Log->new(
@@ -241,3 +242,6 @@ USAGE
     exit;
 }
 
+__PACKAGE__->meta->make_immutable;
+no Moose;
+1;

@@ -24,6 +24,7 @@ pathdevg@sanger.ac.uk
 use strict;
 use warnings;
 no warnings 'uninitialized';
+use Moose;
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
@@ -49,8 +50,8 @@ has 'outfile' =>
 has 'help' => ( is => 'rw', isa => 'Bool', required => 0 );
 
 sub BUILD {
-	my ($self) = @_;
-	
+    my ($self) = @_;
+
     $ENV{'http_proxy'} = 'http://webcache.sanger.ac.uk:3128/';
 
     my ( $type, $id, $help, $external, $submitted, $outfile );
@@ -87,22 +88,22 @@ sub BUILD {
 }
 
 sub run {
-	my ($self) = @_;
-	my $type = $self->type;
-	my $id = $self->id;
-	my $qc = $self->qc;
-	my $filetype = $self->filetype;
-	my $archive = $self->archive;
-	my $stats = $self->stats;
-	my $symlink = $self->symlink;
-	my $output = $self->output;
-	
-	eval {
-	    Path::Find::Log->new(
-	        logfile => '/nfs/pathnfs05/log/pathfindlog/accessionfind.log',
-	        args    => $self->args
-	    )->commandline();
-	};
+    my ($self)   = @_;
+    my $type     = $self->type;
+    my $id       = $self->id;
+    my $qc       = $self->qc;
+    my $filetype = $self->filetype;
+    my $archive  = $self->archive;
+    my $stats    = $self->stats;
+    my $symlink  = $self->symlink;
+    my $output   = $self->output;
+
+    eval {
+        Path::Find::Log->new(
+            logfile => '/nfs/pathnfs05/log/pathfindlog/accessionfind.log',
+            args    => $self->args
+        )->commandline();
+    };
 
     # Get databases
     my @pathogen_databases = Path::Find->pathogen_databases;
@@ -206,3 +207,7 @@ Usage: $scriptname -t <type> -i <id> [options]
 USAGE
     exit;
 }
+
+__PACKAGE__->meta->make_immutable;
+no Moose;
+1;

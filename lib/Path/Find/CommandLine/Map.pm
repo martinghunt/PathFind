@@ -24,6 +24,7 @@ path-help@sanger.ac.uk
 use strict;
 use warnings;
 no warnings 'uninitialized';
+use Moose;
 
 use Data::Dumper;
 use Cwd;
@@ -56,8 +57,8 @@ has 'mapper'      => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'qc'          => ( is => 'rw', isa => 'Str',      required => 0 );
 
 sub BUILD {
-	my ($self) = @_;
-	
+    my ($self) = @_;
+
     my (
         $type,  $id,       $symlink, $archive, $help,   $verbose,
         $stats, $filetype, $ref,     $date,    $mapper, $qc
@@ -282,3 +283,7 @@ $0 -t study -i 1234 -m smalt -v
 USAGE
     exit;
 }
+
+__PACKAGE__->meta->make_immutable;
+no Moose;
+1;

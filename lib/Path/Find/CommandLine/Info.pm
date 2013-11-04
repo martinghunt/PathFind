@@ -23,6 +23,7 @@ path-help@sanger.ac.uk
 use strict;
 use warnings;
 no warnings 'uninitialized';
+use Moose;
 
 use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";
@@ -45,8 +46,8 @@ has 'output'      => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
 
 sub BUILD {
-	my ($self) = @_;
-	
+    my ($self) = @_;
+
     my ( $type, $id, $output, $help );
 
     GetOptionsFromArray(
@@ -220,3 +221,7 @@ Using the -o option will output the results to a CSV-formatted file.
 USAGE
     exit;
 }
+
+__PACKAGE__->meta->make_immutable;
+no Moose;
+1;

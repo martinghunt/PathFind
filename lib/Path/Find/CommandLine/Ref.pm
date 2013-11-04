@@ -36,6 +36,8 @@ path-help@sanger.ac.uk
 use strict;
 use warnings;
 no warnings 'uninitialized';
+use Moose;
+
 use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
@@ -49,15 +51,15 @@ use Path::Find::Log;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'species' => ( is => 'rw', isa => 'Str', required => 0);
-has 'filetype' => ( is => 'rw', isa => 'Str', required => 0);
-has 'symlink' => ( is => 'rw', isa => 'Str', required => 0);
-has 'archive' => ( is => 'rw', isa => 'Str', required => 0);
-has 'help' => ( is => 'rw', isa => 'Str', required => 0);
+has 'species'     => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'symlink'     => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
 
 sub BUILD {
-	my ($self) = @_;
-	
+    my ($self) = @_;
+
     my ( $species, $filetype, $symlink, $archive, $help );
 
     GetOptionsFromArray(
@@ -69,11 +71,11 @@ sub BUILD {
         'h|help'       => \$help,
     );
 
-	$self->species( $species ) if ( defined $species );
-	$self->filetype( $filetype ) if ( defined $filetype );
-	$self->symlink( $symlink ) if ( defined $symlink );
-	$self->archive( $archive ) if ( defined $archive );
-	$self->help( $help ) if ( defined $help );
+    $self->species($species)   if ( defined $species );
+    $self->filetype($filetype) if ( defined $filetype );
+    $self->symlink($symlink)   if ( defined $symlink );
+    $self->archive($archive)   if ( defined $archive );
+    $self->help($help)         if ( defined $help );
 
     (
         $species
@@ -92,19 +94,19 @@ sub BUILD {
 sub run {
     my ($self) = @_;
 
-	# assign variables
-	my $species = $self->species;
-	my $filetype = $self->filetype;
-	my $symlink = $self->symlink;
-	my $archive = $self->archive;
+    # assign variables
+    my $species  = $self->species;
+    my $filetype = $self->filetype;
+    my $symlink  = $self->symlink;
+    my $archive  = $self->archive;
 
-	eval {
-	    Path::Find::Log->new(
-	        logfile => '/nfs/pathnfs05/log/pathfindlog/reffind.log',
-	        args    => $self->args
-	    )->commandline();
-	};
-	
+    eval {
+        Path::Find::Log->new(
+            logfile => '/nfs/pathnfs05/log/pathfindlog/reffind.log',
+            args    => $self->args
+        )->commandline();
+    };
+
     die "The archive and symlink options cannot be used together\n"
       if ( defined $archive && defined $symlink );
 
@@ -243,3 +245,7 @@ creates an archive with a default name in the current directory
 USAGE
     exit;
 }
+
+__PACKAGE__->meta->make_immutable;
+no Moose;
+1;

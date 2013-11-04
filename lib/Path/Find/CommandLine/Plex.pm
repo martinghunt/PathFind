@@ -26,6 +26,7 @@ jm15@sanger.ac.uk, nds@sanger.ac.uk
 use strict;
 use warnings;
 no warnings 'uninitialized';
+use Moose;
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
@@ -49,8 +50,8 @@ has 'tag'         => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
 
 sub BUILD {
-	my ($self) = @_;
-	
+    my ($self) = @_;
+
     my ( $type, $id, $tag, $help );
 
     GetOptionsFromArray(
@@ -292,3 +293,7 @@ along with their corresponding tag number. Given a lane id the script will retur
 USAGE
     exit;
 }
+
+__PACKAGE__->meta->make_immutable;
+no Moose;
+1;
