@@ -49,6 +49,8 @@ has 'tag'         => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
 
 sub BUILD {
+	my ($self) = @_;
+	
     my ( $type, $id, $tag, $help );
 
     GetOptionsFromArray(

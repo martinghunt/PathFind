@@ -57,6 +57,8 @@ has 'mapper' => ( is => 'rw', isa => 'Str', required => 0);
 has 'qc' => ( is => 'rw', isa => 'Str', required => 0);
 
 sub BUILD {
+	my ($self) = @_;
+	
     my (
         $type,  $id,       $symlink, $archive, $help,   $verbose,
         $stats, $filetype, $ref,     $date,    $mapper, $qc

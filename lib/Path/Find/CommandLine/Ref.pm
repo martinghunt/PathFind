@@ -56,6 +56,8 @@ has 'archive' => ( is => 'rw', isa => 'Str', required => 0);
 has 'help' => ( is => 'rw', isa => 'Str', required => 0);
 
 sub BUILD {
+	my ($self) = @_;
+	
     my ( $species, $filetype, $symlink, $archive, $help );
 
     GetOptionsFromArray(

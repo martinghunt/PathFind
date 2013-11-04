@@ -49,6 +49,8 @@ has 'outfile' =>
 has 'help' => ( is => 'rw', isa => 'Bool', required => 0 );
 
 sub BUILD {
+	my ($self) = @_;
+	
     $ENV{'http_proxy'} = 'http://webcache.sanger.ac.uk:3128/';
 
     my ( $type, $id, $help, $external, $submitted, $outfile );

@@ -61,6 +61,8 @@ has 'archive' => ( is => 'rw', isa => 'Str', required => 0);
 has 'stats' => ( is => 'rw', isa => 'Str', required => 0);
 
 sub BUILD {
+	my ($self) = @_;
+	
     my (
         $type,        $id,      $symlink, $help,
         $filetype,    $output,  $gene,    $search_products,
