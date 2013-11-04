@@ -138,7 +138,7 @@ sub run {
         );
     }
     else {
-        $filetype        = 'contigs';
+        $filetype        = 'scaffold';
         @sub_directories = (
             '/velvet_assembly', '/velvet_assembly_with_reference',
             '/spades_assembly'
