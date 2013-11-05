@@ -88,7 +88,6 @@ sub _build__default_type {
     my ($self) = @_;
     my %default_ft = (
         pathfind       => '/*.fastq.gz',
-        assemblyfind   => 'contigs',
         annotationfind => '/*.gff',
         mapfind        => '/*markdup.bam',
         snpfind        => '/*.snp/mpileup.unfilt.vcf.gz',
@@ -115,7 +114,7 @@ sub archive {
     $self->_create_symlinks;
 
     #tar and move to CWD
-    print "Archiving lanes to $final_dest/$c_name:\n";
+    print STDERR "Archiving lanes to $final_dest/$c_name:\n";
     $self->_tar;
 
     File::Temp::cleanup();
@@ -131,7 +130,7 @@ sub sym_links {
 
     #create symlinks
     $self->_create_symlinks;
-    print "Symlinks created in $dest/$s_d\n";
+    print STDERR "Symlinks created in $dest/$s_d\n";
 }
 
 sub _create_symlinks {
@@ -162,7 +161,6 @@ sub _create_symlinks {
         foreach my $linkf (@files2link) {
             my ( $source, $dest ) = @{$linkf};
             my $cmd = "ln -s $source $dest";
-            print "LN -S:\t$cmd\n";
             system($cmd) == 0
               or die
 "Could not create symlink for $lane in $destination/$name: error code $?\n";
@@ -224,8 +222,8 @@ sub _tar {
       or $error = 1;
 
     if ($error) {
-        print "An error occurred while creating the archive: $arc_name\n";
-        print "No output written to $arc_name.tar.gz\n";
+        print STDERR "An error occurred while creating the archive: $arc_name\n";
+        print STDERR "No output written to $arc_name.tar.gz\n";
         File::Temp::cleanup();
         return 0;
     }

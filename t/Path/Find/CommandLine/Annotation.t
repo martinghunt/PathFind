@@ -27,7 +27,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Shige
 $ann_obj = Path::Find::CommandLine::Annotation->new(args => $args, script_name => $script_name);
 stdout_is($ann_obj->run, $exp_out, "Correct results for '$args'");
 
-# test file type
+# test file type & file parse
 $args = "-t file -i t/data/annotation_lanes.txt -f gff";
 $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staphylococcus/aureus/TRACKING/2282/GN_19103_6281/SLX/GN_19103_6281_7244322/9802_1#66/velvet_assembly/annotation/9802_1#66.gff\n
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staphylococcus/aureus/TRACKING/1943/1943STDY5484090/SLX/6898333/9716_4#9/velvet_assembly/annotation/9716_4#9.gff\n

@@ -259,8 +259,9 @@ sub run {
 }
 
 sub create_pseudogenome {
-    my ($mlanes) = @_;
+    my ($self, $mlanes)       = @_;
     my @matching_lanes = @{$mlanes};
+    my $ref            = $self->ref;
 
     my $pg_filename = pseudogenome_filename();
 
@@ -280,7 +281,11 @@ sub create_pseudogenome {
 }
 
 sub pseudogenome_filename {
+	my ($self) = @_;
     my $pseudo_genome_filename = "concatenated";
+    my $ref                    = $self->ref;
+    my $id                     = $self->id;
+
     if ( defined($ref) ) {
         $pseudo_genome_filename = $ref . "_" . $pseudo_genome_filename;
     }
@@ -293,7 +298,7 @@ sub pseudogenome_filename {
 }
 
 sub link_rename_hash {
-    my ($mlanes) = @_;
+    my ($self, $mlanes) = @_;
     my @matching_lanes = @{$mlanes};
 
     my %link_names;
@@ -306,6 +311,7 @@ sub link_rename_hash {
 }
 
 sub find_reference {
+	my ($self) = @_;
     my $passed_in_reference = shift;
     return undef unless ( defined($passed_in_reference) );
     my $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/refs.index';
