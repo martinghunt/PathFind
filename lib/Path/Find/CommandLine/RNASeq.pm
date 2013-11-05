@@ -65,9 +65,9 @@ sub BUILD {
         $stats, $filetype, $ref,     $date,    $mapper, $qc
     );
 
-	my $args = @{ $self->args };
+	my @args = @{ $self->args };
     GetOptionsFromArray(
-        \$args,
+        \@args,
         't|type=s'      => \$type,
         'i|id=s'        => \$id,
         'h|help'        => \$help,
