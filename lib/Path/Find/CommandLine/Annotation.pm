@@ -70,7 +70,9 @@ sub BUILD {
         $nucleotides, $archive, $stats
     );
 
-    GetOptions(
+    my @args = @{ $self->args };
+    GetOptionsFromArray(
+        \@args,
         't|type=s'          => \$type,
         'i|id=s'            => \$id,
         'h|help'            => \$help,

@@ -60,8 +60,9 @@ sub BUILD {
     my ( $type, $id, $qc, $filetype, $archive, $stats, $symlink, $output,
         $help );
 
-    GetOptionsFromArray(
-        $self->args,
+    my @args = @{ $self->args };
+	GetOptionsFromArray(
+	    \@args,
         't|type=s'     => \$type,
         'i|id=s'       => \$id,
         'f|filetype=s' => \$filetype,

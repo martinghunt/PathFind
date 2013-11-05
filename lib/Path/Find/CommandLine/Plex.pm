@@ -54,8 +54,9 @@ sub BUILD {
 
     my ( $type, $id, $tag, $help );
 
+    my @args = @{ $self->args };
     GetOptionsFromArray(
-        $self->args,
+        \@args,
         't|type=s' => \$type,
         'i|id=s'   => \$id,
         'tag=s'    => \$tag,

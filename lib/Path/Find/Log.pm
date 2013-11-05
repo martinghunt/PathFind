@@ -81,16 +81,11 @@ sub _build__args_string
     my($self) = @_;
     my $argstring = '';
 
-	print "ARGS: \n";
-	print Dumper $self->args;
-
     for(@{$self->args})
     {
         my $arg = $_;
-		print "ARG: $arg\n";
         my $quot_char = ($arg =~ m/'/) ? '"':"'";
         $argstring .= ($arg =~ m/\s+/) ? qq[ $quot_char$arg$quot_char]:qq[ $arg];
-		print "ARGSTRING: $argstring\n";
     }
 
     return $argstring;

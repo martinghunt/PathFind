@@ -62,8 +62,9 @@ sub BUILD {
 
     my ( $species, $filetype, $symlink, $archive, $help );
 
+    my @args = @{ $self->args };
     GetOptionsFromArray(
-        $self->args,
+        \@args,
         's|species=s'  => \$species,
         'f|filetype=s' => \$filetype,
         'l|symlink:s'  => \$symlink,

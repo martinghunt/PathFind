@@ -56,8 +56,9 @@ sub BUILD {
 
     my ( $type, $id, $help, $external, $submitted, $outfile );
 
+    my @args = @{ $self->args };
     GetOptionsFromArray(
-        $self->args,
+        \@args,
         't|type=s'    => \$type,
         'i|id=s'      => \$id,
         'h|help'      => \$help,
