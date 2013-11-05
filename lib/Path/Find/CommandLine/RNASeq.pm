@@ -65,6 +65,8 @@ sub BUILD {
         $stats, $filetype, $ref,     $date,    $mapper, $qc
     );
 
+	print "ARGS before parse:\n";
+	print Dumper $self->args;
     GetOptionsFromArray(
         $self->args,
         't|type=s'      => \$type,
