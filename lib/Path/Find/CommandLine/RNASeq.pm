@@ -65,10 +65,9 @@ sub BUILD {
         $stats, $filetype, $ref,     $date,    $mapper, $qc
     );
 
-	print "ARGS before parse:\n";
-	print Dumper $self->args;
+	my $args = @{ $self->args };
     GetOptionsFromArray(
-        $self->args,
+        \$args,
         't|type=s'      => \$type,
         'i|id=s'        => \$id,
         'h|help'        => \$help,
@@ -82,9 +81,6 @@ sub BUILD {
         'm|mapper=s'    => \$mapper,
         'q|qc=s'        => \$qc
     );
-
-	print "ARGS after parse:\n";
-	print Dumper $self->args;
 
     $self->type($type)         if ( defined $type );
     $self->id($id)             if ( defined $id );
