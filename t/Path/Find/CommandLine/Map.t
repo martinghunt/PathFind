@@ -29,9 +29,10 @@ stdout_is($map_obj->run, $exp_out, "Correct results for '$args'");
 
 # test file type & file parse
 $args = "-t file -i t/data/map_lanes.txt -f bam";
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica/TRACKING/697/CAN0185/SLX/CAN0185_5140165/7978_7#14\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Klebsiella/pneumoniae/TRACKING/2512/2512STDY5462705/SLX/6898003/9776_6#32\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2195/692_NTS/SLX/692_NTS_5140354/7969_2#8\n";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica/TRACKING/697/CAN0185/SLX/CAN0185_5140165/7978_7#14/392948.pe.markdup.bam\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica/TRACKING/697/CAN0185/SLX/CAN0185_5140165/7978_7#14/490636.pe.markdup.bam\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Klebsiella/pneumoniae/TRACKING/2512/2512STDY5462705/SLX/6898003/9776_6#32/474610.pe.markdup.bam\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Klebsiella/pneumoniae/TRACKING/2512/2512STDY5462705/SLX/6898003/9776_6#32/582798.pe.markdup.bam\n";
 
 $map_obj = Path::Find::CommandLine::Map->new(args => $args, script_name => $script_name);
 stdout_is($map_obj->run, $exp_out, "Correct results for '$args'");

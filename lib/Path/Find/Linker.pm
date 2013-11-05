@@ -91,7 +91,7 @@ sub _build__default_type {
         annotationfind => '/*.gff',
         mapfind        => '/*markdup.bam',
         snpfind        => '/*.snp/mpileup.unfilt.vcf.gz',
-        rnaseqfind     => '/*expression.csv',
+        rnaseqfind     => '/*corrected.bam',
         tradisfind     => '/*insertion.csv',
     );
 
@@ -218,7 +218,7 @@ sub _tar {
     my $final_destination = $self->_given_destination;
     my $error             = 0;
 
-    system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name") == 0
+    system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name > /dev/null >&2") == 0
       or $error = 1;
 
     if ($error) {
