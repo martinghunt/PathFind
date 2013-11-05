@@ -83,6 +83,9 @@ sub BUILD {
         'q|qc=s'        => \$qc
     );
 
+	print "ARGS after parse:\n";
+	print Dumper $self->args;
+
     $self->type($type)         if ( defined $type );
     $self->id($id)             if ( defined $id );
     $self->symlink($symlink)   if ( defined $symlink );
