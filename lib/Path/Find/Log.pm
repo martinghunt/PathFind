@@ -53,6 +53,7 @@ package Path::Find::Log;
 use Moose;
 use File::Basename;
 use File::Path qw(make_path);
+use Data::Dumper;
 
 has 'logfile'      => ( is => 'ro', isa => 'Str',       required   => 1 );
 has 'args'         => ( is => 'ro', isa => 'ArrayRef',  required   => 1 );
@@ -79,6 +80,9 @@ sub _build__args_string
 {
     my($self) = @_;
     my $argstring = '';
+
+	print "ARGS: \n";
+	print Dumper $self->args;
 
     for(@{$self->args})
     {
