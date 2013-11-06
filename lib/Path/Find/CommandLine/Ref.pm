@@ -51,7 +51,8 @@ use Path::Find::Log;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'species'     => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'type'        => ( is => 'ro', isa => 'Str',      required => 0 );
+has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'symlink'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
@@ -60,26 +61,29 @@ has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
 sub BUILD {
     my ($self) = @_;
 
-    my ( $species, $filetype, $symlink, $archive, $help );
+    my ( $type, $id, $filetype, $symlink, $archive, $help );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
         \@args,
-        's|species=s'  => \$species,
+        't|type=s'     => \$type,
+        'i|id=s'       => \$id,
         'f|filetype=s' => \$filetype,
         'l|symlink:s'  => \$symlink,
         'a|archive:s'  => \$archive,
         'h|help'       => \$help,
     );
 
-    $self->species($species)   if ( defined $species );
+    $self->type($type)         if ( defined $type );
+    $self->id($id)             if ( defined $id );
     $self->filetype($filetype) if ( defined $filetype );
     $self->symlink($symlink)   if ( defined $symlink );
     $self->archive($archive)   if ( defined $archive );
     $self->help($help)         if ( defined $help );
 
     (
-        $species
+             ( $type eq 'species' || $type eq 'file' )
+          && $id
           && (
             !$filetype
             || (
@@ -96,7 +100,8 @@ sub run {
     my ($self) = @_;
 
     # assign variables
-    my $species  = $self->species;
+    my $type     = $self->type;
+    my $id       = $self->id;
     my $filetype = $self->filetype;
     my $symlink  = $self->symlink;
     my $archive  = $self->archive;
@@ -116,19 +121,42 @@ sub run {
     my $root       = '/lustre/scratch108/pathogen/pathpipe/refs/';
     my $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/refs.index';
 
-    my @references = $self->search_index_file_for_directories( $index_file, $species );
-    if ( @references >= 1 ) {
-        $found = 1;
-        @references = $self->find_files_of_given_type( \@references, $filetype )
-          if ( defined $filetype );
-        @references = $self->remove_duplicates( \@references );
-        $self->sym_archive(\@references) if ( defined $symlink || defined $archive );
-        $self->print_references(\@references);
+    my @species_to_find;
+    if ( $type eq 'species' ) {
+        push( @species_to_find, $id );
+    }
+    elsif ( $type eq 'file' ) {
+        @species_to_find = $self->parse_species_from_file( $self->id );
+    }
+
+    foreach my $species (@species_to_find) {
+        my @references =
+          $self->search_index_file_for_directories( $index_file, $species );
+        if ( @references >= 1 ) {
+            $found = 1;
+            @references =
+              $self->find_files_of_given_type( \@references, $filetype )
+              if ( defined $filetype );
+            @references = $self->remove_duplicates( \@references );
+            $self->sym_archive( \@references )
+              if ( defined $symlink || defined $archive );
+            $self->print_references( \@references );
+        }
     }
 
     unless ($found) {
         print "Could not find references\n";
     }
+}
+
+sub parse_species_from_file {
+	my ($self, $file_name) = @_;
+	my @sp;
+	open(SPECIES, "<", $file_name);
+	while(my $line = <SPECIES>){
+		chomp $line;
+		push(@species, $line);
+	}
 }
 
 sub find_files_of_given_type {
@@ -149,18 +177,18 @@ sub find_files_of_given_type {
 }
 
 sub print_references {
-    my ($self, $references) = @_;
+    my ( $self, $references ) = @_;
     for my $reference (@$references) {
         print $reference. "\n";
     }
 }
 
 sub sym_archive {
-    my ( $self, $objects_to_link) = @_;
-	my $symlink = $self->symlink;
-	my $archive = $self->archive;
-	my $species = $self->species;
-	
+    my ( $self, $objects_to_link ) = @_;
+    my $symlink = $self->symlink;
+    my $archive = $self->archive;
+    my $species = $self->species;
+
     my $name;
     if ( defined $symlink ) {
         $name = $symlink;
@@ -181,7 +209,7 @@ sub sym_archive {
 }
 
 sub format_for_links {
-    my ( $self, $objects_to_link) = @_;
+    my ( $self, $objects_to_link ) = @_;
 
     my @refs;
     foreach my $r ( @{$objects_to_link} ) {
@@ -212,7 +240,7 @@ sub search_index_file_for_directories {
 }
 
 sub remove_duplicates {
-    my ($self, $file_list) = @_;
+    my ( $self, $file_list ) = @_;
     my %file_hash;
 
     foreach my $file ( sort @{$file_list} ) {
@@ -227,7 +255,8 @@ sub usage_text {
     my $script_name = $self->script_name;
     print <<USAGE;
 Usage: $script_name
-     -s|species         <Species or regex>
+     -t|type            <species|file>
+     -i|id              <species name|species regex|file name>
      -f|filetype        <fa|gff|embl>
      -l|symlink         <create a symlink to the data>
 	 -a|archive         <create an archive of the data>
