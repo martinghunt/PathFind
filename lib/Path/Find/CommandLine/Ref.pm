@@ -159,7 +159,8 @@ sub sym_archive {
     my ( $self, $objects_to_link) = @_;
 	my $symlink = $self->symlink;
 	my $archive = $self->archive;
-
+	my $species = $self->species;
+	
     my $name;
     if ( defined $symlink ) {
         $name = $symlink;
