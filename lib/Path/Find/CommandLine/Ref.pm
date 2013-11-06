@@ -188,7 +188,7 @@ sub sym_archive {
     my ( $self, $objects_to_link ) = @_;
     my $symlink = $self->symlink;
     my $archive = $self->archive;
-    my $species = $self->species;
+    my $id = $self->id;
 
     my $name;
     if ( defined $symlink ) {
@@ -197,7 +197,7 @@ sub sym_archive {
     elsif ( defined $archive ) {
         $name = $archive;
     }
-    $name = "reffind_$species" if ( $name eq '' );
+    $name = "reffind_$id" if ( $name eq '' );
 
     my $links  = $self->format_for_links($objects_to_link);
     my $linker = Path::Find::Linker->new(
