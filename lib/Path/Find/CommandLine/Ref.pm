@@ -135,7 +135,7 @@ sub run {
 sub find_files_of_given_type {
     my ( $self, $reference_directories, $filetype ) = @_;
     my @found_files;
-    $found = 0;
+    my $found = 0;
     for my $directory (@$reference_directories) {
         opendir( DIR, $directory );
         my @files = grep { /$filetype$/i } readdir(DIR);
@@ -157,6 +157,8 @@ sub print_references {
 
 sub sym_archive {
     my ( $self, $objects_to_link) = @_;
+	my $symlink = $self->symlink;
+	my $archive = $self->archive;
 
     my $name;
     if ( defined $symlink ) {

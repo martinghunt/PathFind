@@ -39,16 +39,19 @@ stdout_is($snp_obj->run, $exp_out, "Correct results for '$args'");
 
 # test symlink
 $args = "-t study -i 2005 -l $destination_directory/symlink_test";
-$exp_out = "***\n";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lactobacillus/casei/TRACKING/2005/Lc_vit_exp/SLX/Lc_vit_exp_3980720/7114_6#1/116135.pe.markdup.snp/mpileup.unfilt.vcf.gz\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lactobacillus/casei/TRACKING/2005/Lc_vit_sta/SLX/Lc_vit_sta_3980721/7114_6#2/116138.pe.markdup.snp/mpileup.unfilt.vcf.gz\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lactobacillus/casei/TRACKING/2005/Lc_viv_cae/SLX/Lc_viv_cae_3980722/7114_6#3/116141.pe.markdup.snp/mpileup.unfilt.vcf.gz\n";
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => $args, script_name => $script_name);
 stdout_is($snp_obj->run, $exp_out, "Correct results for '$args'");
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
-ok( -e "$destination_directory/symlink_test/***", 'symlink exists');
+ok( -e "$destination_directory/symlink_test/116135.mpileup.unfilt.vcf.gz", 'symlink exists');
+ok( -e "$destination_directory/symlink_test/116138.mpileup.unfilt.vcf.gz", 'symlink exists');
+ok( -e "$destination_directory/symlink_test/116141.mpileup.unfilt.vcf.gz", 'symlink exists');
 
 # test archive
-$args = "-t study -i *** -a $destination_directory/archive_test";
-$exp_out = "***\n";
+$args = "-t study -i 2005 -a $destination_directory/archive_test";
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => $args, script_name => $script_name);
 stdout_is($snp_obj->run, $exp_out, "Correct results for '$args'");
@@ -56,7 +59,9 @@ stdout_is($snp_obj->run, $exp_out, "Correct results for '$args'");
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system('tar xvfz archive_test.tar.gz');
 ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
-ok( -e "$destination_directory/archive_test/***", 'archived file exists');
+ok( -e "$destination_directory/archive_test/116135.mpileup.unfilt.vcf.gz", 'archived file exists');
+ok( -e "$destination_directory/archive_test/116138.mpileup.unfilt.vcf.gz", 'archived file exists');
+ok( -e "$destination_directory/archive_test/116141.mpileup.unfilt.vcf.gz", 'archived file exists');
 
 done_testing();
 
