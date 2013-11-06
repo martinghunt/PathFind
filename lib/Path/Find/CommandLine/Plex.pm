@@ -154,7 +154,7 @@ sub run {
             $track = VRTrack::VRTrack->new( {%connection_details} );
             my $lne = VRTrack::Lane->new_by_name( $track, $lane_name );
             if ($lne) {
-                my $sample      = $self->get_sample($lne);
+                my $sample      = $self->get_sample($track, $lne);
                 my $sample_name = $sample->name();
                 my $npg_qc =
                   defined( $lne->npg_qc_status() )
@@ -197,7 +197,7 @@ sub run {
             for my $lane_name (@$lane_names) {
                 my $lne = VRTrack::Lane->new_by_name( $track, @$lane_name[0] );
                 if ($lne) {
-                    my $sample      = $self->get_sample($lne);
+                    my $sample      = $self->get_sample($track, $lne);
                     my $sample_name = $sample->name();
                     my $npg_qc =
                       defined( $lne->npg_qc_status() )
@@ -270,7 +270,7 @@ sub print_data {
 }
 
 sub get_sample {
-    my ( $self, $lane ) = @_;
+    my ( $self, $track, $lane ) = @_;
     my $library_id = $lane->library_id();
     my $library    = VRTrack::Library->new( $track, $library_id );
     my $sample_id  = $library->sample_id();

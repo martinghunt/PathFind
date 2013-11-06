@@ -40,26 +40,18 @@ $ref_obj = Path::Find::CommandLine::Ref->new(args => $args, script_name => $scri
 stdout_is($ref_obj->run, $exp_out, "Correct results for '$args'");
 
 # test symlink
-$args = "-t study -i 2561 -l $destination_directory/symlink_test";
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/1_CR_TraDIS/SLX/1_CR_TraDIS_6982967/9521_1#1\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Pseudomonas/aeruginosa/TRACKING/2561/Gm_input_1/SLX/Gm_input_1_6982965/9521_1#14\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Pseudomonas/aeruginosa/TRACKING/2561/Gm_input_2/SLX/Gm_input_2_6982966/9521_1#15\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/2_CR_TraDIS/SLX/2_CR_TraDIS_6982970/9521_1#2\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/2_CR_TraDIS/SLX/2_CR_TraDIS_6982968/9521_1#3\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/1_CR_TraDIS/SLX/1_CR_TraDIS_6982969/9521_1#5\n";
+$args = "-t species -i dublin -f fa -l $destination_directory/symlink_test";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/refs/Salmonella/enterica_subsp_enterica_serovar_Dublin_str_BA207/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_BA207_v0.1.fa
+/lustre/scratch108/pathogen/pathpipe/refs/Salmonella/enterica_subsp_enterica_serovar_Dublin_str_SC50/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_SC50_v0.1.fa\n";
 
 $ref_obj = Path::Find::CommandLine::Ref->new(args => $args, script_name => $script_name);
 stdout_is($ref_obj->run, $exp_out, "Correct results for '$args'");
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
-ok( -e "$destination_directory/symlink_test/520105.se.markdup.bam.insertion.csv", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/520108.se.markdup.bam.insertion.csv", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/520111.se.markdup.bam.insertion.csv", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/520153.se.markdup.bam.insertion.csv", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/526338.se.markdup.bam.insertion.csv", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/557408.se.markdup.bam.insertion.csv", 'symlink exists');
+ok( -e "$destination_directory/symlink_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_BA207_v0.1.fa", 'symlink exists');
+ok( -e "$destination_directory/symlink_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_SC50_v0.1.fa", 'symlink exists');
 
 # test archive
-$args = "-t study -i 2561 -a $destination_directory/archive_test";
+$args = "-t study -i dublin -f fa -a $destination_directory/archive_test";
 
 $ref_obj = Path::Find::CommandLine::Ref->new(args => $args, script_name => $script_name);
 stdout_is($ref_obj->run, $exp_out, "Correct results for '$args'");
@@ -67,12 +59,8 @@ stdout_is($ref_obj->run, $exp_out, "Correct results for '$args'");
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system('tar xvfz archive_test.tar.gz');
 ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
-ok( -e "$destination_directory/archive_test/520105.se.markdup.bam.insertion.csv", 'archived file exists');
-ok( -e "$destination_directory/archive_test/520108.se.markdup.bam.insertion.csv", 'archived file exists');
-ok( -e "$destination_directory/archive_test/520111.se.markdup.bam.insertion.csv", 'archived file exists');
-ok( -e "$destination_directory/archive_test/520153.se.markdup.bam.insertion.csv", 'archived file exists');
-ok( -e "$destination_directory/archive_test/526338.se.markdup.bam.insertion.csv", 'archived file exists');
-ok( -e "$destination_directory/archive_test/557408.se.markdup.bam.insertion.csv", 'archived file exists');
+ok( -e "$destination_directory/archive_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_BA207_v0.1.fa", 'archived file exists');
+ok( -e "$destination_directory/archive_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_SC50_v0.1.fa", 'archived file exists');
 
 done_testing();
 
