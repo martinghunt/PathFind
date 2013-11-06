@@ -140,6 +140,7 @@ sub run {
 sub find_files_of_given_type {
     my ( $self, $reference_directories, $filetype ) = @_;
     my @found_files;
+
     my $found = 0;
     for my $directory (@$reference_directories) {
         opendir( DIR, $directory );
@@ -150,7 +151,7 @@ sub find_files_of_given_type {
         }
         closedir(DIR);
     }
-    return \@found_files;
+    return @found_files;
 }
 
 sub print_references {
