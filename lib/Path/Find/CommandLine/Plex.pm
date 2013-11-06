@@ -129,14 +129,14 @@ sub run {
                 my $samples = $study_obj->samples();
                 foreach my $sample (@$samples) {
                     my $name                = $sample->name();
-                    my $multiplex_lanes_ref = get_multiplex_lanes($sample);
+                    my $multiplex_lanes_ref = $self->get_multiplex_lanes($sample);
                     my @multiplex_lanes     = @$multiplex_lanes_ref;
                     if ( @multiplex_lanes > 0 ) {
                         $data{$name} = $multiplex_lanes_ref;
                     }
                 }
                 if ( scalar %data ) {
-                    print_data( \%data );
+                    $self->print_data( \%data );
                 }
                 else {
                     print "No multiplex data available for study $study \n";
@@ -154,7 +154,7 @@ sub run {
             $track = VRTrack::VRTrack->new( {%connection_details} );
             my $lne = VRTrack::Lane->new_by_name( $track, $lane_name );
             if ($lne) {
-                my $sample      = get_sample($lne);
+                my $sample      = $self->get_sample($lne);
                 my $sample_name = $sample->name();
                 my $npg_qc =
                   defined( $lne->npg_qc_status() )
@@ -197,7 +197,7 @@ sub run {
             for my $lane_name (@$lane_names) {
                 my $lne = VRTrack::Lane->new_by_name( $track, @$lane_name[0] );
                 if ($lne) {
-                    my $sample      = get_sample($lne);
+                    my $sample      = $self->get_sample($lne);
                     my $sample_name = $sample->name();
                     my $npg_qc =
                       defined( $lne->npg_qc_status() )
@@ -215,7 +215,7 @@ sub run {
             $dbh->disconnect();
         }
         if ( scalar %data ) {
-            print_data( \%data );
+            $self->print_data( \%data );
         }
         else {
             print "No multiplex data available for lane $lane \n";
@@ -228,7 +228,7 @@ sub run {
 }
 
 sub get_multiplex_lanes {
-    my $sample = shift;
+    my ( $self, $sample ) = @_;
     my @multiplex_lanes;
     my $libraries = $sample->libraries();
     foreach my $library (@$libraries) {
@@ -252,7 +252,7 @@ sub get_multiplex_lanes {
 }
 
 sub print_data {
-    my $data_ref = shift;
+    my ( $self, $data_ref) = @_;
     my %data     = %$data_ref;
 
     #sort if required
@@ -270,7 +270,7 @@ sub print_data {
 }
 
 sub get_sample {
-    my $lane       = shift;
+    my ( $self, $lane ) = @_;
     my $library_id = $lane->library_id();
     my $library    = VRTrack::Library->new( $track, $library_id );
     my $sample_id  = $library->sample_id();

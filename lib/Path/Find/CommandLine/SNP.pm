@@ -210,7 +210,7 @@ sub run {
 			print Dumper \@matching_lanes;
 			print "Passing to link_rename_hash sub...\n";
 
-            my %link_names = link_rename_hash( \@matching_lanes );
+            my %link_names = $self->link_rename_hash( \@matching_lanes );
 
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
@@ -223,7 +223,7 @@ sub run {
             $linker->archive   if ( defined $archive );
         }
 
-        create_pseudogenome( \@matching_lanes )
+        $self->create_pseudogenome( \@matching_lanes )
           if ( defined $pseudogenome && @matching_lanes );
 
         if (@matching_lanes) {
@@ -267,11 +267,11 @@ sub create_pseudogenome {
     my @matching_lanes = @{$mlanes};
     my $ref            = $self->ref;
 
-    my $pg_filename = pseudogenome_filename();
+    my $pg_filename = $self->pseudogenome_filename();
 
     # first add reference as one sequence
     if ( defined $ref ) {
-        my $ref_path = find_reference($ref);
+        my $ref_path = $self->find_reference($ref);
         system("echo \">$ref\" >> $pg_filename");
         system("grep -v \">\" $ref_path >> $pg_filename");
     }

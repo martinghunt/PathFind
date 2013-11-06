@@ -129,7 +129,7 @@ sub run {
         for my $lane (@lanes) {
 
             # get sample and lane accessions
-            my $sample = $self->get_sample_from_lane( $pathtrack, $lane );
+            my $sample = $self->$self->get_sample_from_lane( $pathtrack, $lane );
             my $sample_name = $sample->name            if defined $sample;
             my $sample_acc  = $sample->individual->acc if defined $sample;
             my $lane_acc    = $lane->acc;
@@ -144,10 +144,10 @@ sub run {
 
             # output url
             if ( ( $lane->acc ) && ($external) ) {
-                $self->print_ftp_url( "dl", $lane->acc, $outfile );
+                $self->$self->print_ftp_url( "dl", $lane->acc, $outfile );
             }
             if ( ( $lane->acc ) && ($submitted) ) {
-                $self->print_ftp_url( "sub", $lane->acc, $outfile );
+                $self->$self->print_ftp_url( "sub", $lane->acc, $outfile );
             }
         }
         $lanes_found = scalar @lanes;
@@ -160,9 +160,8 @@ sub run {
 }
 
 sub print_ftp_url {
-    my $url_type = shift;
-    my $acc      = shift;
-    my $outfile  = shift;
+    my ( $self, $url_type, $acc, $outfile ) = @_;
+    
     open( OUT, ">> $outfile" );
     my $url;
     if ( $url_type eq "sub" ) {
@@ -184,7 +183,7 @@ sub print_ftp_url {
 }
 
 sub get_sample_from_lane {
-    my ( $vrtrack, $lane ) = @_;
+    my ( $self, $vrtrack, $lane ) = @_;
     my ( $library, $sample );
 
     $library = VRTrack::Library->new( $vrtrack, $lane->library_id );

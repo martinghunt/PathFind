@@ -116,15 +116,15 @@ sub run {
     my $root       = '/lustre/scratch108/pathogen/pathpipe/refs/';
     my $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/refs.index';
 
-    my @references = search_index_file_for_directories( $index_file, $species );
+    my @references = $self->search_index_file_for_directories( $index_file, $species );
 
     if ( @references >= 1 ) {
         $found = 1;
-        @references = find_files_of_given_type( @references, $filetype )
+        @references = $self->find_files_of_given_type( @references, $filetype )
           if ( defined $filetype );
-        @references = remove_duplicates( \@references );
-        sym_archive(@references) if ( defined $symlink || defined $archive );
-        print_references(@references);
+        @references = $self->remove_duplicates( \@references );
+        $self->sym_archive(@references) if ( defined $symlink || defined $archive );
+        $self->print_references(@references);
     }
 
     unless ($found) {
@@ -133,7 +133,7 @@ sub run {
 }
 
 sub find_files_of_given_type {
-    my ( $reference_directories, $filetype ) = @_;
+    my ( $self, $reference_directories, $filetype ) = @_;
     my @found_files;
     $found = 0;
     for my $directory (@$reference_directories) {
@@ -149,14 +149,14 @@ sub find_files_of_given_type {
 }
 
 sub print_references {
-    my ($references) = @_;
+    my ($self, $references) = @_;
     for my $reference (@$references) {
         print $reference. "\n";
     }
 }
 
 sub sym_archive {
-    my ($objects_to_link) = @_;
+    my ( $self, $objects_to_link) = @_;
 
     my $name;
     if ( defined $symlink ) {
@@ -167,7 +167,7 @@ sub sym_archive {
     }
     $name = "reffind_$species" if ( $name eq '' );
 
-    my $links  = format_for_links($objects_to_link);
+    my $links  = $self->format_for_links($objects_to_link);
     my $linker = Path::Find::Linker->new(
         lanes => $links,
         name  => $name,
@@ -178,7 +178,7 @@ sub sym_archive {
 }
 
 sub format_for_links {
-    my ($objects_to_link) = @_;
+    my ( $self, $objects_to_link) = @_;
 
     my @refs;
     foreach my $r ( @{$objects_to_link} ) {
@@ -188,7 +188,7 @@ sub format_for_links {
 }
 
 sub search_index_file_for_directories {
-    my ( $index_file, $search_query ) = @_;
+    my ( $self, $index_file, $search_query ) = @_;
     my @search_results;
     $search_query =~ s! !|!gi;
 
@@ -209,7 +209,7 @@ sub search_index_file_for_directories {
 }
 
 sub remove_duplicates {
-    my ($file_list) = @_;
+    my ($self, $file_list) = @_;
     my %file_hash;
 
     foreach my $file ( sort @{$file_list} ) {

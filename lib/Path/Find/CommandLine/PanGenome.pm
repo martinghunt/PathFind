@@ -142,7 +142,7 @@ sub run {
         my $cwd = getcwd();
 
         # symlink
-        my %link_names = link_rename_hash( \@matching_lanes );
+        my %link_names = $self->link_rename_hash( \@matching_lanes );
 
         Path::Find::Linker->new(
             lanes            => \@matching_lanes,
@@ -170,18 +170,18 @@ unless ( $lane_filter->found ) {
 }
 
 sub link_rename_hash {
-    my ($mlanes) = @_;
+    my ( $self, $mlanes) = @_;
     my @matching_lanes = @{$mlanes};
     my %link_names;
     foreach my $l (@matching_lanes) {
         my $p = $l->{path};
-        $link_names{$p} = get_lane_from_path($p);
+        $link_names{$p} = $self->get_lane_from_path($p);
     }
     return %link_names;
 }
 
 sub get_lane_from_path {
-    my ($path) = @_;
+    my ($self, $path) = @_;
     $path =~ /([^\/]+)\/velvet/;
     return "$1.gff";
 }

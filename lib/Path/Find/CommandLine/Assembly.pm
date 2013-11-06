@@ -208,7 +208,7 @@ sub run {
             }
             $name = "assemblyfind_$id" if ( $name eq '' );
 
-            my %link_names = link_rename_hash( \@matching_lanes );
+            my %link_names = $self->link_rename_hash( \@matching_lanes );
 
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
@@ -253,7 +253,7 @@ sub run {
 }
 
 sub link_rename_hash {
-    my ($mlanes) = @_;
+    my ( $self, $mlanes) = @_;
     my @matching_lanes = @{$mlanes};
 
     my %suffixes = (
