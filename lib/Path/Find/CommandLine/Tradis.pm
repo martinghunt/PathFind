@@ -181,7 +181,8 @@ sub run {
             type_extensions => \%type_extensions,
             reference       => $ref,
             mapper          => $mapper,
-            date            => $date
+            date            => $date,
+			verbose         => $verbose
         );
         my @matching_lanes = $lane_filter->filter;
 
