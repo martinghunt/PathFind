@@ -226,7 +226,7 @@ sub remove_duplicates {
         $file_hash{$file} = 1;
     }
     my @ks = sort keys %file_hash;
-    return \@ks;
+    return @ks;
 }
 
 sub usage_text {
