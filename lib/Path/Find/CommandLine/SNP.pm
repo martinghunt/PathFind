@@ -206,10 +206,6 @@ sub run {
             }
             $name = "snpfind_$id" if ( $name eq '' );
 
-			print "MATCHING LANES:\n";
-			print Dumper \@matching_lanes;
-			print "Passing to link_rename_hash sub...\n";
-
             my %link_names = $self->link_rename_hash( \@matching_lanes );
 
             my $linker = Path::Find::Linker->new(
@@ -303,8 +299,6 @@ sub pseudogenome_filename {
 
 sub link_rename_hash {
     my ($self, $mlanes) = @_;
-	print "INSIDE link_rename_hash... MLANES:\n";
-	print Dumper $mlanes;
     my @matching_lanes = @{ $mlanes };
 
     my %link_names;
