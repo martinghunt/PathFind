@@ -93,6 +93,7 @@ sub _build__default_type {
         snpfind        => '/*.snp/mpileup.unfilt.vcf.gz',
         rnaseqfind     => '/*corrected.bam',
         tradisfind     => '/*insertion.csv',
+		reffind        => '/*.fa'
     );
 
     # capture calling script name
