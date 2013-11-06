@@ -204,9 +204,9 @@ sub run {
                 $stats = "$id.csv" if ( $stats eq '' );
                 $stats =~ s/\s+/_/g;
                 Path::Find::Stats::Generator->new(
-                    lanes   => \@matching_lanes,
-                    output  => $stats,
-                    vrtrack => $pathtrack
+                    lane_hashes => \@matching_lanes,
+                    output      => $stats,
+                    vrtrack     => $pathtrack
                 )->pathfind;
             }
             exit;
