@@ -21,21 +21,24 @@ my $destination_directory = $destination_directory_obj->dirname();
 my ($args, $exp_out, $snp_obj);
 
 # test basic output
-$args = "-t lane -id ***";
-$exp_out = "***\n";
+$args = "-t lane -id 10593_1#41";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5573209/SLX/7995746/10593_1#41\n";
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => $args, script_name => $script_name);
 stdout_is($snp_obj->run, $exp_out, "Correct results for '$args'");
 
 # test file type & file parse
-$args = "-t file -i *** -f ***";
-$exp_out = "***\n";
+$args = "-t file -i t/data/snp_lanes.txt -f vcf";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5539185/SLX/7734077/10316_1#85/559303.pe.markdup.snp/mpileup.unfilt.vcf.gz\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5539185/SLX/7734077/10316_1#85/606177.pe.markdup.snp/mpileup.unfilt.vcf.gz\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/522/A16329/SLX/A16329_153823/4821_3#1/443255.pe.markdup.snp/mpileup.unfilt.vcf.gz\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Vibrio/cholerae/TRACKING/352/A363_Vc/SLX/A363_Vc_5274327/8036_3#15/174114.pe.markdup.snp/mpileup.unfilt.vcf.gz\n";
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => $args, script_name => $script_name);
 stdout_is($snp_obj->run, $exp_out, "Correct results for '$args'");
 
 # test symlink
-$args = "-t study -i *** -l $destination_directory/symlink_test";
+$args = "-t study -i 2005 -l $destination_directory/symlink_test";
 $exp_out = "***\n";
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => $args, script_name => $script_name);

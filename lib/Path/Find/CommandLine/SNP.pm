@@ -32,8 +32,7 @@ use File::chdir;
 use File::Temp;
 use File::Copy qw(move);
 use Getopt::Long qw(GetOptionsFromArray);
-use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
-  ;    #Change accordingly once we have a stable checkout
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
@@ -196,7 +195,7 @@ sub run {
         );
         my @matching_lanes = $lane_filter->filter;
 
-      # Set up to symlink/archive. Check whether default filetype should be used
+        # Set up to symlink/archive. Check whether default filetype should be used
         if ( @matching_lanes && ( defined $symlink || defined $archive ) ) {
             my $name;
             if ( defined $symlink ) {
@@ -206,6 +205,9 @@ sub run {
                 $name = $archive;
             }
             $name = "snpfind_$id" if ( $name eq '' );
+
+			print "MATCHING LANES:\n";
+			print Dumper \@matching_lanes;
 
             my %link_names = link_rename_hash( \@matching_lanes );
 

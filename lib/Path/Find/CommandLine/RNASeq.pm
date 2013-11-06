@@ -121,8 +121,6 @@ sub run {
     my $mapper   = $self->mapper;
     my $qc       = $self->qc;
 
-	print "RNASeq ARGS:\n";
-	print Dumper $self->args;
     eval {
         Path::Find::Log->new(
             logfile => '/nfs/pathnfs05/log/pathfindlog/rnaseqfind.log',
