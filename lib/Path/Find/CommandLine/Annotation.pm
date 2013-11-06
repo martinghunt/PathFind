@@ -35,7 +35,7 @@ use lib "../lib";
 
 #use File::Temp;
 #use File::Copy qw(move);
-use Getopt::Long;
+use Getopt::Long qw(GetOptionsFromArray);
 use Bio::AutomatedAnnotation::ParseGenesFromGFFs;
 
 use Data::Dumper;

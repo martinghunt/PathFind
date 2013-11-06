@@ -76,10 +76,11 @@ sub BUILD {
 
 sub run {
     my ($self) = @_;
-	# assign variables
-	my $type = $self->type;
-	my $id = $self->id;
-	
+
+    # assign variables
+    my $type = $self->type;
+    my $id   = $self->id;
+
     eval {
         Path::Find::Log->new(
             logfile => '/nfs/pathnfs05/log/pathfindlog/bacteria_pan_genome.log',
@@ -163,14 +164,14 @@ sub run {
             exit;
         }
     }
-}
 
-unless ( $lane_filter->found ) {
-    print "Could not find lanes or files for input data \n";
+    unless ( $lane_filter->found ) {
+        print "Could not find lanes or files for input data \n";
+    }
 }
 
 sub link_rename_hash {
-    my ( $self, $mlanes) = @_;
+    my ( $self, $mlanes ) = @_;
     my @matching_lanes = @{$mlanes};
     my %link_names;
     foreach my $l (@matching_lanes) {
@@ -181,7 +182,7 @@ sub link_rename_hash {
 }
 
 sub get_lane_from_path {
-    my ($self, $path) = @_;
+    my ( $self, $path ) = @_;
     $path =~ /([^\/]+)\/velvet/;
     return "$1.gff";
 }

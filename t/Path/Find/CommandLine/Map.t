@@ -63,30 +63,22 @@ ok( -d "$destination_directory/archive_test", 'decompressed archive directory ex
 ok( -e "$destination_directory/archive_test/659132.pe.markdup.bam", 'archived file exists');
 
 # test verbose output
-$args = "-t study -i 2234 -v";
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCTRL1/SLX/TyCTRL1_5521546/8086_1#1\tSalmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1\tsmalt\t11-07-2013\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCTRL2/SLX/TyCTRL2_5521547/8086_1#2\tSalmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1\tsmalt\t25-06-2013\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCPI1/SLX/TyCPI1_5521548/8086_1#3\tSalmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1\tsmalt\t25-06-2013\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCIP2/SLX/TyCIP2_5521549/8086_1#4\tSalmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1\tsmalt\t11-07-2013\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCTRL1_3/SLX/TyCTRL1_3_5521550/8086_1#5\tSalmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1\tsmalt\t25-06-2013\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCTRL2_3/SLX/TyCTRL2_3_5521551/8086_1#6\tSalmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1\tsmalt\t25-06-2013\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCPI1_3/SLX/TyCPI1_3_5521552/8086_1#7\tSalmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1\tsmalt\t25-06-2013\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCIP2_3/SLX/TyCIP2_3_5521553/8086_1#8\tSalmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1\tsmalt\t25-06-2013\n";
+$args = "-t file -i t/data/map_verbose_lanes.txt -v";
+$exp_out = "***\n";
 
 $map_obj = Path::Find::CommandLine::Map->new(args => $args, script_name => $script_name);
 stdout_is($map_obj->run, $exp_out, "Correct results for '$args'");
 
-# test date filtering
-$args = "-t study -i 2234 -v -d 01-07-2013";
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCTRL1/SLX/TyCTRL1_5521546/8086_1#1\tSalmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1\tsmalt\t11-07-2013\n
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCIP2/SLX/TyCIP2_5521549/8086_1#4\tSalmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1\tsmalt\t11-07-2013\n";
+# test d mapper filter
+$args = "-t file -i t/data/map_verbose_lanes.txt -v -m **";
+$exp_out = "***\n";
 
 $map_obj = Path::Find::CommandLine::Map->new(args => $args, script_name => $script_name);
 stdout_is($map_obj->run, $exp_out, "Correct results for '$args'");
 
-# test mapper filtering
+# test date filter
 
-# test reference filtering
+# test reference filter
 
 # test stats
 

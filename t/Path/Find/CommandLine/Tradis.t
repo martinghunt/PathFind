@@ -46,6 +46,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citro
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => $args, script_name => $script_name);
 stdout_is($tradis_obj->run, $exp_out, "Correct results for '$args'");
+
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/520105.se.markdup.bam.insertion.csv", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/520108.se.markdup.bam.insertion.csv", 'symlink exists');
@@ -69,6 +70,41 @@ ok( -e "$destination_directory/archive_test/520111.se.markdup.bam.insertion.csv"
 ok( -e "$destination_directory/archive_test/520153.se.markdup.bam.insertion.csv", 'archived file exists');
 ok( -e "$destination_directory/archive_test/526338.se.markdup.bam.insertion.csv", 'archived file exists');
 ok( -e "$destination_directory/archive_test/557408.se.markdup.bam.insertion.csv", 'archived file exists');
+
+# test verbose
+$args = "-t file -i t/data/tradis_verbose_lanes.txt -v";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/A_M_6_IN_2/SLX/A_M_6_IN_2_5647193/8211_1#4/539502.se.markdup.bam.corrected.bam\tStreptococcus_suis_P1_7_v1\tsmalt\t13-07-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S1/SLX/R20291_S1_5765227/8405_4#7/377155.pe.markdup.bam.corrected.bam\tClostridium_difficile_630_v1\tbwa\t23-05-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S1/SLX/R20291_S1_5765227/8405_4#7/445618.pe.markdup.bam.corrected.bam\tClostridium_difficile_630_v1\tbwa\t23-05-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S2/SLX/R20291_S2_5765228/8405_4#8/377152.pe.markdup.bam.corrected.bam\tClostridium_difficile_630_v1\tbwa\t23-05-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S2/SLX/R20291_S2_5765228/8405_4#8/445621.pe.markdup.bam.corrected.bam\tClostridium_difficile_630_v1\tbwa\t23-05-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2342/5_STyphi_Rif_2/SLX/5_STyphi_Rif_2_6098734/8788_8#24/557441.se.markdup.bam.corrected.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_Ty2_v1\tsmalt\t29-07-2013\n";
+
+$tradis_obj = Path::Find::CommandLine::Tradis->new(args => $args, script_name => $script_name);
+stdout_is($tradis_obj->run, $exp_out, "Correct results for '$args'");
+
+# test mapper filter
+$args = "-t file -i t/data/tradis_verbose_lanes.txt -v -m smalt";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/A_M_6_IN_2/SLX/A_M_6_IN_2_5647193/8211_1#4/539502.se.markdup.bam.corrected.bam\tStreptococcus_suis_P1_7_v1\tsmalt\t13-07-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2342/5_STyphi_Rif_2/SLX/5_STyphi_Rif_2_6098734/8788_8#24/557441.se.markdup.bam.corrected.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_Ty2_v1\tsmalt\t29-07-2013\n";
+
+$tradis_obj = Path::Find::CommandLine::Tradis->new(args => $args, script_name => $script_name);
+stdout_is($tradis_obj->run, $exp_out, "Correct results for '$args'");
+
+# test date filter
+$args = "-t file -i t/data/tradis_verbose_lanes.txt -v -d 01-07-2013";
+
+$tradis_obj = Path::Find::CommandLine::Tradis->new(args => $args, script_name => $script_name);
+stdout_is($tradis_obj->run, $exp_out, "Correct results for '$args'");
+
+# test reference filter
+$args = "-t file -i t/data/tradis_verbose_lanes.txt -v -r Streptococcus_suis_P1_7_v1";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/A_M_6_IN_2/SLX/A_M_6_IN_2_5647193/8211_1#4/539502.se.markdup.bam.corrected.bam\tStreptococcus_suis_P1_7_v1\tsmalt\t13-07-2013\n";
+
+$tradis_obj = Path::Find::CommandLine::Tradis->new(args => $args, script_name => $script_name);
+stdout_is($tradis_obj->run, $exp_out, "Correct results for '$args'");
+
+# test stats file
 
 done_testing();
 
