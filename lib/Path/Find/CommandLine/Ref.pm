@@ -117,17 +117,11 @@ sub run {
     my $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/refs.index';
 
     my @references = $self->search_index_file_for_directories( $index_file, $species );
-	print "search_index_file_for_directories\n";
-	print Dumper \@references;
     if ( @references >= 1 ) {
         $found = 1;
         @references = $self->find_files_of_given_type( \@references, $filetype )
           if ( defined $filetype );
-		print "find_files_of_given_type\n";
-		print Dumper \@references;
         @references = $self->remove_duplicates( \@references );
-		print "remove_duplicates\n";
-		print Dumper \@references;
         $self->sym_archive(\@references) if ( defined $symlink || defined $archive );
         $self->print_references(\@references);
     }
@@ -156,7 +150,6 @@ sub find_files_of_given_type {
 
 sub print_references {
     my ($self, $references) = @_;
-	print Dumper $references;
     for my $reference (@$references) {
         print $reference. "\n";
     }
