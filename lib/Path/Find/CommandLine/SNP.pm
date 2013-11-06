@@ -208,6 +208,7 @@ sub run {
 
 			print "MATCHING LANES:\n";
 			print Dumper \@matching_lanes;
+			print "Passing to link_rename_hash sub...\n";
 
             my %link_names = link_rename_hash( \@matching_lanes );
 
@@ -302,7 +303,9 @@ sub pseudogenome_filename {
 
 sub link_rename_hash {
     my ($self, $mlanes) = @_;
-    my @matching_lanes = @{$mlanes};
+	print "INSIDE link_rename_hash... MLANES:\n";
+	print Dumper $mlanes;
+    my @matching_lanes = @{ $mlanes };
 
     my %link_names;
     foreach my $mf (@matching_lanes) {
