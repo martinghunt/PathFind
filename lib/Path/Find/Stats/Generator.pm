@@ -27,6 +27,8 @@ sub pathfind {
     my ($self) = @_;
     my @lanes = @{ $self->lanes };
 
+	print Dumper \@lanes;
+
     # set up headers and info to retrieve for each row
     my @headers = (
         'Study ID',
