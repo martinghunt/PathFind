@@ -1,0 +1,43 @@
+#!/usr/bin/env perl
+use Moose;
+use Cwd;
+
+BEGIN { unshift( @INC, './lib' ) }
+
+BEGIN {
+    use Test::Most;
+	use Test::Output;
+    use_ok('Path::Find::CommandLine::Info');
+}
+my $script_name = 'Path::Find::CommandLine::Info';
+my $cwd = getcwd();
+
+my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );
+my $destination_directory = $destination_directory_obj->dirname();
+
+my ($args, $exp_out, $info_obj);
+
+# test basic output
+$args = "-t lane -id 10812_1#86";
+$exp_out = "Lane\tSample\tSupplier Name\tPublic Name\tStrain\n
+10812_1#86\t2682STDY5583393\tMDR1343\tMDR1343\tMDR1343\n";
+
+$info_obj = Path::Find::CommandLine::Info->new(args => $args, script_name => $script_name);
+stdout_is($info_obj->run, $exp_out, "Correct results for '$args'");
+
+# test file parse and file type
+$args = "-t study -i 66";
+$exp_out = "Lane\tSample\tSupplier Name\tPublic Name\tStrain\n
+554_1\tPool 2\tNA\tA1338, AKU_12061, B4173, B418, B964, D441 A1338, AKU_12061, B4173, B418, B964, D441\n
+554_2\tPool 7\tNA\tstr44, str10, str21, E771, B1378, 14/06 str44, str10, str21, E771, B1378, 14/06\n
+554_3\tPool 6\tNA\t2664, BL1344, BL4579, B7697, 6911, 6912 2664, BL1344, BL4579, B7697, 6911, 6912\n
+554_5\tPool 5\tNA\t2129, BL8758, BL4595, BL14275, 58/38, 138/69 2129, BL8758, BL4595, BL14275, 58/38, 138/69\n
+554_6\tPool 4\tNA\tA1345, A2248, B4986, C806, D4075, F846 A1345, A2248, B4986, C806, D4075, F846\n
+554_7\tPool 3\tNA\tAKU_12601\tAKU_12601\n
+554_8\tPool 1\tNA\tB1357, D2383, D1985, B943, C4672 B1357, D2383, D1985, B943, C4672\n";
+
+$info_obj = Path::Find::CommandLine::Info->new(args => $args, script_name => $script_name);
+stdout_is($info_obj->run, $exp_out, "Correct results for '$args'");
+
+done_testing();
+

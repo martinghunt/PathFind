@@ -69,5 +69,40 @@ ok( -e "$destination_directory/archive_test/539631.se.markdup.bam.corrected.bam"
 ok( -e "$destination_directory/archive_test/526341.se.markdup.bam.corrected.bam", 'archived file exists');
 ok( -e "$destination_directory/archive_test/522285.se.markdup.bam.corrected.bam", 'archived file exists');
 
+# test verbose output
+$args = "-t file -i t/data/rnaseq_verbose_lanes.txt -v";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Shigella/flexneri/TRACKING/1934/NOe_fnr_3/SLX/NOe_fnr_3_3547523/6887_4#18\tShigella_flexneri_5a_str_M90T_v0.3\tbwa\t06-11-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/NS488_1/SLX/NS488_1_4002745/7138_8#7\tStreptococcus_pyogenes_BC2_HKU16_v0.1\tbwa\t12-04-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/Pig2Tn917A2/SLX/Pig2Tn917A2_427002/5155_1#9\tStreptococcus_suis_P1_7_v1\tsmalt\t17-07-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/Pig2Tn917B1/SLX/Pig2Tn917B1_427001/5155_1#8\tStreptococcus_suis_P1_7_v1\tsmalt\t13-07-2013\n";
+
+$rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => $args, script_name => $script_name);
+stdout_is($rnaseq_obj->run, $exp_out, "Correct results for '$args'");
+
+# test mapper filter
+$args = "-t file -i t/data/rnaseq_verbose_lanes.txt -v -m bwa";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Shigella/flexneri/TRACKING/1934/NOe_fnr_3/SLX/NOe_fnr_3_3547523/6887_4#18\tShigella_flexneri_5a_str_M90T_v0.3\tbwa\t06-11-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/NS488_1/SLX/NS488_1_4002745/7138_8#7\tStreptococcus_pyogenes_BC2_HKU16_v0.1\tbwa\t12-04-2013\n";
+
+$rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => $args, script_name => $script_name);
+stdout_is($rnaseq_obj->run, $exp_out, "Correct results for '$args'");
+
+# test date filter
+$args = "-t file -i t/data/rnaseq_verbose_lanes.txt -v -d 01-06-2013";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Shigella/flexneri/TRACKING/1934/NOe_fnr_3/SLX/NOe_fnr_3_3547523/6887_4#18\tShigella_flexneri_5a_str_M90T_v0.3\tbwa\t06-11-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/Pig2Tn917A2/SLX/Pig2Tn917A2_427002/5155_1#9\tStreptococcus_suis_P1_7_v1\tsmalt\t17-07-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/Pig2Tn917B1/SLX/Pig2Tn917B1_427001/5155_1#8\tStreptococcus_suis_P1_7_v1\tsmalt\t13-07-2013\n";
+
+$rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => $args, script_name => $script_name);
+stdout_is($rnaseq_obj->run, $exp_out, "Correct results for '$args'");
+
+# test reference filter
+$args = "-t file -i t/data/rnaseq_verbose_lanes.txt -v -r Streptococcus_suis_P1_7_v1";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/Pig2Tn917A2/SLX/Pig2Tn917A2_427002/5155_1#9\tStreptococcus_suis_P1_7_v1\tsmalt\t17-07-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/Pig2Tn917B1/SLX/Pig2Tn917B1_427001/5155_1#8\tStreptococcus_suis_P1_7_v1\tsmalt\t13-07-2013\n";
+
+$rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => $args, script_name => $script_name);
+stdout_is($rnaseq_obj->run, $exp_out, "Correct results for '$args'");
+
 done_testing();
 

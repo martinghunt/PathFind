@@ -283,9 +283,9 @@ sub usage_text {
     my $script_name = $self->script_name;
     print <<USAGE;
 Usage: $script_name
-     -t|type <study|lane>
-     -i|id <study id|study name|lane id>
-     -tag   <tag>
+     -t|type  <study|lane>
+     -i|id    <study id|study name|lane id>
+     -tag     <tag>
      -h|help  <print this message>
 
 Given a study name or study id this script will return a list of multiplex lanes for the study along with the list of samples in each multiplex lane 
