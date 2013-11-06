@@ -27,8 +27,6 @@ sub pathfind {
     my ($self) = @_;
     my @lanes = @{ $self->lanes };
 
-	print Dumper \@lanes;
-
     # set up headers and info to retrieve for each row
     my @headers = (
         'Study ID',
@@ -80,8 +78,8 @@ sub pathfind {
 
     #loop through lanes and print info to file
     my $vrtrack = $self->vrtrack;
-    foreach my $l_h (@lanes) {
-        my $l       = $l_h->{lane};
+    foreach my $l (@lanes) {
+        #my $l       = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->qc_mappings );
         my $row     = Path::Find::Stats::Row->new(
             lane     => $l,
