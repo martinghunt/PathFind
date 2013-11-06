@@ -190,6 +190,8 @@ sub sym_archive {
     my $archive = $self->archive;
     my $id = $self->id;
 
+	my $use_default = $self->filetype ? 1:0;
+
     my $name;
     if ( defined $symlink ) {
         $name = $symlink;
@@ -201,8 +203,9 @@ sub sym_archive {
 
     my $links  = $self->format_for_links($objects_to_link);
     my $linker = Path::Find::Linker->new(
-        lanes => $links,
-        name  => $name,
+        lanes       => $links,
+        name        => $name,
+		use_default => $use_default
     );
 
     $linker->sym_links if ( defined $symlink );
