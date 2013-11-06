@@ -78,7 +78,7 @@ sub pathfind {
 
     #loop through lanes and print info to file
     my $vrtrack = $self->vrtrack;
-    foreach my $l (@lanes) {
+    foreach my $l_h (@lanes) {
         my $l       = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->qc_mappings );
         my $row     = Path::Find::Stats::Row->new(
