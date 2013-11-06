@@ -155,8 +155,9 @@ sub parse_species_from_file {
 	open(SPECIES, "<", $file_name);
 	while(my $line = <SPECIES>){
 		chomp $line;
-		push(@species, $line);
+		push(@sp, $line);
 	}
+	return @sp;
 }
 
 sub find_files_of_given_type {
