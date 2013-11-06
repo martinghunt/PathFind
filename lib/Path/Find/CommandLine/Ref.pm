@@ -120,9 +120,9 @@ sub run {
 
     if ( @references >= 1 ) {
         $found = 1;
-        @references = $self->find_files_of_given_type( \@references, $filetype )
+        @references = @{ $self->find_files_of_given_type( \@references, $filetype ) }
           if ( defined $filetype );
-        @references = @{ $self->remove_duplicates( \@references ) };
+        @references = $self->remove_duplicates( \@references );
         $self->sym_archive(\@references) if ( defined $symlink || defined $archive );
         $self->print_references(\@references);
     }
