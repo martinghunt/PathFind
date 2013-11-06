@@ -150,6 +150,7 @@ sub find_files_of_given_type {
 
 sub print_references {
     my ($self, $references) = @_;
+	print Dumper $references;
     for my $reference (@$references) {
         print $reference. "\n";
     }
