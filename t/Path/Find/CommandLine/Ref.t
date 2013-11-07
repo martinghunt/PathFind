@@ -39,6 +39,15 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/refs/Shigella/boydii_CDC_3083-9
 $ref_obj = Path::Find::CommandLine::Ref->new(args => $args, script_name => $script_name);
 stdout_is($ref_obj->run, $exp_out, "Correct results for '$args'");
 
+# test annotation file retrieval
+$args = "-t species -i vibrio -f annotation";
+$exp_out = "//lustre/scratch108/pathogen/pathpipe/refs/Vibrio/cholerae_O1_biovar_eltor_str_N16961/annotation/Vibrio_cholerae_O1_biovar_eltor_str_N16961_v1.gff\n
+/lustre/scratch108/pathogen/pathpipe/refs/Vibrio/cholerae_O1_biovar_eltor_str_N16961/annotation/Vibrio_cholerae_O1_biovar_eltor_str_N16961_v2.gff\n
+/lustre/scratch108/pathogen/pathpipe/refs/Vibrio/cholerae_O395/annotation/Vibrio_cholerae_O395_v1.gff\n";
+
+$ref_obj = Path::Find::CommandLine::Ref->new(args => $args, script_name => $script_name);
+stdout_is($ref_obj->run, $exp_out, "Correct results for '$args'");
+
 # test symlink
 $args = "-t species -i dublin -f fa -l $destination_directory/symlink_test";
 $exp_out = "/lustre/scratch108/pathogen/pathpipe/refs/Salmonella/enterica_subsp_enterica_serovar_Dublin_str_BA207/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_BA207_v0.1.fa
