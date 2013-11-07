@@ -287,7 +287,12 @@ sub _reference_name {
 	print STDERR $mapstats[0];
 	print STDERR "MAPSTATS ASSEMBLY:\n";
 	print STDERR Dumper $mapstats[0]->assembly;
-    return defined( $mapstats[0]->assembly ) ? $mapstats[0]->assembly->name:'NA';
+	if(defined $mapstats[0]->assembly){
+		return $mapstats[0]->assembly->name;
+	}
+	else{
+		return 'NA';
+	}
 }
 
 sub _get_mapper {
