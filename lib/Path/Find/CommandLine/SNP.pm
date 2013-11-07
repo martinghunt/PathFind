@@ -1,17 +1,33 @@
 package Path::Find::CommandLine::SNP;
 
+#ABSTRACT: Given a lane id, a study id or a study name, it will return the paths to the SNP data
+
 =head1 NAME
 
-snpfind
+Path::Find::CommandLine::SNP
 
 =head1 SYNOPSIS
 
-snpfind -t study -id "My study name"
-snpfind -t lane -id 1234_5#6
+	use Path::Find::CommandLine::SNP;
+	my $pipeline = Path::Find::CommandLine::SNP->new(
+		script_name => 'snpfind',
+		args        => \@ARGV
+	)->run;
 
-=head1 DESCRIPTION
-
-Given a lane id, a study id or a study name, it will return the paths to the VCF files.
+where \@ARGV contains the following parameters:
+-t|type      <study|lane|file|sample|species>
+ -i|id        <study id|study name|lane name|file of lane names>
+ -f|filetype  <vcf|pseudogenome>
+ -q|qc        <pass|failed|pending>
+ -l|symlink   <create a symlink to the data>
+ -a|arvhive   <archive the data>
+ -v|verbose   <display reference, mapper and date>
+ -s|stats     <output file for summary of mapping results in CSV format>
+ -r|reference <filter results based on reference>
+ -m|mapper    <filter results based on mapper>
+ -d|date      <show only results produced after a given date>
+ -p|pseudo    <generate a pseudogenome based on the given reference (-r)>
+ -h|help      <print help message>
 
 =head1 CONTACT
 

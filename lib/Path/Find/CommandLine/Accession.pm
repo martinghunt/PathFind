@@ -1,23 +1,34 @@
 package Path::Find::CommandLine::Accession;
 
+# ABSTRACT: Finds accession information for given lanes/studies
+
 =head1 NAME
 
-accessionfind
+Path::Find::CommandLine::Accession
 
 =head1 SYNOPSIS
 
-Sample usage:
-perl accessionfind --lanes=/nfs/users/nfs_a/ap12/tmp/rt_224699/lanes_2.list -db=prok
+	use Path::Find::CommandLine::Accession;
+	
+	my $pipeline = Path::Find::CommandLine::Accession->new(
+		script_name => 'accessionfind',
+		args        => \@ARGV
+	)->run;
+	
+where \@ARGV follows the following parameters:
 
-=head1 DESCRIPTION
+t|type      <study|lane|file|sample|species>
+i|id        <study id|study name|lane name|file of lane names|lane accession|sample accession>
+f|fastq     <generate ftp addresses for fastq file download from ENA>
+s|submitted <generate ftp addresses for submitted file download. Format varies>
+o|outfile   <file to write output to. If not given, defaults to accessionfind.out>
+h|help      <display help message>
 
-Looks up the accession number (ERR...) for each of the lanes specified in the input file (lanes.list)
+=head1 METHODS
 
 =head1 CONTACT
 
 pathdevg@sanger.ac.uk
-
-=head1 METHODS
 
 =cut
 

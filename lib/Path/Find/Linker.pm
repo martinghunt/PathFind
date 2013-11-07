@@ -1,6 +1,6 @@
 package Path::Find::Linker;
 
-# ABSTRACT:
+# ABSTRACT: Logic to create symlinks or archives for a list of lanes
 
 =head1 SYNOPSIS
 

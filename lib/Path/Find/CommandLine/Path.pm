@@ -1,16 +1,29 @@
 package Path::Find::CommandLine::Path;
 
+# ABSTRACT: Given a lane id, this script returns the location on disk of the relevant files
+
 =head1 NAME
 
-pathfind
+Path::Find::CommandLine::Path
 
 =head1 SYNOPSIS
 
-pathfind -t lane -i 1234
+	use Path::Find::CommandLine::Path;
+	my $pipeline = Path::Find::CommandLine::Path->new(
+		script_name => 'pathfind',
+		args        => \@ARGV
+	)->run;
 
-=head1 DESCRIPTION
+where \@ARGV follows the following parameters:
 
-Given a lane id, this script returns the location on disk of the relevant fastq files
+-t|type		<study|lane|file|sample|species>
+-i|id		<study id|study name|lane name|file of lane names>
+-h|help		<help message>
+-f|filetype	<fastq|bam>
+-l|symlink	<create sym links to the data and define output directory>
+-a|archive	<name for archive containing the data>
+-s|stats	<output statistics>
+-q|qc		<passed|failed|pending>
 
 =head1 CONTACT
 
@@ -238,7 +251,7 @@ Usage: $script_name
 	Using the option -qc (passed|failed|pending) will limit the results to data of the specified qc status. 
 	Using the option -filetype (fastq or bam) will return the path to the files of this type for the given data. 
 	Using the option -symlink will create a symlink to the queried data in the current directory, alternativley an output directory can be specified in which the symlinks will be created.
-
+	Similarly, the archive option will create and archive (.tar.gz) of the data under a default file name unless one is specified.
 USAGE
     exit;
 }

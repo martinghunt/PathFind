@@ -1,17 +1,32 @@
 package Path::Find::CommandLine::RNASeq;
 
+# ABSTRACT: Given a lane id, a study id or a study name, it will return the paths to the rna seq data
+
 =head1 NAME
 
-rnaseqfind
+Path::Find::CommandLine::RNASeq
 
 =head1 SYNOPSIS
 
-rnaseqfind -t study -id "My study name"
-rnaseqfind -t lane -id 1234_5#6
+	use Path::Find::CommandLine::RNASeq;
+	my $pipeline = Path::Find::CommandLine::RNASeq->new(
+		script_name => 'rnaseqfind',
+		args        => \@ARGV
+	)->run;
 
-=head1 DESCRIPTION
-
-Given a lane id, a study id or a study name, it will return the paths to the rna seq data
+where \@ARGV uses the following parameters:
+-t|type      <study|lane|file|sample|species>
+ -i|id        <study id|study name|lane name|file of lane names>
+ -f|filetype  <bam>
+ -q|qc        <pass|failed|pending>
+ -l|symlink   <create a symlink to the data>
+ -a|arvhive   <archive the data>
+ -v|verbose   <display reference, mapper and date>
+ -s|stats     <output file for summary of mapping results in CSV format>
+ -r|reference <filter results based on reference>
+ -m|mapper    <filter results based on mapper>
+ -d|date      <show only results produced after a given date>
+ -h|help      <print help message>
 
 =head1 CONTACT
 

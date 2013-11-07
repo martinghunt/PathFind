@@ -1,19 +1,24 @@
 package Path::Find::CommandLine::Plex;
 
+# ABSTRACT: Prints the sample and tag information for a specified study or lane
+
 =head1 NAME
 
-plexfind.pl 
+Path::Find::CommandLine::Plex
 
 =head1 SYNOPSIS
 
-plexfind -study 108
-plexfind -study "Brugia malayi transcriptomics"
-plexfind -lane 3031_1
-plexfind -lane 3031_1 -tag 3
+	use Path::Find::CommandLine::Plex;
+	my $pipeline = Path::Find::CommandLine::Plex->new(
+		script_name => 'plexfind',
+		args        => \@ARGV
+	)->run;
 
-=head1 DESCRIPTION
-
-This script returns the sample and tag information for a specified study or lane.
+where \@ARGV uses the following parameters:
+-t|type  <study|lane>
+-i|id    <study id|study name|lane id>
+-tag     <tag>
+-h|help  <print this message>
 
 =head1 CONTACT
 

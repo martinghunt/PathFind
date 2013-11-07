@@ -1,17 +1,32 @@
 package Path::Find::CommandLine::Map;
 
+# ABSTRACT: Given a lane id, a study id or a study name, it will return the paths to the requested files
+
 =head1 NAME
 
-mapfind
+Path::Find::CommandLine::Map
 
 =head1 SYNOPSIS
 
-mapfind -t study -id "My study name"
-mapfind -t lane -id 1234_5#6
+	use Path::Find::CommandLine::Map;
+	my $pipeline = Path::Find::CommandLine::Map->new(
+		script_name => 'mapfind',
+		args        => \@ARGV
+	)->run;
 
-=head1 DESCRIPTION
-
-Given a lane id, a study id or a study name, it will return the paths to the mapped bam files.
+where \@ARGV follows the following parameters:
+-t|type      <study|lane|file|sample|species>
+-i|id        <study id|study name|lane name|file of lane names>
+-f|filetype  <bam>
+-q|qc        <pass|failed|pending>
+-l|symlink   <create a symlink to the data>
+-a|arvhive   <archive the data>
+-v|verbose   <display reference, mapper and date>
+-s|stats     <output file for summary of mapping results in CSV format>
+-r|reference <filter results based on reference>
+-m|mapper    <filter results based on mapper>
+-d|date      <show only results produced after a given date>
+-h|help      <print help message>
 
 =head1 CONTACT
 

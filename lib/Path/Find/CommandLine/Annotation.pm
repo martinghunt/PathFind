@@ -1,23 +1,37 @@
 package Path::Find::CommandLine::Annotation;
 
+# ABSTRACT: Given a lane id, a study id or a study name, it will print the paths to the annotation data
+
 =head1 NAME
 
-annotationfind
+Path::Find::CommandLine::Annotation
 
 =head1 SYNOPSIS
 
-annotationfind -t study -id "My study name"
-annotationfind -t lane -id 1234_5#6
+	use Path::Find::CommandLine::Annotation;
+	my $pipeline = Path::Find::CommandLine::Annotation->new(
+		script_name => 'annotationfind',
+		args        => \@ARGV
+	)->run;
+	
+where \@ARGV follows the following parameters:
+-t|type            <study|lane|file|sample|species>
+-i|id              <study id|study name|lane name|file of lane names>
+-l|symlink         <create a symlink to the data>
+-f|filetype        <gff|faa|ffn>
+-g|gene            <name of gene>
+-p|search_products <when searching for genes also search products>
+-o|output          <name of output fasta file of genes>
+-n|nucleotides     <output nucleotide sequence instead of amino acids in fasta file>
+-a|archive		   <name of archive>
+-h|help            <print help message>
 
-=head1 DESCRIPTION
 
-Given a lane id, a study id or a study name, it will return the paths to the annotation data
+=head1 METHODS
 
 =head1 CONTACT
 
 path-help@sanger.ac.uk
-
-=head1 METHODS
 
 =cut
 
@@ -284,7 +298,7 @@ Usage: $script_name
   -t|type            <study|lane|file|sample|species>
   -i|id              <study id|study name|lane name|file of lane names>
   -l|symlink         <create a symlink to the data>
-  -f|filetype       <gff|faa|ffn>
+  -f|filetype        <gff|faa|ffn>
   -g|gene            <name of gene>
   -p|search_products <when searching for genes also search products>
   -o|output          <name of output fasta file of genes>
@@ -294,7 +308,8 @@ Usage: $script_name
 
 Given a study or lane this will give you the location of the annotation results. By default it provides the directory, but by specifiying a 'filetype' you can narrow it down to particular 
 files within the result set. 
-Using the option -archive will create an archive (.tar.gz) containing the selected annotations. The -archive option will automatically name the archive file if a name is not supplied.
+Using the option -l|symlink will create symlinks to the data. Using the option -a|archive will create an archive (.tar.gz) containing the selected annotations. 
+The archive and symlink options will automatically create/name the archive file/symlink directory if a name is not supplied.
 For an annotation you will have:
 
 gff: The master annotation in GFF3 format, containing both sequences and annotations.
@@ -311,8 +326,11 @@ annotationfind -t species -i Stap -g gryA -n
 annotationfind -t species -i Strep -g "16S ribosomal RNA" -p
 
 # create a compressed archive containing all annotations for a study
-annotationfind -t study -id 123 -archive 
-annotationfind -t study -id 123 -archive study_123_annotations
+annotationfind -t study -i 123 -a 
+annotationfind -t study -i 123 -a study_123_annotations
+
+# create symlinks to data in directory 'symlinks_dir'
+annotationfind -t lane -i 123_1#23 -l symlinks_dir
 
 USAGE
     exit;

@@ -1,22 +1,29 @@
 package Path::Find::CommandLine::Info;
 
+# ABSTRACT: Given a lane id, this script returns basic information on the sample from the sequencescape warehouse.
+
 =head1 NAME
 
-infofind 
+Path::Find::CommandLine::Info 
 
 =head1 SYNOPSIS
 
-infofind -t lane -i 1234_5 -o outputfile
+	use Path::Find::CommandLine::Info;
+	my $pipeline = Path::Find::CommandLine::Info->new(
+		script_name => 'infofind',
+		args        => \@ARGV
+	)->run;
 
-=head1 DESCRIPTION
+where \@ARGV follows the following parameters:
+-t|type            <study|lane|file|sample|species>
+-i|id              <study id|study name|lane name|file of lane names>
+-h|help            <print this message>
 
-Given a lane id, this script returns basic information on the sample from the sequencescape warehouse.
+=head1 METHODS
 
 =head1 CONTACT
 
 path-help@sanger.ac.uk
-
-=head1 METHODS
 
 =cut
 
@@ -55,7 +62,6 @@ sub BUILD {
         \@args,
         't|type=s'   => \$type,
         'i|id=s'     => \$id,
-        'o|output=s' => \$output,
         'h|help'     => \$help
     );
 
@@ -211,13 +217,10 @@ sub usage_text {
 Usage: $script_name
      -t|type            <study|lane|file|sample|species>
      -i|id              <study id|study name|lane name|file of lane names>
-     -o|output          <output results to CSV file>
      -h|help            <print this message>
 
 Given a study, lane or a file containing a list of lanes, this script will return the name, 
 supplier name, public name and strain of the sample.
-
-Using the -o option will output the results to a CSV-formatted file.
 
 USAGE
     exit;

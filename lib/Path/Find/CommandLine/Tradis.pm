@@ -1,17 +1,31 @@
 package Path::Find::CommandLine::Tradis;
 
+#ABSTRACT: Given a lane id, a study id or a study name, it will return the paths to the tradis data
+
 =head1 NAME
 
-tradisfind
+Path::Find::CommandLine::Tradis
 
 =head1 SYNOPSIS
 
-tradisfind -t study -id "My study name"
-tradisfind -t lane -id 1234_5#6
+	use Path::Find::CommandLine::Tradis;
+	my $pipeline = Path::Find::CommandLine::Tradis->new(
+		script_name => 'tradisfind',
+		args        => \@ARGV
+	)->run;
 
-=head1 DESCRIPTION
-
-Given a lane id, a study id or a study name, it will return the paths to the rna seq data
+where \@ARGV contains the following parameters:
+-t|type      <study|lane|file|sample|species>
+-i|id        <study id|study name|lane name>
+-l|symlink   <create a symlink to the data>
+-a|arvhive   <archive the data>
+-f|filetype  <coverage|intergenic|bam|spreadsheet>
+-s|stats     <output stats to file>
+-v|verbose   <extended details>
+-r|reference <select only results mapped to given reference>
+-d|date      <select only results produced after given date>
+-m|mapper    <select only results produced by given mapper>
+-h|help      <print help message>
 
 =head1 CONTACT
 

@@ -6,9 +6,7 @@ Path::Find
 =head1 SYNOPSIS
 @databases = Path::Find->pathogen_databases;
 $database  = shift @databases;
-$vrtrack   = Path::Find->instantiate_vrtrack($database)
-$dbi       = Path::Find->instantiate_dbi($database)
-$root_dir  = Path::Find->hierarchy_root_dir($database);
+my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
 =cut
 
 package Path::Find;

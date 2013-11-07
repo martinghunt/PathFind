@@ -1,29 +1,26 @@
 package Path::Find::CommandLine::Ref;
 
+# ABSTRACT: Given a species return a the location of the references that match
+
 =head1 NAME
 
-reffind
+Path::Find::CommandLine::Ref
 
 =head1 SYNOPSIS
 
-# find reference directories
-reffind -s "Aedes"
-reffind -s "Salmonella Typhi"
-reffind -s "Aedes" -symlink
+	use Path::Find::CommandLine::Ref;
+	my $pipeline = Path::Find::CommandLine::Ref->new(
+		script_name => 'reffind',
+		args        => \@ARGV
+	)->run;
 
-# find reference files by type
-reffind -s "Aedes" -f gff 
-reffind -s "Aedes" -f embl 
-reffind -s "Aedes" -f fa
-
-# symlink to reference files
-reffind -s "Aedes" -f gff -symlink
-reffind -s "Aedes" -f embl -symlink
-reffind -s "Aedes" -f fa -symlink
-
-=head1 DESCRIPTION
-
-Given a species return a the location of the references that match.
+where \@ARGV uses the following parameters:
+-t|type            <species|file>
+-i|id              <species name|species regex|file name>
+-f|filetype        <fa|gff|embl|annotation>
+-l|symlink         <create a symlink to the data>
+-a|archive         <create an archive of the data>
+-h|help            <print help message>
 
 =head1 CONTACT
 

@@ -1,22 +1,36 @@
 package Path::Find::CommandLine::Assembly;
 
+# ABSTRACT: Given a lane id, this script returns the location on disk of the requested assembly files
+
 =head1 NAME
 
-assemblyfind
+Path::Find::CommandLine::Assembly
 
 =head1 SYNOPSIS
 
-assemblyfind -t lane -i 1234
+	use Path::Find::CommandLine::Assembly;
+	my $pipeline = Path::Find::CommandLine::Assembly->new(
+		script_name => 'assemblyfind',
+		args        => \@ARGV
+	)->run;
+	
+where \@ARGV follows the following parameters:
 
-=head1 DESCRIPTION
+-t|type            <study|lane|file|sample|species>
+-i|id              <study id|study name|lane name|file of lane names>
+-f|filetype        <contigs|scaffold>
+-l|symlink         <create a symlink to the data>
+-a|archive         <create archive of the data>
+-s|stats           <create a CSV file containing assembly stats>
+-h|help            <print help message>
 
-Given a lane id, this script returns the location on disk of the relevant fastq files
+=head1 METHODS
+
+
 
 =head1 CONTACT
 
 path-help@sanger.ac.uk
-
-=head1 METHODS
 
 =cut
 
@@ -53,7 +67,6 @@ has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
 has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'symlink'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'output'      => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'stats'       => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
@@ -62,7 +75,7 @@ has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
 sub BUILD {
     my ($self) = @_;
 
-    my ( $type, $id, $symlink, $output, $stats, $filetype, $archive, $help );
+    my ( $type, $id, $symlink, $stats, $filetype, $archive, $help );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
@@ -79,7 +92,6 @@ sub BUILD {
     $self->type($type)         if ( defined $type );
     $self->id($id)             if ( defined $id );
     $self->symlink($symlink)   if ( defined $symlink );
-    $self->output($output)     if ( defined $output );
     $self->stats($stats)       if ( defined $stats );
     $self->filetype($filetype) if ( defined $filetype );
     $self->archive($archive)   if ( defined $archive );
@@ -118,7 +130,6 @@ sub run {
     my $type     = $self->type;
     my $id       = $self->id;
     my $symlink  = $self->symlink;
-    my $output   = $self->output;
     my $stats    = $self->stats;
     my $filetype = $self->filetype;
     my $archive  = $self->archive;
@@ -300,36 +311,34 @@ sub usage_text {
     print <<USAGE;
 Usage: $script_name
      -t|type            <study|lane|file|sample|species>
-     -id                <study id|study name|lane name|file of lane names>
-     -qc                <passed|failed|pending>
-     -symlink           <create a symlink to the data>
-     -o|output          <output dir for sym links>
+     -i|id              <study id|study name|lane name|file of lane names>
+     -f|filetype        <contigs|scaffold>
+     -l|symlink         <create a symlink to the data>
+     -a|archive         <create archive of the data>
      -s|stats           <create a CSV file containing assembly stats>
-     -a|archive         <name of archive>
-     -stage             <auto|all|user|velvet|columbus|scaffold>
      -h|help            <print this message>
 
 Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the data associated with the specified study or lane. 
-Using the option -symlink will create a symlink to the queried data in the current directory, alternativley an output directory can be specified in which the symlinks will be created.
-Using the option -archive will create an archive (.tar.gz) containing the selected assemblies and a CSV file. The -archive option will automatically name the archive file if a name is not supplied.
-Assemblies created by the assemble_lanes script can be found using the -stage option: 'all' will find all assemblies on disk, 'user' will find assemblies created by assemble_lanes and 'velvet','columbus' or 'scaffold' will find the assembly from the given stage of the assemble_lanes pipeline
-The default value for -stage is 'auto' which will find assemblies produced by the automated pipeline.
-
-# create symlinks to all the final assemblies in the given study
-assemblyfind -t study -id "My study" -symlink
+Using the option -l|symlink will create a symlink to the queried data in a default directory created in the current directory, alternativley an output directory can be specified in which the symlinks will be created.
+Using the option -a|archive will create an archive (.tar.gz) containing the selected assemblies. The -archive option will automatically name the archive file if a name is not supplied.
 
 # find an assembly for a given lane
-assemblyfind -t lane -id 1234_5#6 
+assemblyfind -t lane -i 1234_5#6
+
+# find scaffolds for a given lane
+assemblyfind -t lane -i 1234_5#6 -f scaffold
 
 # create a CSV file of assembly statistics for all assemblies in the given study
-assemblyfind -t study -id 123 -s
+assemblyfind -t study -i 123 -s my_assembly_stats.csv
+
+# create symlinks to all the final assemblies in the given study
+assemblyfind -t study -i "My study" -l
+assemblyfind -t study -i "My study" -l my_symlinks
 
 # create a compressed archive containing all assemblies for a study and a CSV file of assembly statistics
-assemblyfind -t study -id 123 -archive 
-assemblyfind -t study -id 123 -archive study_123_assemblies.tgz
+assemblyfind -t study -i 123 -a 
+assemblyfind -t study -i 123 -a study_123_assemblies.tgz
 
-# find all assemblies
-assemblyfind -t lane -id 1234_5#6 -stage all
 
 USAGE
     exit;
