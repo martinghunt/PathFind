@@ -68,5 +68,14 @@ ok( -e "$destination_directory/archive_test/9003_1#1_2.fastq.gz", 'archived file
 ok( -e "$destination_directory/archive_test/9003_1#2_1.fastq.gz", 'archived file exists');
 ok( -e "$destination_directory/archive_test/9003_1#2_2.fastq.gz", 'archived file exists');
 
+# test stats file
+$args = "-t file -i t/data/path_lanes.txt -s $destination_directory/pathfind_test.stats";
+ok( -e "$destination_directory/pathfind_test.stats", 'stats file exists');
+is(
+	read_file("$destination_directory/pathfind_test.stats"),
+	read_file("t/data/pathfind_stats.exp"),
+	'stats are correct'
+);
+
 done_testing();
 

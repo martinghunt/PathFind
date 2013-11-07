@@ -282,7 +282,7 @@ sub _reference_name {
     my ( $self, $lane ) = @_;
 
     my @mapstats = @{ $lane->mappings_excluding_qc };
-    return $mapstats[0]->assembly ? $mapstats[0]->assembly->name:'NA';
+    return defined( $mapstats[0]->assembly ) ? $mapstats[0]->assembly->name:'NA';
 }
 
 sub _get_mapper {

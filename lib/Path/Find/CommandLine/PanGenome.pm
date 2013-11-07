@@ -47,22 +47,26 @@ has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
 has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_job_runner' =>
+  ( is => 'rw', isa => 'Str', required => 0, default => 'LSF' );
 
 sub BUILD {
     my ($self) = @_;
-    my ( $type, $id, $help );
+    my ( $type, $id, $job_runner, $help );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
         \@args,
-        't|type=s' => \$type,
-        'i|id=s'   => \$id,
-        'h|help'   => \$help
+        't|type=s'       => \$type,
+        'i|id=s'         => \$id,
+        'j|job_runner=s' => \$job_runner,
+        'h|help'         => \$help
     );
 
-    $self->type($type) if ( defined $type );
-    $self->id($id)     if ( defined $id );
-    $self->help($help) if ( defined $help );
+    $self->type($type)              if ( defined $type );
+    $self->id($id)                  if ( defined $id );
+    $self->_job_runner($job_runner) if ( defined $job_runner );
+    $self->help($help)              if ( defined $help );
 
     (
         $type && $id && $id ne '' && ( $type eq 'study'
@@ -78,8 +82,9 @@ sub run {
     my ($self) = @_;
 
     # assign variables
-    my $type = $self->type;
-    my $id   = $self->id;
+    my $type       = $self->type;
+    my $id         = $self->id;
+    my $job_runner = $self->_job_runner;
 
     eval {
         Path::Find::Log->new(
@@ -152,17 +157,13 @@ sub run {
             rename_links     => \%link_names
         )->sym_links;
 
-        `cd $output_directory; create_pan_genome *.gff`;
+        `cd $output_directory; create_pan_genome --job_runner $job_runner *.gff`;
 
         chdir($cwd);
         $dbh->disconnect();
 
         #no need to look in the next database if relevant data has been found
-        if ( $lane_filter->found ) {
-
-            #Path::Find::Stats->new()->write_stats;
-            exit;
-        }
+        exit if ( $lane_filter->found );
     }
 
     unless ( $lane_filter->found ) {
@@ -203,6 +204,8 @@ bacteria_pan_genome -t file -i example.txt
 
 # On all lanes in a multiplexed run
 bacteria_pan_genome -t lane -i 1234_5
+
+
 
 USAGE
     exit;
