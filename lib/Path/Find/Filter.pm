@@ -286,9 +286,10 @@ sub _reference_name {
 	print STDERR "MAPSTATS[0]:\n";
 	print STDERR $mapstats[0];
 	print STDERR "MAPSTATS ASSEMBLY:\n";
-	print STDERR Dumper $mapstats[0]->assembly;
-	if(defined $mapstats[0]->assembly){
-		return $mapstats[0]->assembly->name;
+	my $assembly_obj = $mapstats[0]->assembly;
+	print STDERR Dumper $assembly_obj;
+	if(defined $assembly_obj){
+		return $assembly_obj->name;
 	}
 	else{
 		return 'NA';
