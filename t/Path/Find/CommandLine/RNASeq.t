@@ -104,5 +104,15 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Strep
 $rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => $args, script_name => $script_name);
 stdout_is($rnaseq_obj->run, $exp_out, "Correct results for '$args'");
 
+# test stats file
+$args = "-t file -i t/data/rnaseq_lanes.txt -s $destination_directory/rnaseqfind_test.stats";
+ok( -e "$destination_directory/rnaseqfind_test.stats", 'stats file exists');
+is(
+	read_file("$destination_directory/rnaseqfind_test.stats"),
+	read_file("t/data/rnaseqfind_stats.exp"),
+	'stats are correct'
+);
+
+
 done_testing();
 

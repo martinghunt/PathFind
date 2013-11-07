@@ -284,7 +284,7 @@ sub _reference_name {
     my @mapstats = @{ $lane->mappings_excluding_qc };
 	print STDERR "LANE NAME:\t" . $lane->name . "\n";
 	print STDERR "MAPSTATS[0]:\n";
-	print STDERR $mapstats[0];
+	print STDERR Dumper $mapstats[0];
 	print STDERR "MAPSTATS ASSEMBLY:\n";
 	my $assembly_obj = $mapstats[0]->assembly;
 	print STDERR Dumper $assembly_obj;

@@ -65,5 +65,14 @@ ok( -e "$destination_directory/archive_test/9555_6#15.ffn", 'ffn file exists');
 ok( -e "$destination_directory/archive_test/9555_7#15.ffn", 'ffn file exists');
 ok( -e "$destination_directory/archive_test/9555_8#15.ffn", 'ffn file exists');
 
+# test stats file
+$args = "-t file -i t/data/annotation_lanes.txt -s $destination_directory/annotationfind_test.stats";
+ok( -e "$destination_directory/annotationfind_test.stats", 'stats file exists');
+is(
+	read_file("$destination_directory/annotationfind_test.stats"),
+	read_file("t/data/annotationfind_stats.exp"),
+	'stats are correct'
+);
+
 done_testing();
 

@@ -77,10 +77,28 @@ $map_obj = Path::Find::CommandLine::Map->new(args => $args, script_name => $scri
 stdout_is($map_obj->run, $exp_out, "Correct results for '$args'");
 
 # test date filter
+$args = "-t file -i t/data/map_verbose_lanes.txt -v -d **";
+$exp_out = "***\n";
+
+$map_obj = Path::Find::CommandLine::Map->new(args => $args, script_name => $script_name);
+stdout_is($map_obj->run, $exp_out, "Correct results for '$args'");
 
 # test reference filter
+$args = "-t file -i t/data/map_verbose_lanes.txt -v -r **";
+$exp_out = "***\n";
 
-# test stats
+$map_obj = Path::Find::CommandLine::Map->new(args => $args, script_name => $script_name);
+stdout_is($map_obj->run, $exp_out, "Correct results for '$args'");
+
+# test stats file
+$args = "-t file -i t/data/map_lanes.txt -s $destination_directory/mapfind_test.stats";
+ok( -e "$destination_directory/mapfind_test.stats", 'stats file exists');
+is(
+	read_file("$destination_directory/mapfind_test.stats"),
+	read_file("t/data/mapfind_stats.exp"),
+	'stats are correct'
+);
+
 
 
 done_testing();
