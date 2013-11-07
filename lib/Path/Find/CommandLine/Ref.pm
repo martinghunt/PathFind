@@ -181,7 +181,6 @@ sub find_files_of_given_type {
             push( @found_files, $file );
             $found = 1;
         }
-        closedir(DIR);
     }
     return @found_files;
 }
