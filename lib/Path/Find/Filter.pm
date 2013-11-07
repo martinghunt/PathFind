@@ -312,7 +312,13 @@ sub _get_mapper {
     my ( $self, $lane ) = @_;
 
     my @mapstats = @{ $lane->mappings_excluding_qc };
-    return $mapstats[0]->mapper->name;
+	my $mapper_obj = $mapstats[0]->mapper;
+	if( defined $mapper_obj ){
+    	return $mapper_obj->name;
+	}
+	else{
+		return 'NA';
+	}
 }
 
 sub _date_changed {
