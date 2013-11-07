@@ -90,7 +90,8 @@ sub BUILD {
                 $filetype
                 && (   $filetype eq 'fa'
                     || $filetype eq 'gff'
-                    || $filetype eq 'embl' )
+                    || $filetype eq 'embl' 
+					|| $filetype eq 'annotation')
             )
           )
     ) or die $self->usage_text;
@@ -164,12 +165,20 @@ sub find_files_of_given_type {
     my ( $self, $reference_directories, $filetype ) = @_;
     my @found_files;
 
+	my %exts = (
+		fa         => '*.fa',
+		gff        => '*.gff',
+		embl       => '*.embl',
+		annotation => 'annotation/*.gff'
+	);
+
     my $found = 0;
+	my $ex = $exts{$filetype};
     for my $directory (@$reference_directories) {
-        opendir( DIR, $directory );
-        my @files = grep { /$filetype$/i } readdir(DIR);
+		my $search_path = "$directory/$ex"; 
+        my @files = glob $search_path;
         for my $file (@files) {
-            push( @found_files, $directory . '/' . $file );
+            push( @found_files, $file );
             $found = 1;
         }
         closedir(DIR);
@@ -261,7 +270,7 @@ sub usage_text {
 Usage: $script_name
      -t|type            <species|file>
      -i|id              <species name|species regex|file name>
-     -f|filetype        <fa|gff|embl>
+     -f|filetype        <fa|gff|embl|annotation>
      -l|symlink         <create a symlink to the data>
 	 -a|archive         <create an archive of the data>
      -h|help            <print this message>
