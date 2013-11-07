@@ -1,0 +1,4 @@
+Study ID,Lane Name,Reads,Reference,Reference Size,Mapped %,Depth of Coverage,Adapter %,Total Length,No Contigs,N50,Reads Mapped,Average Quality,No. genes,No. CDS genes
+1943	9716_4#9	4406014	Staphylococcus_aureus_subsp_aureus_MRSA252_v1	2902619	79.3	120.40	0.0	2852685	47	141367	4278327	34.4	2801	2673
+2282	9802_1#66	1679554	Staphylococcus_aureus_subsp_aureus_MRSA252_v1	2902619	81.2	70.46	0.0	2834292	24	264762	1651873	37.2	2776	2641
+2282	9852_1#81	1332254	Staphylococcus_aureus_subsp_aureus_MRSA252_v1	2902619	83.3	57.34	0.0	2807335	34	230536	1309999	37.8	2743	2612

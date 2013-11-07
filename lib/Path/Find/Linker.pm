@@ -80,7 +80,7 @@ sub _build__checked_name {
 }
 
 sub _build__tmp_dir {
-    my $tmp_dir_obj = File::Temp->newdir( CLEANUP => 0 );
+    my $tmp_dir_obj = File::Temp->newdir( DIR => getcwd, CLEANUP => 0 );
     return $tmp_dir_obj->dirname;
 }
 

@@ -64,28 +64,32 @@ ok( -e "$destination_directory/archive_test/659132.pe.markdup.bam", 'archived fi
 
 # test verbose output
 $args = "-t file -i t/data/map_verbose_lanes.txt -v";
-$exp_out = "***\n";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Campylobacter/jejuni/TRACKING/2310/57_33_cj/SLX/57_33_cj_5765944/8489_8#89\tCampylobacter_jejuni_subsp_jejuni_M1_v1\tbwa\t22-04-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Klebsiella/pneumoniae/TRACKING/2585/202M1D0/SLX/202M1D0_7080284/9659_1#2\tKlebsiella_pneumoniae_subsp_pneumoniae_Ecl8_v1.1\tbwa\t27-06-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490471/SLX/7346728/9953_5#58\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t15-08-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490472/SLX/7346740/9953_5#59\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t15-08-2013\n";
 
 $map_obj = Path::Find::CommandLine::Map->new(args => $args, script_name => $script_name);
 stdout_is($map_obj->run, $exp_out, "Correct results for '$args'");
 
 # test d mapper filter
-$args = "-t file -i t/data/map_verbose_lanes.txt -v -m **";
-$exp_out = "***\n";
+$args = "-t file -i t/data/map_verbose_lanes.txt -v -m bwa";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Campylobacter/jejuni/TRACKING/2310/57_33_cj/SLX/57_33_cj_5765944/8489_8#89\tCampylobacter_jejuni_subsp_jejuni_M1_v1\tbwa\t22-04-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Klebsiella/pneumoniae/TRACKING/2585/202M1D0/SLX/202M1D0_7080284/9659_1#2\tKlebsiella_pneumoniae_subsp_pneumoniae_Ecl8_v1.1\tbwa\t27-06-2013\n";
 
 $map_obj = Path::Find::CommandLine::Map->new(args => $args, script_name => $script_name);
 stdout_is($map_obj->run, $exp_out, "Correct results for '$args'");
 
 # test date filter
-$args = "-t file -i t/data/map_verbose_lanes.txt -v -d **";
-$exp_out = "***\n";
+$args = "-t file -i t/data/map_verbose_lanes.txt -v -d 01-08-2013";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490471/SLX/7346728/9953_5#58\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t15-08-2013\n
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490472/SLX/7346740/9953_5#59\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t15-08-2013\n";
 
 $map_obj = Path::Find::CommandLine::Map->new(args => $args, script_name => $script_name);
 stdout_is($map_obj->run, $exp_out, "Correct results for '$args'");
 
 # test reference filter
-$args = "-t file -i t/data/map_verbose_lanes.txt -v -r **";
-$exp_out = "***\n";
+$args = "-t file -i t/data/map_verbose_lanes.txt -v -r Salmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1";
 
 $map_obj = Path::Find::CommandLine::Map->new(args => $args, script_name => $script_name);
 stdout_is($map_obj->run, $exp_out, "Correct results for '$args'");
