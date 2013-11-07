@@ -1,43 +1,14 @@
-=begin nd
+# ABSTRACT: Simple wrapper module for VRTrack and DBI. Used for connecting to pathogen tracking databases.
 
-Topic: Name
-Path::Find.pm
+=head1 NAME
+Path::Find
 
-Topic: Synopsis
+=head1 SYNOPSIS
 @databases = Path::Find->pathogen_databases;
 $database  = shift @databases;
 $vrtrack   = Path::Find->instantiate_vrtrack($database)
 $dbi       = Path::Find->instantiate_dbi($database)
 $root_dir  = Path::Find->hierarchy_root_dir($database);
-
-Topic: Description
-Simple wrapper module for VRTrack and DBI. Used for connecting to pathogen tracking databases.
-
-Topic: Contact
-pathdevg@sanger.ac.uk
-
-Topic: Author
-Craig Porter (cp7@sanger.ac.uk)
-
-Topic: Creation date
-April 30, 2012
-
-Topic: Copyright and License
-Copyright (C) 2012 Genome Research Limited. All Rights Reserved.
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or (at
-your option) any later version. This program is distributed in the
-hope that it will be useful, but WITHOUT ANY WARRANTY; without even
-the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
-USA.
-
 =cut
 
 package Path::Find;
