@@ -147,6 +147,8 @@ sub run {
     my $pseudogenome = $self->pseudogenome;
     my $qc           = $self->qc;
 
+	my $final_output;
+
     eval {
         Path::Find::Log->new(
             logfile => '/nfs/pathnfs05/log/pathfindlog/snpfind.log',
@@ -248,7 +250,7 @@ sub run {
                     my $r = $ml->{ref};
                     my $m = $ml->{mapper};
                     my $d = $ml->{date};
-                    print "$l\t$r\t$m\t$d\n";
+                    $final_output .= "$l\t$r\t$m\t$d\n";
                 }
             }
             else {
@@ -256,7 +258,7 @@ sub run {
                   my $ml ( sort { $a->{path} cmp $b->{path} } @matching_lanes )
                 {
                     my $l = $ml->{path};
-                    print "$l\n";
+                    $final_output .= "$l\n";
                 }
             }
         }
@@ -264,7 +266,10 @@ sub run {
         $dbh->disconnect();
 
         #no need to look in the next database if relevant data has been found
-        exit if ($found);
+        if ($found){
+			print $final_output;
+			return $final_output;
+		}
     }
 
     unless ($found) {

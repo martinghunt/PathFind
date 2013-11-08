@@ -32,18 +32,8 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmo
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 isa_ok $snp_obj, 'Path::Find::CommandLine::SNP';
 $arg_str = join(" ", @args);
-my $capture;
-eval {
-print STDERR "Dry run:\n";
-$capture = IO::Capture::Stdout->new();
-};
-print STDERR "$@";
-$capture->start();
-$snp_obj->run;
-print STDERR "hello\n";
-$capture->stop();
-print STDERR $capture;
-print STDERR "End dry run\n";
+$snp_stdout = $snp_obj->run;
+print "SNP_STDOUT:\n$snp_stdout";
 
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
