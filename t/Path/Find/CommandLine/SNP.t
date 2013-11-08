@@ -24,13 +24,12 @@ my $destination_directory = $destination_directory_obj->dirname();
 
 my (@args, $arg_str, $exp_out, $snp_obj);
 
-require_ok('Path::Find::CommandLine::SNP');
-
 # test basic output
 @args = qw(-t lane -id 10593_1#41);
 $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5573209/SLX/7995746/10593_1#41\n";
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
+isa_ok $snp_obj, 'Path::Find::CommandLine::SNP';
 $arg_str = join(" ", @args);
 #stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 $snp_obj->run;
