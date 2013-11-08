@@ -32,7 +32,7 @@ $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $scr
 isa_ok $snp_obj, 'Path::Find::CommandLine::SNP';
 $arg_str = join(" ", @args);
 print STDERR "Dry run:\n";
-$capture = IO::Capture::Stdout->new();
+my $capture = IO::Capture::Stdout->new();
 $capture->start();
 $snp_obj->run;
 print STDERR "hello\n";
