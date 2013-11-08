@@ -13,7 +13,6 @@ BEGIN { unshift( @INC, './lib' ) }
 BEGIN {
     use Test::Most;
 	use Test::Output;
-	use IO::Capture::Stdout;
 }
 
 use_ok('Path::Find::CommandLine::SNP');
@@ -23,7 +22,7 @@ my $script_name = 'Path::Find::CommandLine::SNP';
 my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );
 my $destination_directory = $destination_directory_obj->dirname();
 
-my (@args, $arg_str, $exp_out, $snp_obj);
+my (@args, $arg_str, $snp_stdout, $exp_out, $snp_obj);
 
 # test basic output
 @args = ("-t", "lane", "-id", "10593_1#41");
@@ -33,7 +32,7 @@ $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $scr
 isa_ok $snp_obj, 'Path::Find::CommandLine::SNP';
 $arg_str = join(" ", @args);
 $snp_stdout = $snp_obj->run;
-print "SNP_STDOUT:\n$snp_stdout";
+print STDERR "SNP_STDOUT:\n$snp_stdout";
 
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
