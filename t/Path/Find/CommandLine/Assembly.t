@@ -26,7 +26,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Strep
 
 $ass_obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is($ass_obj->run, $exp_out, "Correct results for '$arg_str'");
+stdout_is({{$ass_obj->run}}, $exp_out, "Correct results for '$arg_str'");
 
 # test file type & file parse
 @args = qw(-t file -i t/data/assembly_lanes.txt -f contigs);
@@ -36,7 +36,7 @@ $exp_out = "//lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Stre
 
 $ass_obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is($ass_obj->run, $exp_out, "Correct results for '$arg_str'");
+stdout_is({$ass_obj->run}, $exp_out, "Correct results for '$arg_str'");
 
 # test symlink
 @args = qw(-t study -i 2583 -l $destination_directory/symlink_test);
@@ -45,7 +45,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/u/lus
 
 $ass_obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is($ass_obj->run, $exp_out, "Correct results for '$arg_str'");
+stdout_is({$ass_obj->run}, $exp_out, "Correct results for '$arg_str'");
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/9653_7#1.contigs_velvet.fa", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/9653_7#2.contigs_velvet.fa", 'symlink exists');
@@ -56,7 +56,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Burkh
 
 $ass_obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is($ass_obj->run, $exp_out, "Correct results for '$arg_str'");
+stdout_is({$ass_obj->run}, $exp_out, "Correct results for '$arg_str'");
 
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system('tar xvfz archive_test.tar.gz');

@@ -117,7 +117,7 @@ sub BUILD {
           )
           && ( !defined($archive)
             || $archive eq ''
-            || ( $archive && !( $stats || $symlink || $output ) ) )
+            || ( $archive && !( $stats || $symlink ) ) )
     ) or die $self->usage_text;
 }
 

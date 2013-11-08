@@ -26,7 +26,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Mycob
 
 $path_obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is($path_obj->run, $exp_out, "Correct results for '$arg_str'");
+stdout_is({$path_obj->run}, $exp_out, "Correct results for '$arg_str'");
 
 # test file type & file parse
 @args = qw(-t file -i t/data/path_lanes.txt -f fastq);
@@ -39,7 +39,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Strep
 
 $path_obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is($path_obj->run, $exp_out, "Correct results for '$arg_str'");
+stdout_is({$path_obj->run}, $exp_out, "Correct results for '$arg_str'");
 
 # test symlink
 @args = qw(-t study -i 310 -l $destination_directory/symlink_test);
@@ -48,7 +48,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citro
 
 $path_obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is($path_obj->run, $exp_out, "Correct results for '$arg_str'");
+stdout_is({$path_obj->run}, $exp_out, "Correct results for '$arg_str'");
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/3996_1_1.fastq.gz", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/3996_1_2.fastq.gz", 'symlink exists');
@@ -62,7 +62,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Burkh
 
 $path_obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is($path_obj->run, $exp_out, "Correct results for '$arg_str'");
+stdout_is({$path_obj->run}, $exp_out, "Correct results for '$arg_str'");
 
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system('tar xvfz archive_test.tar.gz');
