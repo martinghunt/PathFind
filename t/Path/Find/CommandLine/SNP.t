@@ -37,7 +37,7 @@ $capture->start();
 $snp_obj->run;
 print STDERR "hello\n";
 $capture->stop();
-print $capture;
+print STDERR $capture;
 print STDERR "End dry run\n";
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
