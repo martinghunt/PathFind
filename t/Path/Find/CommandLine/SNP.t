@@ -31,7 +31,7 @@ $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $scr
 isa_ok $snp_obj, 'Path::Find::CommandLine::SNP';
 $arg_str = join(" ", @args);
 $snp_obj->run;
-print $exp_out;
+print STDERR $exp_out;
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 
