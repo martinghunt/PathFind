@@ -256,7 +256,7 @@ sub run {
                   my $ml ( sort { $a->{path} cmp $b->{path} } @matching_lanes )
                 {
                     my $l = $ml->{path};
-                    print STDERR "$l\n";
+                    printf "$l\n";
                 }
             }
         }
