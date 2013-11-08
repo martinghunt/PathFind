@@ -33,11 +33,11 @@ isa_ok $dbi_A, 'DBI::db';
 is $root_A, $location_A, 'found known directory ok';
 
 # Fail to find non-existing database
-my ($vrtrack_B, $dbi_B, $root_B) = Path::Find->get_db_info($database_B);
+dies_ok {Path::Find->get_db_info($database_B)} 'DB info dies for unknown DB';
 
-is $vrtrack_B, undef, 'vrtrack fails for unknown ok';
-is $dbi_B, undef, 'dbi fails for unknown ok';
-is $root_B, undef, 'root fails for unknown ok';
+#is $vrtrack_B, undef, 'vrtrack fails for unknown ok';
+#is $dbi_B, undef, 'dbi fails for unknown ok';
+#is $root_B, undef, 'root fails for unknown ok';
 
 # Check pathogen databases list
 my $databases = scalar Path::Find->pathogen_databases;
