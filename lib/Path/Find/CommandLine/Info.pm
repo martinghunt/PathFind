@@ -198,7 +198,7 @@ qq[select supplier_name, public_name, strain from current_samples where internal
     }
 
     $warehouse_dbh->disconnect();
-    exit;
+    return 1;
 }
 
 # Sort routine for multiplexed lane names (eg 1234_5#6)

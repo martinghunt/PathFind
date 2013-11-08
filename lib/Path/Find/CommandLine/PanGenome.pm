@@ -161,7 +161,7 @@ sub run {
         $dbh->disconnect();
 
         #no need to look in the next database if relevant data has been found
-        exit if ( $lane_filter->found );
+        return 1 if ( $lane_filter->found );
     }
 
     unless ( $lane_filter->found ) {

@@ -248,7 +248,7 @@ sub run {
                     vrtrack     => $pathtrack
                 )->mapfind;
             }
-            exit;
+            return 1;
         }
     }
 

@@ -282,7 +282,7 @@ sub run {
                     vrtrack     => $pathtrack
                 )->annotationfind;
             }
-            exit;
+            return 1;
         }
     }
 

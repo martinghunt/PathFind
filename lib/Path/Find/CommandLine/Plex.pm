@@ -172,7 +172,7 @@ sub run {
                 print "Sample : $sample_name\n";
                 print "NPG QC : $npg_qc\n";
                 print "QC : $qc\n";
-                exit;    #exit?
+                last;
             }
         }
     }
@@ -225,7 +225,7 @@ sub run {
         else {
             print "No multiplex data available for lane $lane \n";
         }
-        exit;
+        return 1;
     }
 
     print "No info found for the details you provided.\n";

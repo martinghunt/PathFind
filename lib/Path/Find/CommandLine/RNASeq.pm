@@ -267,7 +267,7 @@ sub run {
                     vrtrack     => $pathtrack
                 )->rnaseqfind;
             }
-            exit;
+            return 1;
         }
     }
 

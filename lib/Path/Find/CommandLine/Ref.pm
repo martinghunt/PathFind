@@ -87,8 +87,8 @@ sub BUILD {
                 $filetype
                 && (   $filetype eq 'fa'
                     || $filetype eq 'gff'
-                    || $filetype eq 'embl' 
-					|| $filetype eq 'annotation')
+                    || $filetype eq 'embl'
+                    || $filetype eq 'annotation' )
             )
           )
     ) or die $self->usage_text;
@@ -145,35 +145,38 @@ sub run {
     unless ($found) {
         print "Could not find references\n";
     }
+    else {
+        return 1;
+    }
 }
 
 sub parse_species_from_file {
-	my ($self, $file_name) = @_;
-	my @sp;
-	open(SPECIES, "<", $file_name);
-	while(my $line = <SPECIES>){
-		chomp $line;
-		push(@sp, $line);
-	}
-	return @sp;
+    my ( $self, $file_name ) = @_;
+    my @sp;
+    open( SPECIES, "<", $file_name );
+    while ( my $line = <SPECIES> ) {
+        chomp $line;
+        push( @sp, $line );
+    }
+    return @sp;
 }
 
 sub find_files_of_given_type {
     my ( $self, $reference_directories, $filetype ) = @_;
     my @found_files;
 
-	my %exts = (
-		fa         => '*.fa',
-		gff        => '*.gff',
-		embl       => '*.embl',
-		annotation => 'annotation/*.gff'
-	);
+    my %exts = (
+        fa         => '*.fa',
+        gff        => '*.gff',
+        embl       => '*.embl',
+        annotation => 'annotation/*.gff'
+    );
 
     my $found = 0;
-	my $ex = $exts{$filetype};
+    my $ex    = $exts{$filetype};
     for my $directory (@$reference_directories) {
-		my $search_path = "$directory/$ex"; 
-        my @files = glob $search_path;
+        my $search_path = "$directory/$ex";
+        my @files       = glob $search_path;
         for my $file (@files) {
             push( @found_files, $file );
             $found = 1;
@@ -193,9 +196,9 @@ sub sym_archive {
     my ( $self, $objects_to_link ) = @_;
     my $symlink = $self->symlink;
     my $archive = $self->archive;
-    my $id = $self->id;
+    my $id      = $self->id;
 
-	my $use_default = $self->filetype ? 1:0;
+    my $use_default = $self->filetype ? 1 : 0;
 
     my $name;
     if ( defined $symlink ) {
@@ -210,7 +213,7 @@ sub sym_archive {
     my $linker = Path::Find::Linker->new(
         lanes       => $links,
         name        => $name,
-		use_default => $use_default
+        use_default => $use_default
     );
 
     $linker->sym_links if ( defined $symlink );

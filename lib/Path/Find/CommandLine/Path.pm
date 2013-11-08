@@ -222,7 +222,7 @@ sub run {
                     vrtrack     => $pathtrack
                 )->pathfind;
             }
-            exit;
+            return 1;
         }
     }
 
