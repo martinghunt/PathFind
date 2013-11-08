@@ -31,8 +31,8 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmo
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 isa_ok $snp_obj, 'Path::Find::CommandLine::SNP';
 $arg_str = join(" ", @args);
-#stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
-$snp_obj->run;
+stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
+
 
 # test file type & file parse
 @args = qw(-t file -i t/data/snp_lanes.txt -f vcf);
