@@ -42,7 +42,7 @@ $capture->stop();
 print STDERR $capture;
 print STDERR "End dry run\n";
 };
-confess if $@;
+print STDERR "$@";
 
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
