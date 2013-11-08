@@ -260,6 +260,7 @@ sub run {
                 search_qualifiers => $qualifiers_to_search,
                 amino_acids       => $amino_acids
               );
+			$gene_finder->output_base($output) if(defined($output));
             $gene_finder->create_fasta_file;
 
             print "Samples containing gene:\t"

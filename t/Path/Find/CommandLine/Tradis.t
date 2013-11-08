@@ -30,7 +30,7 @@ my $destination_directory = $destination_directory_obj->dirname();
 my (@args, $arg_str, $exp_out, $tradis_obj);
 
 # test basic output
-@args = qw(-t lane -id 4354_3#6);
+@args = ("-t", "lane", "-i", "4354_3#6");
 $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/451/CALF3_51_55_IN/SLX/CALF3_51_55_IN_112184/4354_3#6\n";
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
