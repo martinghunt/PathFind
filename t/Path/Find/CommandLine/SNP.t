@@ -32,7 +32,7 @@ isa_ok $snp_obj, 'Path::Find::CommandLine::SNP';
 $arg_str = join(" ", @args);
 print STDERR "Dry run:\n";
 my $snp_stdout = $snp_obj->run;
-print $snp_stdout;
+print STDERR $snp_stdout;
 print STDERR "End dry run\n";
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
