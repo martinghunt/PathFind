@@ -9,7 +9,7 @@ use VRTrack::Lane;
 use Path::Find;
 
 BEGIN {
-    use Test::Most;
+    use Test::Most tests => 13;
     use_ok('Path::Find::Lanes');
 }
 

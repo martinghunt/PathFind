@@ -14,7 +14,7 @@ sub run_object {
 BEGIN { unshift( @INC, './lib' ) }
 
 BEGIN {
-    use Test::Most;
+    use Test::Most tests => 10;
 	use Test::Output;
     use_ok('Path::Find::CommandLine::Annotation');
 }
@@ -31,7 +31,8 @@ my (@args, $exp_out, $ann_obj);
 $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Shigella/flexneri_3a/TRACKING/2200/2200STDY5403590/SLX/6204832/8939_2#53/velvet_assembly/annotation\n";
 
 $ann_obj = Path::Find::CommandLine::Annotation->new(args => \@args, script_name => $script_name);
-stdout_is(\&run_object($ann_obj), $exp_out, "Correct results for '$args'");
+$arg_str = join(" ", @args);
+stdout_is(\&run_object($ann_obj), $exp_out, "Correct results for '$arg_str'");
 
 # test file type & file parse
 @args = qw(-t file -i t/data/annotation_lanes.txt -f gff);
@@ -40,7 +41,8 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staph
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staphylococcus/aureus/TRACKING/2282/GN_ss_86/SLX/GN_ss_86_7280619/9852_1#81/velvet_assembly/annotation/9852_1#81.gff\n";
 
 $ann_obj = Path::Find::CommandLine::Annotation->new(args => \@args, script_name => $script_name);
-stdout_is(\&run_object($ann_obj), $exp_out, "Correct results for '$args'");
+$arg_str = join(" ", @args);
+stdout_is(\&run_object($ann_obj), $exp_out, "Correct results for '$arg_str'");
 
 # test symlink
 @args = qw(-t study -i 2583 -f faa -l $destination_directory/symlink_test);
@@ -48,7 +50,8 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/unide
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/unidentified/TRACKING/2583/SK116C2P/SLX/SK116C2P_7067789/9653_7#2/velvet_assembly/annotation/9653_7#2.faa\n";
 
 $ann_obj = Path::Find::CommandLine::Annotation->new(args => \@args, script_name => $script_name);
-stdout_is(\&run_object($ann_obj), $exp_out, "Correct results for '$args'");
+$arg_str = join(" ", @args);
+stdout_is(\&run_object($ann_obj), $exp_out, "Correct results for '$arg_str'");
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/9653_7#1.faa", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/9653_7#2.faa", 'symlink exists');
@@ -61,7 +64,8 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Mus/m
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Mus/musculus/TRACKING/2489/BMDM_I_3/SLX/BMDM_I_3_6884105/9555_8#15/velvet_assembly/annotation/9555_8#15.ffn\n";
 
 $ann_obj = Path::Find::CommandLine::Annotation->new(args => \@args, script_name => $script_name);
-stdout_is(\&run_object($ann_obj), $exp_out, "Correct results for '$args'");
+$arg_str = join(" ", @args);
+stdout_is(\&run_object($ann_obj), $exp_out, "Correct results for '$arg_str'");
 
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system('tar xvfz archive_test.tar.gz');

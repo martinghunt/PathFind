@@ -7,7 +7,7 @@ use File::Path qw(make_path);
 BEGIN { unshift( @INC, './lib' ) }
 
 BEGIN {
-    use Test::Most;
+    use Test::Most tests => 13;
     use_ok('Path::Find::Log');
 }
 
@@ -62,6 +62,5 @@ ok( $log_obj_03->_args_string eq qq[ -ty species -id 'Tyrannosaurus rex'], 'spec
 @argv = ('-ty','study','-id',"Tyrannosaurus rex, 'Susan'."); # fake command line (study)
 my $log_obj_04 = Path::Find::Log->new(logfile => '/dev/null', args => \@argv);
 ok( $log_obj_04->_args_string eq qq[ -ty study -id "Tyrannosaurus rex, 'Susan'."], 'study args correct');
-
 
 done_testing();

@@ -14,7 +14,7 @@ sub run_object {
 BEGIN { unshift( @INC, './lib' ) }
 
 BEGIN {
-    use Test::Most;
+    use Test::Most tests => 14;
 	use Test::Output;
     use_ok('Path::Find::CommandLine::Path');
 }

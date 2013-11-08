@@ -4,7 +4,7 @@ use warnings;
 
 BEGIN { unshift(@INC, './lib') }
 BEGIN {
-    use Test::Most;
+    use Test::Most tests => 9;
 }
 
 use_ok('Path::Find');
@@ -26,18 +26,18 @@ unless( -d $db_file)
 } 
 
 # Find existing database
-my ($vrtrack, $dbi, $root) = Path::Find->get_db_info($database_A);
+my ($vrtrack_A, $dbi_A, $root_A) = Path::Find->get_db_info($database_A);
 
-isa_ok $vrtrack, 'VRTrack::VRTrack';
-isa_ok $dbi, 'DBI::db';
-is $root, $location_A, 'found known directory ok';
+isa_ok $vrtrack_A, 'VRTrack::VRTrack';
+isa_ok $dbi_A, 'DBI::db';
+is $root_A, $location_A, 'found known directory ok';
 
 # Fail to find non-existing database
-my ($vrtrack, $dbi, $root) = Path::Find->get_db_info($database_B);
+my ($vrtrack_B, $dbi_B, $root_B) = Path::Find->get_db_info($database_B);
 
-is $vrtrack, undef, 'vrtrack fails for unknown ok';
-is $dbi, undef, 'dbi fails for unknown ok';
-is $root, undef, 'root fails for unknown ok';
+is $vrtrack_B, undef, 'vrtrack fails for unknown ok';
+is $dbi_B, undef, 'dbi fails for unknown ok';
+is $root_B, undef, 'root fails for unknown ok';
 
 # Check pathogen databases list
 my $databases = scalar Path::Find->pathogen_databases;

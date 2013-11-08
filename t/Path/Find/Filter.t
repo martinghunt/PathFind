@@ -10,7 +10,7 @@ use VRTrack::Lane;
 use Path::Find;
 
 BEGIN {
-    use Test::Most;
+    use Test::Most tests => 5;
     use_ok('Path::Find::Filter');
 }
 

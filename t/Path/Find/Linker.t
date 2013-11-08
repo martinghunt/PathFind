@@ -6,7 +6,7 @@ use File::Slurp;
 BEGIN { unshift( @INC, './lib' ) }
 
 BEGIN {
-    use Test::Most;
+    use Test::Most tests => 21;
     use_ok('Path::Find::Linker');
 }
 
