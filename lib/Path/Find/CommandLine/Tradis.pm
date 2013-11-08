@@ -245,7 +245,7 @@ sub run {
         $dbh->disconnect();
 
         #no need to look in the next database if relevant data has been found
-        exit if ($found);
+        return 1 if ($found);
     }
 
     unless ($found) {
