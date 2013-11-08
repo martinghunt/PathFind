@@ -162,7 +162,7 @@ sub run {
             }
         }
         $lanes_found = scalar @lanes;
-        last if $lanes_found;    # Stop looking if lanes found.
+        return 1 if $lanes_found;    # Stop looking if lanes found.
     }
 
     # No lanes found
