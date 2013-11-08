@@ -35,7 +35,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Actin
 
 $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($map_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test file type & file parse
 @args = qw(-t file -i t/data/map_lanes.txt -f bam);
@@ -46,7 +46,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmo
 
 $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($map_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test symlink
 @args = qw(-t study -i 2005 -l $destination_directory/symlink_test);
@@ -56,7 +56,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lacto
 
 $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($map_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/116135.pe.markdup.bam", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/116138.pe.markdup.bam", 'symlink exists');
@@ -68,7 +68,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmo
 
 $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($map_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system('tar xvfz archive_test.tar.gz');
@@ -84,7 +84,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Campy
 
 $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($map_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test d mapper filter
 @args = qw(-t file -i t/data/map_verbose_lanes.txt -v -m bwa);
@@ -93,7 +93,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Campy
 
 $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($map_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test date filter
 @args = qw(-t file -i t/data/map_verbose_lanes.txt -v -d 01-08-2013);
@@ -102,17 +102,19 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmo
 
 $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($map_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test reference filter
 @args = qw(-t file -i t/data/map_verbose_lanes.txt -v -r Salmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1);
 
 $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($map_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test stats file
 @args = qw(-t file -i t/data/map_lanes.txt -s $destination_directory/mapfind_test.stats);
+$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
+$map_obj->run;
 ok( -e "$destination_directory/mapfind_test.stats", 'stats file exists');
 is(
 	read_file("$destination_directory/mapfind_test.stats"),

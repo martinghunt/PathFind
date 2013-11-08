@@ -33,7 +33,7 @@ $exp_out = "Lane\tSample\tSupplier Name\tPublic Name\tStrain\n
 
 $info_obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($info_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $info_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test file parse and file type
 @args = qw(-t study -i 66);
@@ -48,6 +48,6 @@ $exp_out = "Lane\tSample\tSupplier Name\tPublic Name\tStrain\n
 
 $info_obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($info_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $info_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 done_testing();

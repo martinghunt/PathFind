@@ -36,7 +36,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Shige
 
 $ann_obj = Path::Find::CommandLine::Annotation->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($ann_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $ann_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test file type & file parse
 @args = qw(-t file -i t/data/annotation_lanes.txt -f gff);
@@ -46,7 +46,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staph
 
 $ann_obj = Path::Find::CommandLine::Annotation->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($ann_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $ann_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test symlink
 @args = qw(-t study -i 2583 -f faa -l $destination_directory/symlink_test);
@@ -55,7 +55,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/unide
 
 $ann_obj = Path::Find::CommandLine::Annotation->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($ann_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $ann_obj->run } $exp_out, "Correct results for '$arg_str'";
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/9653_7#1.faa", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/9653_7#2.faa", 'symlink exists');
@@ -69,7 +69,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Mus/m
 
 $ann_obj = Path::Find::CommandLine::Annotation->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($ann_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $ann_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system('tar xvfz archive_test.tar.gz');
@@ -81,6 +81,8 @@ ok( -e "$destination_directory/archive_test/9555_8#15.ffn", 'ffn file exists');
 
 # test stats file
 @args = qw(-t file -i t/data/annotation_lanes.txt -s $destination_directory/annotationfind_test.stats);
+$ann_obj = Path::Find::CommandLine::Annotation->new(args => \@args, script_name => $script_name);
+$ann_obj->run;
 ok( -e "$destination_directory/annotationfind_test.stats", 'stats file exists');
 is(
 	read_file("$destination_directory/annotationfind_test.stats"),

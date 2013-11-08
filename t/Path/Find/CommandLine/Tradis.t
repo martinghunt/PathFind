@@ -116,6 +116,4 @@ $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name =
 $arg_str = join(" ", @args);
 stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
 
-# test stats file
-
 done_testing();

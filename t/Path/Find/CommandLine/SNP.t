@@ -31,11 +31,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmo
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 isa_ok $snp_obj, 'Path::Find::CommandLine::SNP';
 $arg_str = join(" ", @args);
-$snp_stdout = $snp_obj->run;
-print STDERR "SNP_STDOUT:\n$snp_stdout";
-
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
-
 
 # test file type & file parse
 @args = qw(-t file -i t/data/snp_lanes.txt -f vcf);
@@ -46,8 +42,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmo
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-#stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
-$snp_obj->run;
+stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test symlink
 @args = qw(-t study -i 2005 -l $destination_directory/symlink_test);
@@ -57,8 +52,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lacto
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-#stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
-$snp_obj->run;
+stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/116135.mpileup.unfilt.vcf.gz", 'symlink exists');
@@ -70,8 +64,7 @@ ok( -e "$destination_directory/symlink_test/116141.mpileup.unfilt.vcf.gz", 'syml
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-#stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
-$snp_obj->run;
+stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system('tar xvfz archive_test.tar.gz');
@@ -89,8 +82,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Strep
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-#stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
-$snp_obj->run;
+stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test d mapper filter
 @args = qw(-t file -i t/data/snp_verbose_lanes.txt -v -m bwa);
@@ -99,8 +91,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Strep
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-#stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
-$snp_obj->run;
+stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test date filter
 @args = qw(-t file -i t/data/snp_verbose_lanes.txt -v -d 01-08-2013);
@@ -109,8 +100,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Wolba
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-#stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
-$snp_obj->run;
+stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test reference filter
 @args = qw(-t file -i t/data/snp_verbose_lanes.txt -v -r Streptococcus_pyogenes_BC2_HKU16_v0.1);
@@ -119,7 +109,6 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Strep
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-#stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
-$snp_obj->run;
+stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 done_testing();

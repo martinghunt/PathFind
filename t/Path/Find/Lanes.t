@@ -41,7 +41,7 @@ is_deeply $lanes, \@expected_lanes1, 'correct lanes recovered';
 ok(
     $lanes_obj = Path::Find::Lanes->new(
         search_type    => 'file',
-        search_id      => '../../data/test_lanes.txt',
+        search_id      => 't/data/test_lanes.txt',
         pathtrack      => $pathtrack,
         dbh            => $dbh,
         processed_flag => 1
@@ -52,7 +52,7 @@ isa_ok $lanes_obj, 'Path::Find::Lanes';
 
 $lanes = $lanes_obj->lanes;
 
-open( FILE, "<", "../../data/test_lanes.txt" );
+open( FILE, "<", "t/data/test_lanes.txt" );
 my @test_lanes2 = <FILE>;
 chomp @test_lanes2;
 my @expected_lanes2 = generate_lane_objects( $pathtrack, \@test_lanes2 );

@@ -37,7 +37,7 @@ $filter = Path::Find::Filter->new(
 );
 @matching_lanes = $filter->filter;
 
-my @expected_fastq = retrieve("../../data/fastq_lanes.store");
+my @expected_fastq = retrieve("t/data/fastq_lanes.store");
 is_deeply \@matching_lanes, \@expected_fastq, 'correct fastq files recovered';
 
 #test bam filtering
@@ -53,7 +53,7 @@ $filter = Path::Find::Filter->new(
 );
 @matching_lanes = $filter->filter;
 
-my @expected_bams = retrieve("../../data/bam_lanes.store");
+my @expected_bams = retrieve("t/data/bam_lanes.store");
 is_deeply \@matching_lanes, \@expected_bams, 'correct bam files recovered';
 
 #test verbose output
@@ -71,14 +71,14 @@ $filter = Path::Find::Filter->new(
 );
 @matching_lanes = $filter->filter;
 
-my @expected_verbose = retrieve("../../data/verbose.store");
+my @expected_verbose = retrieve("t/data/verbose.store");
 is_deeply \@matching_lanes, \@expected_verbose, 'correct verbose files recovered';
 
 #filtered on date
 $filter->{date} = "01-07-2013";
 @matching_lanes = $filter->filter;
 
-my @expected_date = retrieve("../../data/date_filter.store");
+my @expected_date = retrieve("t/data/date_filter.store");
 is_deeply \@matching_lanes, \@expected_date, 'correctly dated files recovered';
 
 done_testing();
