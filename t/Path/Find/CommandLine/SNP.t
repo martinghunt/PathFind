@@ -15,7 +15,6 @@ BEGIN {
 }
 
 use_ok('Path::Find::CommandLine::SNP');
-require_ok('Path::Find::CommandLine::SNP');
 
 my $script_name = 'Path::Find::CommandLine::SNP';
 my $cwd = getcwd();
@@ -24,6 +23,8 @@ my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );
 my $destination_directory = $destination_directory_obj->dirname();
 
 my (@args, $arg_str, $exp_out, $snp_obj);
+
+require_ok('Path::Find::CommandLine::SNP');
 
 # test basic output
 @args = qw(-t lane -id 10593_1#41);
