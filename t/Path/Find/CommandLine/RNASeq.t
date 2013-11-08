@@ -5,6 +5,7 @@ use File::Slurp;
 use File::Path qw( remove_tree);
 use Cwd;
 use File::Temp;
+no warnings qw{qw};
 
 sub run_object {
 	my $ro = shift;

@@ -2,6 +2,7 @@
 use Moose;
 use Cwd;
 use File::Temp;
+no warnings qw{qw};
 
 sub run_object {
 	my $ro = shift;

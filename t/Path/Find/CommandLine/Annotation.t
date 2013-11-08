@@ -15,8 +15,10 @@ sub run_object {
 
 BEGIN { unshift( @INC, './lib' ) }
 
-use Test::Most;
-use Test::Output;
+BEGIN {
+    use Test::Most tests => 10;
+	use Test::Output;
+}
 
 use_ok('Path::Find::CommandLine::Annotation');
 
