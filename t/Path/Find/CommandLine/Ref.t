@@ -4,6 +4,12 @@ use Data::Dumper;
 use File::Slurp;
 use File::Path qw( remove_tree);
 use Cwd;
+use File::Temp;
+
+sub run_object {
+	my $ro = shift;
+	$ro->run;
+}
 
 BEGIN { unshift( @INC, './lib' ) }
 
@@ -77,8 +83,3 @@ ok( -e "$destination_directory/archive_test/Salmonella_enterica_subsp_enterica_s
 ok( -e "$destination_directory/archive_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_SC50_v0.1.fa", 'archived file exists');
 
 done_testing();
-
-sub run_object {
-	my $ro = shift;
-	$ro->run;
-}

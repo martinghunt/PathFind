@@ -4,6 +4,12 @@ use Data::Dumper;
 use File::Slurp;
 use File::Path qw( remove_tree);
 use Cwd;
+use File::Temp;
+
+sub run_object {
+	my $ro = shift;
+	$ro->run;
+}
 
 BEGIN { unshift( @INC, './lib' ) }
 
@@ -121,10 +127,4 @@ is(
 	'stats are correct'
 );
 
-
 done_testing();
-
-sub run_object {
-	my $ro = shift;
-	$ro->run;
-}

@@ -29,7 +29,7 @@ ok(
 );
 isa_ok $lanes_obj, 'Path::Find::Lanes';
 
-$lanes = $find_lanes->lanes;
+$lanes = $lanes_obj->lanes;
 
 my @test_lanes1 = ( '7114_6#1', '7114_6#2', '7114_6#3' );
 my @expected_lanes1 = generate_lane_objects( $pathtrack, \@test_lanes1 );

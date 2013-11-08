@@ -34,7 +34,7 @@ $filter = Path::Find::Filter->new(
     pathtrack       => $pathtrack,
     type_extensions => \%type_extensions
 );
-@matching_lanes = $lane_filter->filter;
+@matching_lanes = $filter->filter;
 
 my @expected_fastq = retrieve("../../data/fastq_lanes.store");
 is_deeply \@matching_lanes, \@expected_fastq, 'correct fastq files recovered';

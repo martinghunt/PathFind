@@ -4,6 +4,7 @@ use Data::Dumper;
 use File::Slurp;
 use File::Path qw( remove_tree);
 use Cwd;
+use File::Temp;
 
 BEGIN { unshift( @INC, './lib' ) }
 
@@ -25,7 +26,6 @@ $args = "-t file -i t/data/annotation_lanes.txt";
 $exp_out = "***";
 #$pang_obj = Path::Find::CommandLine::PanGenome->new(args => $args, script_name => $script_name);
 #stdout_is($pang_obj->run, $exp_out, "Correct results for '$args'");
-
 
 done_testing();
 

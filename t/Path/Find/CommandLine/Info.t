@@ -1,6 +1,12 @@
 #!/usr/bin/env perl
 use Moose;
 use Cwd;
+use File::Temp;
+
+sub run_object {
+	my $ro = shift;
+	$ro->run;
+}
 
 BEGIN { unshift( @INC, './lib' ) }
 
@@ -42,8 +48,3 @@ $arg_str = join(" ", @args);
 stdout_is(\&run_object($info_obj), $exp_out, "Correct results for '$arg_str'");
 
 done_testing();
-
-sub run_object {
-	my $ro = shift;
-	$ro->run;
-}
