@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 use Moose;
+use Carp;
 use Data::Dumper;
 use File::Slurp;
 use File::Path qw( remove_tree);
@@ -41,7 +42,7 @@ $capture->stop();
 print STDERR $capture;
 print STDERR "End dry run\n";
 };
-warn if $@;
+confess if $@;
 
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
