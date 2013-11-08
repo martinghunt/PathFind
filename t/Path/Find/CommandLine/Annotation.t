@@ -6,6 +6,8 @@ use File::Path qw( remove_tree);
 use Cwd;
 use File::Temp;
 
+no warnings qw{qw};
+
 sub run_object {
 	my $ro = shift;
 	$ro->run;
@@ -26,7 +28,7 @@ my $cwd = getcwd();
 my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );
 my $destination_directory = $destination_directory_obj->dirname();
 
-my (@args, $exp_out, $ann_obj);
+my (@args, $arg_str, $exp_out, $ann_obj);
 
 # test basic output
 @args = qw(-t lane -i 11064_1#67);
