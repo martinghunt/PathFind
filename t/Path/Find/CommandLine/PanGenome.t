@@ -23,8 +23,8 @@ my ($args, $exp_out, $pang_obj);
 # test file parse
 $args = "-t file -i t/data/annotation_lanes.txt";
 $exp_out = "***";
-$pang_obj = Path::Find::CommandLine::PanGenome->new(args => $args, script_name => $script_name);
-stdout_is($pang_obj->run, $exp_out, "Correct results for '$args'");
+#$pang_obj = Path::Find::CommandLine::PanGenome->new(args => $args, script_name => $script_name);
+#stdout_is($pang_obj->run, $exp_out, "Correct results for '$args'");
 
 
 done_testing();

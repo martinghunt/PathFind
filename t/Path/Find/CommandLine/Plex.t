@@ -25,7 +25,7 @@ Gabon_Bp, 11233_1, 30, pass, not defined\n";
 
 $plex_obj = Path::Find::CommandLine::Plex->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$plex_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($plex_obj), $exp_out, "Correct results for '$arg_str'");
 
 # test file parse and file type
 @args = qw(-t study -i 1707);
@@ -38,7 +38,11 @@ TL266, 5749_8, 1, pass, passed\n
 
 $plex_obj = Path::Find::CommandLine::Plex->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$plex_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($plex_obj), $exp_out, "Correct results for '$arg_str'");
 
 done_testing();
 
+sub run_object {
+	my $ro = shift;
+	$ro->run;
+}

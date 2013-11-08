@@ -1,5 +1,7 @@
 package Path::Find::CommandLine::PanGenome;
 
+# ABSTRACT: Create a pan genome from a set of lanes
+
 =head1 NAME
 
 bacteria_pan_genome
@@ -7,10 +9,6 @@ bacteria_pan_genome
 =head1 SYNOPSIS
 
 bacteria_pan_genome -t lane -i 1234
-
-=head1 DESCRIPTION
-
-Create a pan genome from a set of lanes
 
 =head1 CONTACT
 

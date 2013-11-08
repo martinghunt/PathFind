@@ -49,7 +49,7 @@ ok(
 );
 isa_ok $lanes_obj, 'Path::Find::Lanes';
 
-$lanes = $find_lanes->lanes;
+$lanes = $lanes_obj->lanes;
 
 open( FILE, "<", "../../data/test_lanes.txt" );
 my @test_lanes2 = <FILE>;
@@ -71,7 +71,7 @@ ok(
 );
 isa_ok $lanes_obj, 'Path::Find::Lanes';
 
-$lanes = $find_lanes->lanes;
+$lanes = $lanes_obj->lanes;
 
 my @test_lanes3 = (
     '8086_1#1', '8086_1#2', '8086_1#3', '8086_1#4',
@@ -94,7 +94,7 @@ ok(
 );
 isa_ok $lanes_obj, 'Path::Find::Lanes';
 
-$lanes = $find_lanes->lanes;
+$lanes = $lanes_obj->lanes;
 
 my @test_lanes4 = (
     '5749_8#1', '5749_8#2', '5749_8#3', '8080_1#72'

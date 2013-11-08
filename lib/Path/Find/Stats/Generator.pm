@@ -1,12 +1,33 @@
 package Path::Find::Stats::Generator;
 
-# ABSTRACT:
+# ABSTRACT: Generate correct stats for *find scripts
+
+=head1 NAME
+
+Path::Find::Stats::Generator
 
 =head1 SYNOPSIS
 
+	use Path::Find::Stats::Generator;
+	use Path::Find;
+	
+	my @db_info = Path::Find->get_db_info($database);
+	my $vrtrack = shift(@db_info);
+	
+	my $gen = Path::Find::Stats::Generator->new(
+		lane_hashes => \@lanes
+		output      => 'stats_file.csv',
+		vrtrack     => $vrtrack
+	);
 
+	$gen->pathfind;
+	$gen->mapfind;
    
-=method 
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=head1 METHODS
 
 =cut
 

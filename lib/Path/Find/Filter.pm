@@ -1,10 +1,8 @@
 package Path::Find::Filter;
 
-# ABSTRACT:
+# ABSTRACT: Logic to filter lanes based on given criteria
 
 =head1 SYNOPSIS
-
-Logic to filter lanes based on given criteria
 
    use Path::Find::Filter;
    my $lane_filter = Path::Find::Filter->new(

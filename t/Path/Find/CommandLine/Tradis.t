@@ -26,7 +26,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmo
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$tradis_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($tradis_obj), $exp_out, "Correct results for '$arg_str'");
 
 # test file type & file parse
 @args = qw(-t file -i t/data/tradis_lanes.txt -f bam);
@@ -35,7 +35,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmo
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$tradis_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($tradis_obj), $exp_out, "Correct results for '$arg_str'");
 
 # test symlink
 @args = qw(-t study -i 2561 -l $destination_directory/symlink_test);
@@ -48,7 +48,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citro
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$tradis_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($tradis_obj), $exp_out, "Correct results for '$arg_str'");
 
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/520105.se.markdup.bam.insertion.csv", 'symlink exists');
@@ -63,7 +63,7 @@ ok( -e "$destination_directory/symlink_test/557408.se.markdup.bam.insertion.csv"
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$tradis_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($tradis_obj), $exp_out, "Correct results for '$arg_str'");
 
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system('tar xvfz archive_test.tar.gz');
@@ -86,7 +86,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Strep
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$tradis_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($tradis_obj), $exp_out, "Correct results for '$arg_str'");
 
 # test mapper filter
 @args = qw(-t file -i t/data/tradis_verbose_lanes.txt -v -m smalt);
@@ -95,14 +95,14 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Strep
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$tradis_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($tradis_obj), $exp_out, "Correct results for '$arg_str'");
 
 # test date filter
 @args = qw(-t file -i t/data/tradis_verbose_lanes.txt -v -d 01-07-2013);
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$tradis_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($tradis_obj), $exp_out, "Correct results for '$arg_str'");
 
 # test reference filter
 @args = qw(-t file -i t/data/tradis_verbose_lanes.txt -v -r Streptococcus_suis_P1_7_v1);
@@ -110,9 +110,13 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Strep
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$tradis_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($tradis_obj), $exp_out, "Correct results for '$arg_str'");
 
 # test stats file
 
 done_testing();
 
+sub run_object {
+	my $ro = shift;
+	$ro->run;
+}

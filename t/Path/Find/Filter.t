@@ -50,7 +50,7 @@ $filter = Path::Find::Filter->new(
     pathtrack       => $pathtrack,
     type_extensions => \%type_extensions
 );
-@matching_lanes = $lane_filter->filter;
+@matching_lanes = $filter->filter;
 
 my @expected_bams = retrieve("../../data/bam_lanes.store");
 is_deeply \@matching_lanes, \@expected_bams, 'correct bam files recovered';
@@ -66,16 +66,16 @@ $filter = Path::Find::Filter->new(
     lanes           => \@verbose_obs,
     root            => $root,
     pathtrack       => $pathtrack,
-    verbose         => $verbose
+    verbose         => 1
 );
-@matching_lanes = $lane_filter->filter;
+@matching_lanes = $filter->filter;
 
 my @expected_verbose = retrieve("../../data/verbose.store");
 is_deeply \@matching_lanes, \@expected_verbose, 'correct verbose files recovered';
 
 #filtered on date
-$filter{date} = "01-07-2013";
-@matching_lanes = $lane_filter->filter;
+$filter->{date} = "01-07-2013";
+@matching_lanes = $filter->filter;
 
 my @expected_date = retrieve("../../data/date_filter.store");
 is_deeply \@matching_lanes, \@expected_date, 'correctly dated files recovered';
@@ -88,7 +88,7 @@ sub generate_lane_objects {
     my @lane_obs;
     foreach my $l (@$lanes) {
         my $l_o = VRTrack::Lane->new_by_name( $pathtrack, $l );
-        if ($lane) {
+        if ($l_o) {
             push( @lane_obs, $l_o );
         }
     }

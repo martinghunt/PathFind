@@ -28,7 +28,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/refs/Salmonella/enterica_subsp_
 
 $ref_obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$ref_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($ref_obj), $exp_out, "Correct results for '$arg_str'");
 
 # test file parse and file type
 @args = qw(-t file -i t/data/ref_lanes.txt -f fa);
@@ -39,7 +39,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/refs/Shigella/boydii_CDC_3083-9
 
 $ref_obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$ref_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($ref_obj), $exp_out, "Correct results for '$arg_str'");
 
 # test annotation file retrieval
 @args = qw(-t species -i vibrio -f annotation);
@@ -49,7 +49,7 @@ $exp_out = "//lustre/scratch108/pathogen/pathpipe/refs/Vibrio/cholerae_O1_biovar
 
 $ref_obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$ref_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($ref_obj), $exp_out, "Correct results for '$arg_str'");
 
 # test symlink
 @args = qw(-t species -i dublin -f fa -l $destination_directory/symlink_test);
@@ -58,7 +58,7 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/refs/Salmonella/enterica_subsp_
 
 $ref_obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$ref_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($ref_obj), $exp_out, "Correct results for '$arg_str'");
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_BA207_v0.1.fa", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_SC50_v0.1.fa", 'symlink exists');
@@ -68,7 +68,7 @@ ok( -e "$destination_directory/symlink_test/Salmonella_enterica_subsp_enterica_s
 
 $ref_obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is({$ref_obj->run}, $exp_out, "Correct results for '$arg_str'");
+stdout_is(\&run_object($ref_obj), $exp_out, "Correct results for '$arg_str'");
 
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system('tar xvfz archive_test.tar.gz');
@@ -78,3 +78,7 @@ ok( -e "$destination_directory/archive_test/Salmonella_enterica_subsp_enterica_s
 
 done_testing();
 
+sub run_object {
+	my $ro = shift;
+	$ro->run;
+}
