@@ -4,7 +4,7 @@ use warnings;
 
 BEGIN { unshift(@INC, './lib') }
 BEGIN {
-    use Test::Most tests => 9;
+    use Test::Most;
 }
 
 use_ok('Path::Find');
