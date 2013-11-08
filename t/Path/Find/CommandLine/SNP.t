@@ -12,6 +12,7 @@ BEGIN { unshift( @INC, './lib' ) }
 BEGIN {
     use Test::Most;
 	use Test::Output;
+	use IO::Capture::Stdout;
 }
 
 use_ok('Path::Find::CommandLine::SNP');
@@ -31,9 +32,12 @@ $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $scr
 isa_ok $snp_obj, 'Path::Find::CommandLine::SNP';
 $arg_str = join(" ", @args);
 print STDERR "Dry run:\n";
-my $snp_stdout = $snp_obj->run;
+$capture = IO::Capture::Stdout->new();
+$capture->start();
+$snp_obj->run;
 print STDERR "hello\n";
-print STDERR $snp_stdout;
+$capture->stop();
+print $capture;
 print STDERR "End dry run\n";
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
