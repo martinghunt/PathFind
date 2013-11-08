@@ -10,8 +10,9 @@ use Path::Find;
 
 BEGIN {
     use Test::Most tests => 13;
-    use_ok('Path::Find::Lanes');
 }
+
+use_ok('Path::Find::Lanes');
 
 my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info('pathogen_prok_track');
 my ( $lanes, $lanes_obj );

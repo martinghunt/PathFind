@@ -16,8 +16,9 @@ BEGIN { unshift( @INC, './lib' ) }
 BEGIN {
     use Test::Most tests => 10;
 	use Test::Output;
-    use_ok('Path::Find::CommandLine::Assembly');
 }
+
+use_ok('Path::Find::CommandLine::Assembly');
 
 my $script_name = 'Path::Find::CommandLine::Assembly';
 my $cwd = getcwd();

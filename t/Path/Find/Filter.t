@@ -11,8 +11,9 @@ use Path::Find;
 
 BEGIN {
     use Test::Most tests => 5;
-    use_ok('Path::Find::Filter');
 }
+
+use_ok('Path::Find::Filter');
 
 my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info('pathogen_prok_track');
 my ( $filter, @matching_lanes );

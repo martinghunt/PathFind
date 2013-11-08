@@ -7,8 +7,9 @@ BEGIN { unshift( @INC, './lib' ) }
 
 BEGIN {
     use Test::Most tests => 21;
-    use_ok('Path::Find::Linker');
 }
+
+use_ok('Path::Find::Linker');
 
 my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );
 my $destination_directory = $destination_directory_obj->dirname();

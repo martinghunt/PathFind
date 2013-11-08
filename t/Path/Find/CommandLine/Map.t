@@ -16,8 +16,10 @@ BEGIN { unshift( @INC, './lib' ) }
 BEGIN {
     use Test::Most tests => 18;
 	use Test::Output;
-    use_ok('Path::Find::CommandLine::Map');
 }
+
+use_ok('Path::Find::CommandLine::Map');
+
 my $script_name = 'Path::Find::CommandLine::Map';
 my $cwd = getcwd();
 

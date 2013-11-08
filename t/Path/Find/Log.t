@@ -7,9 +7,10 @@ use File::Path qw(make_path);
 BEGIN { unshift( @INC, './lib' ) }
 
 BEGIN {
-    use Test::Most tests => 13;
-    use_ok('Path::Find::Log');
+    use Test::Most tests => 14;
 }
+
+use_ok('Path::Find::Log');
 
 # set tempdir
 my $temp_directory_obj = File::Temp->newdir( CLEANUP => 1 );

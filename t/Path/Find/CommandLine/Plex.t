@@ -13,8 +13,10 @@ BEGIN { unshift( @INC, './lib' ) }
 BEGIN {
     use Test::Most tests => 3;
 	use Test::Output;
-    use_ok('Path::Find::CommandLine::Plex');
 }
+
+use_ok('Path::Find::CommandLine::Plex');
+
 my $script_name = 'Path::Find::CommandLine::Plex';
 my $cwd = getcwd();
 

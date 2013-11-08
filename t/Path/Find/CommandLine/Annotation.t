@@ -16,8 +16,10 @@ BEGIN { unshift( @INC, './lib' ) }
 BEGIN {
     use Test::Most tests => 10;
 	use Test::Output;
-    use_ok('Path::Find::CommandLine::Annotation');
 }
+
+use_ok('Path::Find::CommandLine::Annotation');
+
 my $script_name = 'Path::Find::CommandLine::Annotation';
 my $cwd = getcwd();
 
