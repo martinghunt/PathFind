@@ -252,7 +252,7 @@ sub run {
                 )->assemblyfind;
 
             }
-            exit;
+            return 1;
         }
     }
 
