@@ -7,11 +7,6 @@ use Cwd;
 use File::Temp;
 no warnings qw{qw};
 
-sub run_object {
-	my $ro = shift;
-	$ro->run;
-}
-
 BEGIN { unshift( @INC, './lib' ) }
 
 BEGIN {
@@ -67,7 +62,7 @@ ok( -e "$destination_directory/symlink_test/116141.mpileup.unfilt.vcf.gz", 'syml
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is(\&run_object($snp_obj), $exp_out, "Correct results for '$arg_str'");
+stdout_is { $snp_obj->run }, $exp_out, "Correct results for '$arg_str'";
 
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system('tar xvfz archive_test.tar.gz');
@@ -115,3 +110,8 @@ $arg_str = join(" ", @args);
 stdout_is(\&run_object($snp_obj), $exp_out, "Correct results for '$arg_str'");
 
 done_testing();
+
+sub run_object {
+	my $ro = shift;
+	$ro->run;
+}
