@@ -15,6 +15,7 @@ BEGIN {
 }
 
 use_ok('Path::Find::CommandLine::SNP');
+require_ok('Path::Find::CommandLine::SNP');
 
 my $script_name = 'Path::Find::CommandLine::SNP';
 my $cwd = getcwd();
