@@ -15,7 +15,7 @@ sub run_object {
 BEGIN { unshift( @INC, './lib' ) }
 
 BEGIN {
-    use Test::Most tests => 10;
+    use Test::Most;
 	use Test::Output;
 }
 

@@ -15,7 +15,7 @@ sub run_object {
 BEGIN { unshift( @INC, './lib' ) }
 
 
-use Test::Most tests => 24;
+use Test::Most;
 use Test::Output;
 
 
@@ -33,7 +33,7 @@ my (@args, $arg_str, $exp_out, $tradis_obj);
 @args = ("-t", "lane", "-i", "4354_3#6");
 $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/451/CALF3_51_55_IN/SLX/CALF3_51_55_IN_112184/4354_3#6\n";
 
-$tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name)->run;
+$tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
 stdout_is(\&run_object($tradis_obj), $exp_out, "Correct results for '$arg_str'");
 

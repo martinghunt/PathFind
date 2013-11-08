@@ -7,7 +7,7 @@ use File::Path qw(make_path);
 BEGIN { unshift( @INC, './lib' ) }
 
 BEGIN {
-    use Test::Most tests => 14;
+    use Test::Most;
 }
 
 use_ok('Path::Find::Log');
