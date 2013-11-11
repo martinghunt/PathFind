@@ -138,7 +138,7 @@ sub run {
         for my $lane (@lanes) {
 
             # get sample and lane accessions
-            my $sample = $self->$self->get_sample_from_lane( $pathtrack, $lane );
+            my $sample = $self->get_sample_from_lane( $pathtrack, $lane );
             my $sample_name = $sample->name            if defined $sample;
             my $sample_acc  = $sample->individual->acc if defined $sample;
             my $lane_acc    = $lane->acc;
@@ -153,10 +153,10 @@ sub run {
 
             # output url
             if ( ( $lane->acc ) && ($external) ) {
-                $self->$self->print_ftp_url( "dl", $lane->acc, $outfile );
+                $self->print_ftp_url( "dl", $lane->acc, $outfile );
             }
             if ( ( $lane->acc ) && ($submitted) ) {
-                $self->$self->print_ftp_url( "sub", $lane->acc, $outfile );
+                $self->print_ftp_url( "sub", $lane->acc, $outfile );
             }
         }
         $lanes_found = scalar @lanes;
