@@ -42,7 +42,7 @@ $arg_str = join(" ", @args);
 stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
 
 # test symlink
-@args = qw(-t study -i 2561 -l $destination_directory/symlink_test);
+@args = ("-t", "study", "-i", "2561", "-l", "$destination_directory/symlink_test");
 $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/1_CR_TraDIS/SLX/1_CR_TraDIS_6982967/9521_1#1\n
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Pseudomonas/aeruginosa/TRACKING/2561/Gm_input_1/SLX/Gm_input_1_6982965/9521_1#14\n
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Pseudomonas/aeruginosa/TRACKING/2561/Gm_input_2/SLX/Gm_input_2_6982966/9521_1#15\n
@@ -64,7 +64,7 @@ ok( -e "$destination_directory/symlink_test/557408.se.markdup.bam.insertion.csv"
 remove_tree('symlink_test');
 
 # test archive
-@args = qw(-t study -i 2561 -a $destination_directory/archive_test);
+@args = ("-t", "study", "-i", "2561", "-a", "$destination_directory/archive_test");
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
