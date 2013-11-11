@@ -52,7 +52,8 @@ stdout_is { $ref_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test annotation file retrieval
 @args = qw(-t species -i vibrio -f annotation);
-$exp_out = "//lustre/scratch108/pathogen/pathpipe/refs/Vibrio/cholerae_O1_biovar_eltor_str_N16961/annotation/Vibrio_cholerae_O1_biovar_eltor_str_N16961_v1.gff
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/refs/Aliivibrio/salmonicida_LFI1238/annotation/Aliivibrio_salmonicida_LFI1238_v1.gff
+/lustre/scratch108/pathogen/pathpipe/refs/Vibrio/cholerae_O1_biovar_eltor_str_N16961/annotation/Vibrio_cholerae_O1_biovar_eltor_str_N16961_v1.gff
 /lustre/scratch108/pathogen/pathpipe/refs/Vibrio/cholerae_O1_biovar_eltor_str_N16961/annotation/Vibrio_cholerae_O1_biovar_eltor_str_N16961_v2.gff
 /lustre/scratch108/pathogen/pathpipe/refs/Vibrio/cholerae_O395/annotation/Vibrio_cholerae_O395_v1.gff\n";
 
