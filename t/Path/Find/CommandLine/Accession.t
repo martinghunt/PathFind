@@ -19,29 +19,23 @@ my $cwd = getcwd();
 my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );
 my $destination_directory = $destination_directory_obj->dirname();
 
-my (@args, $arg_str, $exp_out, $info_obj);
+my (@args, $arg_str, $exp_out, $acc_obj);
 
 # test basic output
 @args = qw(-t lane -id 5463_3#1);
 $exp_out = "B0402_2\tERS005123\t5463_3#1\tERR361821\n";
 
-$info_obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => $script_name);
+$acc_obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is { $info_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $acc_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test file parse and file type
-@args = qw(-t study -i 66);
-$exp_out = "Lane\tSample\tSupplier Name\tPublic Name\tStrain\n
-554_1\tPool 2\tNA\tA1338, AKU_12061, B4173, B418, B964, D441 A1338, AKU_12061, B4173, B418, B964, D441\n
-554_2\tPool 7\tNA\tstr44, str10, str21, E771, B1378, 14/06 str44, str10, str21, E771, B1378, 14/06\n
-554_3\tPool 6\tNA\t2664, BL1344, BL4579, B7697, 6911, 6912 2664, BL1344, BL4579, B7697, 6911, 6912\n
-554_5\tPool 5\tNA\t2129, BL8758, BL4595, BL14275, 58/38, 138/69 2129, BL8758, BL4595, BL14275, 58/38, 138/69\n
-554_6\tPool 4\tNA\tA1345, A2248, B4986, C806, D4075, F846 A1345, A2248, B4986, C806, D4075, F846\n
-554_7\tPool 3\tNA\tAKU_12601\tAKU_12601\n
-554_8\tPool 1\tNA\tB1357, D2383, D1985, B943, C4672 B1357, D2383, D1985, B943, C4672\n";
-
-$info_obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => $script_name);
+@args = qw(-t file -i t/data/accession_lanes.txt);
+$exp_out = "2047STDY5552273\tERS311560\t10660_2#13\tERR363472
+2047STDY5552104\tERS311393\t10665_2#81\tnot found
+2047STDY5552201\tERS311489\t10665_2#90\tnot found\n";
+$acc_obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is { $info_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $acc_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 done_testing();
