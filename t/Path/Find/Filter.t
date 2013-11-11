@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Storable;
 use File::Slurp;
+use Data::Dumper;
 
 BEGIN { unshift( @INC, './lib' ) }
 
@@ -36,6 +37,8 @@ $filter = Path::Find::Filter->new(
     type_extensions => \%type_extensions
 );
 @matching_lanes = $filter->filter;
+
+print STDERR Dumper \@matching_lanes;
 
 my @expected_fastq = retrieve("t/data/fastq_lanes.store");
 is_deeply \@matching_lanes, \@expected_fastq, 'correct fastq files recovered';
