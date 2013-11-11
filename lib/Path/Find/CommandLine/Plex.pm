@@ -226,7 +226,7 @@ sub run {
         }
     }
 
-	return 1 if(defined %data);
+	return 1 if(scalar %data);
 
     print "No info found for the details you provided.\n";
 
