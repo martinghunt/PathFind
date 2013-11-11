@@ -30,7 +30,7 @@ my (@args, $arg_str, $exp_out, $plex_obj);
 @args = qw(-t lane -i 11233_1);
 $exp_out = "C2_Bp, 11233_1, 28, pass, pending
 D50_Bt, 11233_1, 29, pass, pending
-Gabon_Bp, 11233_1, 30, pass, pending";
+Gabon_Bp, 11233_1, 30, pass, pending\n";
 
 $plex_obj = Path::Find::CommandLine::Plex->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
