@@ -71,7 +71,7 @@ $arg_str = join(" ", @args);
 stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
 
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
-system("tar xvfz $destination_directory/archive_test.tar.gz -C $destination_directory/archive_test");
+system("cd $destination_directory; tar xvfz archive_test.tar.gz");
 ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
 ok( -e "$destination_directory/archive_test/520105.se.markdup.bam.insertion.csv", 'archived file exists');
 ok( -e "$destination_directory/archive_test/520108.se.markdup.bam.insertion.csv", 'archived file exists');
@@ -80,7 +80,7 @@ ok( -e "$destination_directory/archive_test/520153.se.markdup.bam.insertion.csv"
 ok( -e "$destination_directory/archive_test/526338.se.markdup.bam.insertion.csv", 'archived file exists');
 ok( -e "$destination_directory/archive_test/557408.se.markdup.bam.insertion.csv", 'archived file exists');
 unlink("$destination_directory/archive_test.tar.gz");
-remove_tree('archive_test');
+remove_tree("$destination_directory/archive_test");
 
 # test verbose
 @args = qw(-t file -i t/data/tradis_verbose_lanes.txt -v);
