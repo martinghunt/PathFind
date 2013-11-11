@@ -213,7 +213,8 @@ sub sym_archive {
     my $linker = Path::Find::Linker->new(
         lanes       => $links,
         name        => $name,
-        use_default => $use_default
+        use_default => $use_default,
+		script_name => $self->script_name
     );
 
     $linker->sym_links if ( defined $symlink );

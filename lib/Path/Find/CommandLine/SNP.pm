@@ -228,6 +228,7 @@ sub run {
                 lanes            => \@matching_lanes,
                 name             => $name,
                 use_default_type => 0,
+				script_name      => $self->script_name,
                 rename_links     => \%link_names
             );
 
