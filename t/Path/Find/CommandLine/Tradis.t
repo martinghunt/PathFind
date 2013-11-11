@@ -71,7 +71,7 @@ $arg_str = join(" ", @args);
 stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
 
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
-system('tar xvfz archive_test.tar.gz');
+system("tar xvfz $destination_directory/archive_test.tar.gz");
 ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
 ok( -e "$destination_directory/archive_test/520105.se.markdup.bam.insertion.csv", 'archived file exists');
 ok( -e "$destination_directory/archive_test/520108.se.markdup.bam.insertion.csv", 'archived file exists');
