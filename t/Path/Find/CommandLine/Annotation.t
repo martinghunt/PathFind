@@ -32,7 +32,7 @@ my (@args, $arg_str, $exp_out, $ann_obj);
 
 # test basic output
 @args = qw(-t lane -i 11064_1#67);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Shigella/flexneri_3a/TRACKING/2200/2200STDY5403590/SLX/6204832/8939_2#53/velvet_assembly/annotation\n";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Chlamydia/trachomatis/TRACKING/162/162STDY5591713/SLX/8283265/11064_1#67/velvet_assembly/annotation\n";
 
 $ann_obj = Path::Find::CommandLine::Annotation->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
@@ -40,8 +40,8 @@ stdout_is { $ann_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test file type & file parse
 @args = qw(-t file -i t/data/annotation_lanes.txt -f gff);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staphylococcus/aureus/TRACKING/2282/GN_19103_6281/SLX/GN_19103_6281_7244322/9802_1#66/velvet_assembly/annotation/9802_1#66.gff
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staphylococcus/aureus/TRACKING/1943/1943STDY5484090/SLX/6898333/9716_4#9/velvet_assembly/annotation/9716_4#9.gff
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staphylococcus/aureus/TRACKING/1943/1943STDY5484090/SLX/6898333/9716_4#9/velvet_assembly/annotation/9716_4#9.gff
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staphylococcus/aureus/TRACKING/2282/GN_19103_6281/SLX/GN_19103_6281_7244322/9802_1#66/velvet_assembly/annotation/9802_1#66.gff
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staphylococcus/aureus/TRACKING/2282/GN_ss_86/SLX/GN_ss_86_7280619/9852_1#81/velvet_assembly/annotation/9852_1#81.gff\n";
 
 $ann_obj = Path::Find::CommandLine::Annotation->new(args => \@args, script_name => $script_name);
