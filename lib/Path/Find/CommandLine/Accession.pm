@@ -103,12 +103,10 @@ sub run {
     my ($self)   = @_;
     my $type     = $self->type;
     my $id       = $self->id;
-    my $qc       = $self->qc;
-    my $filetype = $self->filetype;
-    my $archive  = $self->archive;
-    my $stats    = $self->stats;
-    my $symlink  = $self->symlink;
-    my $output   = $self->output;
+
+	my $external = $self->external;
+	my $submitted = $self->submitted;
+    my $outfile   = $self->outfile;
 
     eval {
         Path::Find::Log->new(
