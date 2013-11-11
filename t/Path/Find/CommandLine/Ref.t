@@ -74,7 +74,7 @@ ok( -e "$destination_directory/symlink_test/Salmonella_enterica_subsp_enterica_s
 remove_tree("$destination_directory/symlink_test");
 
 # test archive
-@args = ("-t", "study", "-i", "dublin", "-f", "fa", "-a", "$destination_directory/archive_test");
+@args = ("-t", "species", "-i", "dublin", "-f", "fa", "-a", "$destination_directory/archive_test");
 
 $ref_obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
