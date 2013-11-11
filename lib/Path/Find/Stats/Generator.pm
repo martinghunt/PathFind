@@ -116,6 +116,7 @@ sub pathfind {
         my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
+	close(OUT);
 }
 
 sub mapfind {
@@ -187,6 +188,7 @@ sub mapfind {
         my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
+	close(OUT);
 }
 
 sub assemblyfind {
@@ -276,6 +278,7 @@ sub assemblyfind {
         my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
+	close(OUT);
 }
 
 sub rnaseqfind {
@@ -349,6 +352,7 @@ sub rnaseqfind {
         my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
+	close(OUT);
 }
 
 sub annotationfind {
@@ -415,6 +419,7 @@ sub annotationfind {
         my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
+	close(OUT);
 }
 
 sub _select_mapstat {
