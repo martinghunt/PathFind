@@ -38,12 +38,12 @@ stdout_is { $plex_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test file parse and file type
 @args = qw(-t study -i 1707);
-$exp_out = "46082A21, 5749_8, 5, pass, passed
-46082E21, 5749_8, 6, pass, passed
-straina, 5749_8, 4, pass, passed
-2950, 5749_8, 2, pass, passed
-TL266, 5749_8, 1, pass, passed
-3507, 5749_8, 3, pass, passed";
+$exp_out = "46082A21, 5749_8, 5, pass, passed 
+46082E21, 5749_8, 6, pass, passed 
+straina, 5749_8, 4, pass, passed 
+2950, 5749_8, 2, pass, passed 
+TL266, 5749_8, 1, pass, passed 
+3507, 5749_8, 3, pass, passed \n";
 
 $plex_obj = Path::Find::CommandLine::Plex->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
