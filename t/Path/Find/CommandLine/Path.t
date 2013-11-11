@@ -39,8 +39,8 @@ stdout_is { $path_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test file type & file parse
 @args = qw(-t file -i t/data/path_lanes.txt -f fastq);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/664/M01_0087/SLX/M01_0087_1373899/5477_6#7/5477_6#7_2.fastq.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/664/M01_0087/SLX/M01_0087_1373899/5477_6#7/5477_6#7_1.fastq.gz
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/664/M01_0087/SLX/M01_0087_1373899/5477_6#7/5477_6#7_1.fastq.gz
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/664/M01_0087/SLX/M01_0087_1373899/5477_6#7/5477_6#7_2.fastq.gz
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Shigella/flexneri/TRACKING/1817/MS0020/SLX/MS0020_2882317/6578_4#8/6578_4#8_1.fastq.gz
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Shigella/flexneri/TRACKING/1817/MS0020/SLX/MS0020_2882317/6578_4#8/6578_4#8_2.fastq.gz
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/1714/SMRU587/SLX/SMRU587_3100065/6730_1#11/6730_1#11_1.fastq.gz
