@@ -212,12 +212,14 @@ sub run {
                 $name = $archive;
             }
             $name = "tradisfind_$id" if ( $name eq '' );
+			
+			my $script_name = $self->script_name;
 
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,
                 use_default_type => $use_default,
-				script_name      => $0
+				script_name      => $script_name
             );
 
             $linker->sym_links if ( defined $symlink );
