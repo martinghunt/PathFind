@@ -146,7 +146,6 @@ sub run {
                 else {
                     print "No multiplex data available for study $study \n";
                 }
-                exit;
             }
         }
     }
