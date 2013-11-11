@@ -61,6 +61,7 @@ ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/116135.pe.markdup.bam", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/116138.pe.markdup.bam", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/116141.pe.markdup.bam", 'symlink exists');
+remove_tree('symlink_test');
 
 # test archive
 @args = qw(-t study -i 2510 -a $destination_directory/archive_test);
@@ -74,6 +75,7 @@ ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system('tar xvfz archive_test.tar.gz');
 ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
 ok( -e "$destination_directory/archive_test/659132.pe.markdup.bam", 'archived file exists');
+remove_tree('archive_test');
 
 # test verbose output
 @args = qw(-t file -i t/data/map_verbose_lanes.txt -v);

@@ -57,6 +57,7 @@ ok( -e "$destination_directory/symlink_test/539628.se.markdup.bam.corrected.bam.
 ok( -e "$destination_directory/symlink_test/539631.se.markdup.bam.corrected.bam.intergenic.AE005174.tab.gz", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/526341.se.markdup.bam.corrected.bam.intergenic.AE005174.tab.gz", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/522285.se.markdup.bam.corrected.bam.intergenic.AE005174.tab.gz", 'symlink exists');
+remove_tree('symlink_test');
 
 # test archive
 @args = qw(-t study -i 576 -a $destination_directory/archive_test);
@@ -76,6 +77,7 @@ ok( -e "$destination_directory/archive_test/539628.se.markdup.bam.corrected.bam"
 ok( -e "$destination_directory/archive_test/539631.se.markdup.bam.corrected.bam", 'archived file exists');
 ok( -e "$destination_directory/archive_test/526341.se.markdup.bam.corrected.bam", 'archived file exists');
 ok( -e "$destination_directory/archive_test/522285.se.markdup.bam.corrected.bam", 'archived file exists');
+remove_tree('archive_test');
 
 # test verbose output
 @args = qw(-t file -i t/data/rnaseq_verbose_lanes.txt -v);

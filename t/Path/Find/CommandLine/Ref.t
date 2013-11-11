@@ -71,6 +71,7 @@ stdout_is { $ref_obj->run } $exp_out, "Correct results for '$arg_str'";
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_BA207_v0.1.fa", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_SC50_v0.1.fa", 'symlink exists');
+remove_tree('symlink_test');
 
 # test archive
 @args = qw(-t study -i dublin -f fa -a $destination_directory/archive_test);
@@ -84,5 +85,6 @@ system('tar xvfz archive_test.tar.gz');
 ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
 ok( -e "$destination_directory/archive_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_BA207_v0.1.fa", 'archived file exists');
 ok( -e "$destination_directory/archive_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_SC50_v0.1.fa", 'archived file exists');
+remove_tree('archive_test');
 
 done_testing();

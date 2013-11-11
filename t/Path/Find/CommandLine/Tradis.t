@@ -34,7 +34,7 @@ stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
 
 # test file type & file parse
 @args = qw(-t file -i t/data/tradis_lanes.txt -f bam);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/451/CALF1_11_15_IN/SLX/CALF1_11_15_IN_112182/4354_7#5/545055.se.markdup.bam.corrected.bam\n
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/451/CALF1_11_15_IN/SLX/CALF1_11_15_IN_112182/4354_7#5/545055.se.markdup.bam.corrected.bam
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/PMHKU30_1/SLX/PMHKU30_1_4049668/7138_6#15/454631.pe.markdup.bam.corrected.bam\n";
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
@@ -61,6 +61,7 @@ ok( -e "$destination_directory/symlink_test/520111.se.markdup.bam.insertion.csv"
 ok( -e "$destination_directory/symlink_test/520153.se.markdup.bam.insertion.csv", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/526338.se.markdup.bam.insertion.csv", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/557408.se.markdup.bam.insertion.csv", 'symlink exists');
+remove_tree('symlink_test');
 
 # test archive
 @args = qw(-t study -i 2561 -a $destination_directory/archive_test);
@@ -78,6 +79,7 @@ ok( -e "$destination_directory/archive_test/520111.se.markdup.bam.insertion.csv"
 ok( -e "$destination_directory/archive_test/520153.se.markdup.bam.insertion.csv", 'archived file exists');
 ok( -e "$destination_directory/archive_test/526338.se.markdup.bam.insertion.csv", 'archived file exists');
 ok( -e "$destination_directory/archive_test/557408.se.markdup.bam.insertion.csv", 'archived file exists');
+remove_tree('archive_test');
 
 # test verbose
 @args = qw(-t file -i t/data/tradis_verbose_lanes.txt -v);

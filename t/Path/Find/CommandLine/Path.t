@@ -63,6 +63,7 @@ ok( -e "$destination_directory/symlink_test/3996_1_1.fastq.gz", 'symlink exists'
 ok( -e "$destination_directory/symlink_test/3996_1_2.fastq.gz", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/3996_2_1.fastq.gz", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/3996_2_2.fastq.gz", 'symlink exists');
+remove_tree('symlink_test');
 
 # test archive
 @args = qw(-t study -i 2460 -a $destination_directory/archive_test);
@@ -80,6 +81,7 @@ ok( -e "$destination_directory/archive_test/9003_1#1_1.fastq.gz", 'archived file
 ok( -e "$destination_directory/archive_test/9003_1#1_2.fastq.gz", 'archived file exists');
 ok( -e "$destination_directory/archive_test/9003_1#2_1.fastq.gz", 'archived file exists');
 ok( -e "$destination_directory/archive_test/9003_1#2_2.fastq.gz", 'archived file exists');
+remove_tree('archive_test');
 
 # test stats file
 @args = qw(-t file -i t/data/path_lanes.txt -s $destination_directory/pathfind_test.stats);

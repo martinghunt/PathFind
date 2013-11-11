@@ -58,6 +58,7 @@ stdout_is { $ass_obj->run } $exp_out, "Correct results for '$arg_str'";
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/9653_7#1.contigs_velvet.fa", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/9653_7#2.contigs_velvet.fa", 'symlink exists');
+remove_tree('symlink_test');
 
 # test archive
 @args = qw(-t study -i 2727 -a $destination_directory/archive_test);
@@ -71,6 +72,7 @@ ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system('tar xvfz archive_test.tar.gz');
 ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
 ok( -e "$destination_directory/archive_test/10532_1#75.contigs_velvet.fa", 'archived file exists');
+remove_tree('archive_test');
 
 # test stats file
 @args = qw(-t file -i t/data/assembly_lanes.txt -s $destination_directory/assemblyfind_test.stats);

@@ -58,6 +58,7 @@ ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/116135.mpileup.unfilt.vcf.gz", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/116138.mpileup.unfilt.vcf.gz", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/116141.mpileup.unfilt.vcf.gz", 'symlink exists');
+remove_tree('symlink_test');
 
 # test archive
 @args = qw(-t study -i 2005 -a $destination_directory/archive_test);
@@ -72,6 +73,7 @@ ok( -d "$destination_directory/archive_test", 'decompressed archive directory ex
 ok( -e "$destination_directory/archive_test/116135.mpileup.unfilt.vcf.gz", 'archived file exists');
 ok( -e "$destination_directory/archive_test/116138.mpileup.unfilt.vcf.gz", 'archived file exists');
 ok( -e "$destination_directory/archive_test/116141.mpileup.unfilt.vcf.gz", 'archived file exists');
+remove_tree('archive_test');
 
 # test verbose output
 @args = qw(-t file -i t/data/snp_verbose_lanes.txt -v);

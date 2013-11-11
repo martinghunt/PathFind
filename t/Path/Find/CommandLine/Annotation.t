@@ -59,6 +59,7 @@ stdout_is { $ann_obj->run } $exp_out, "Correct results for '$arg_str'";
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
 ok( -e "$destination_directory/symlink_test/9653_7#1.faa", 'symlink exists');
 ok( -e "$destination_directory/symlink_test/9653_7#2.faa", 'symlink exists');
+remove_tree('symlink_test');
 
 # test archive
 @args = qw(-t study -i 2489 -f ffn -a $destination_directory/archive_test);
@@ -78,6 +79,7 @@ ok( -e "$destination_directory/archive_test/9555_5#15.ffn", 'ffn file exists');
 ok( -e "$destination_directory/archive_test/9555_6#15.ffn", 'ffn file exists');
 ok( -e "$destination_directory/archive_test/9555_7#15.ffn", 'ffn file exists');
 ok( -e "$destination_directory/archive_test/9555_8#15.ffn", 'ffn file exists');
+remove_tree('archive_test');
 
 # test stats file
 @args = qw(-t file -i t/data/annotation_lanes.txt -s $destination_directory/annotationfind_test.stats);
