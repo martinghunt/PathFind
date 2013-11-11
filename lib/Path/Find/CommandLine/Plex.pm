@@ -119,10 +119,10 @@ sub run {
     my $track;
     my $study_obj;
     my $lane_obj;
+	my %data;
 
     if ( $type eq 'study' ) {
         my $study = $id;
-        my %data;
         foreach ( keys %databases ) {
             $connection_details{database} = $databases{$_};
             $track = VRTrack::VRTrack->new( {%connection_details} );
@@ -179,7 +179,6 @@ sub run {
 
     if ( $type eq 'lane' ) {
         my $lane = $id;
-        my %data;
         foreach ( keys %databases ) {
             $connection_details{database} = $databases{$_};
             $track = VRTrack::VRTrack->new( {%connection_details} );
@@ -225,8 +224,9 @@ sub run {
         else {
             print "No multiplex data available for lane $lane \n";
         }
-        return 1;
     }
+
+	return 1 if(%data);
 
     print "No info found for the details you provided.\n";
 
