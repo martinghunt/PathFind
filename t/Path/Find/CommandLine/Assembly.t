@@ -39,9 +39,8 @@ stdout_is { $ass_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test file type & file parse
 @args = qw(-t file -i t/data/assembly_lanes.txt -f contigs);
-$exp_out = "//lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/466/ILBStrepP15424631/SLX/6714257/9517_4#15/velvet_assembly/contigs.fa
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staphylococcus/aureus/TRACKING/2662/2662STDY5553572/SLX/8094217/10770_3#64/velvet_assembly/contigs.fa
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/2133/epc0012/SLX/epc0012_4818015/7853_6#12/velvet_assembly/contigs.fa\n";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staphylococcus/aureus/TRACKING/2662/2662STDY5553572/SLX/8094217/10770_3#64/velvet_assembly/unscaffolded_contigs.fa
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/466/ILBStrepP15424631/SLX/6714257/9517_4#15/velvet_assembly/unscaffolded_contigs.fa\n";
 
 $ass_obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
@@ -49,7 +48,7 @@ stdout_is { $ass_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test symlink
 @args = ("-t", "study", "-i", "2583", "-l", "$destination_directory/symlink_test");
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/u/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/unidentified/TRACKING/2583/SK116C1P/SLX/SK116C1P_7067788/9653_7#1/velvet_assembly/contigs.fa
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/unidentified/TRACKING/2583/SK116C1P/SLX/SK116C1P_7067788/9653_7#1/velvet_assembly/contigs.fa
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/unidentified/TRACKING/2583/SK116C2P/SLX/SK116C2P_7067789/9653_7#2/velvet_assembly/contigs.fa\n";
 
 $ass_obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => $script_name);
