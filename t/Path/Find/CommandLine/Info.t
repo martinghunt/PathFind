@@ -30,7 +30,7 @@ $info_obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => $s
 $arg_str = join(" ", @args);
 stdout_is { $info_obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test file parse and file type
+# test study output
 @args = qw(-t study -i 66);
 $exp_out = "Lane\tSample\tSupplier Name\tPublic Name\tStrain\n
 554_1\tPool 2\tNA\tA1338, AKU_12061, B4173, B418, B964, D441 A1338, AKU_12061, B4173, B418, B964, D441\n

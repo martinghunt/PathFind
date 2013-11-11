@@ -29,7 +29,7 @@ $acc_obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name =
 $arg_str = join(" ", @args);
 stdout_is { $acc_obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test file parse and file type
+# test file parse
 @args = qw(-t file -i t/data/accession_lanes.txt);
 $exp_out = "2047STDY5552273\tERS311560\t10660_2#13\tERR363472
 2047STDY5552104\tERS311393\t10665_2#81\tnot found
@@ -37,5 +37,12 @@ $exp_out = "2047STDY5552273\tERS311560\t10660_2#13\tERR363472
 $acc_obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
 stdout_is { $acc_obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test study output
+#@args = qw(-t file -i );
+#$exp_out = "\n";
+#$acc_obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => $script_name);
+#$arg_str = join(" ", @args);
+#stdout_is { $acc_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 done_testing();
