@@ -38,7 +38,7 @@ $filter = Path::Find::Filter->new(
 );
 @matching_lanes = $filter->filter;
 
-print STDERR Dumper \@matching_lanes;
+print STDERR Dumper @matching_lanes;
 
 my @expected_fastq = retrieve("t/data/fastq_lanes.store");
 is_deeply \@matching_lanes, \@expected_fastq, 'correct fastq files recovered';
