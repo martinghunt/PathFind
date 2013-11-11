@@ -85,7 +85,7 @@ remove_tree("$destination_directory/archive_test");
 unlink("$destination_directory/archive_test.tar.gz");
 
 # test stats file
-@args = qw(-t file -i t/data/path_lanes.txt -s $destination_directory/pathfind_test.stats);
+@args = ("-t", "file", "-i", "t/data/path_lanes.txt", "-s", "$destination_directory/pathfind_test.stats");
 $path_obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
 $path_obj->run;
 ok( -e "$destination_directory/pathfind_test.stats", 'stats file exists');
