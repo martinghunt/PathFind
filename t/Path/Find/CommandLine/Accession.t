@@ -38,11 +38,4 @@ $acc_obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name =
 $arg_str = join(" ", @args);
 stdout_is { $acc_obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test study output
-#@args = qw(-t file -i );
-#$exp_out = "\n";
-#$acc_obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $acc_obj->run } $exp_out, "Correct results for '$arg_str'";
-
 done_testing();

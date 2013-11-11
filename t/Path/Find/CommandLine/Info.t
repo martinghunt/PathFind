@@ -19,7 +19,7 @@ my $cwd = getcwd();
 my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );
 my $destination_directory = $destination_directory_obj->dirname();
 
-my (@args, $arg_str, $exp_out, $info_obj);
+my (@args, $arg_str, @formatted_out, $exp_out, $info_obj);
 
 # test basic output
 @args = qw(-t lane -id 10812_1#86);
