@@ -208,7 +208,8 @@ sub run {
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,
-                use_default_type => $use_default
+                use_default_type => $use_default,
+				script_name      => $self->script_name
             );
 
             $linker->sym_links if ( defined $symlink );
