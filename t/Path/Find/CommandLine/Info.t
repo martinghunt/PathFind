@@ -47,6 +47,7 @@ stdout_is { $info_obj->run } $exp_out, "Correct results for '$arg_str'";
 "554_8\tPool 1\tNA\tB1357, D2383, D1985, B943, C4672 B1357, D2383, D1985, B943, C4672");
 $exp_out = "";
 foreach my $line (@formatted_out){
+	print STDERR "$line\n";
 	my @fields = split("\t", $line);
 	$exp_out .= sprintf "%-15s %-25s %-25s %-25s %-20s\n", @fields;
 }
