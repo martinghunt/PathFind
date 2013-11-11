@@ -16,7 +16,7 @@ use Test::Output;
 
 use_ok('Path::Find::CommandLine::Tradis');
 
-my $script_name = 'Path::Find::CommandLine::Tradis';
+my $script_name = 'tradisfind';
 my $cwd = getcwd();
 
 my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );

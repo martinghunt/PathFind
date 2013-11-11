@@ -59,6 +59,7 @@ has '_given_destination' => (
     writer   => '_set__given_destination'
 );
 has 'rename_links' => ( is => 'ro', isa => 'HashRef', required => 0 );
+has 'script_name'  => ( is => 'ro', isa => 'Str', required => 0, default => $0 );
 
 sub _build__checked_name {
     my ($self) = @_;
@@ -86,6 +87,8 @@ sub _build__tmp_dir {
 
 sub _build__default_type {
     my ($self) = @_;
+	my $script_name = $self->script_name;
+	
     my %default_ft = (
         pathfind       => '/*.fastq.gz',
         annotationfind => '/*.gff',
@@ -97,7 +100,7 @@ sub _build__default_type {
     );
 
     # capture calling script name
-    $0 =~ /([^\/]+$)/;
+    $script_name =~ /([^\/]+$)/;
     return $default_ft{$1};
 }
 
