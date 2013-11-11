@@ -61,10 +61,10 @@ remove_tree('symlink_test');
 
 # test archive
 @args = ("-t", "study", "-i", "576", "-a", "$destination_directory/archive_test");
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Input/SLX/O157_Input_236583/4799_1/539628.se.markdup.bam.corrected.bam
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Output/SLX/O157_Output_236584/4799_2/539631.se.markdup.bam.corrected.bam
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Output/SLX/O157_Output_236584/5246_6/526341.se.markdup.bam.corrected.bam
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Output/SLX/O157_Output_236584/5359_6/522285.se.markdup.bam.corrected.bam\n";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Input/SLX/O157_Input_236583/4799_1
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Output/SLX/O157_Output_236584/4799_2
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Output/SLX/O157_Output_236584/5246_6
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Output/SLX/O157_Output_236584/5359_6\n";
 
 $rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
