@@ -54,6 +54,9 @@ ok( -l "$link_dir/test3.fastq",
 
 #test archive creation
 ok( $linker_obj->archive, 'testing archive creation' );
+
+
+
 ok( -e "link_test.tar.gz" );
 
 system("tar xvfz link_test.tar.gz");
