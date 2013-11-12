@@ -35,6 +35,7 @@ use Moose;
 use File::Temp;
 use Cwd;
 use Data::Dumper;
+use Carp;
 
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has '_tmp_dir' => ( is => 'rw', isa => 'Str', lazy => 1, builder  => '_build__tmp_dir' );
@@ -182,7 +183,7 @@ sub _check_dest {
 
     if ( !-e $destination ) {
         system("mkdir $destination") == 0
-          or die "Could not create $destination: error code $?\n";
+          or croak "Could not create $destination: error code $?\n";
     }
     return 1;
 }
