@@ -83,7 +83,7 @@ sub _build__checked_name {
 
 sub _build__tmp_dir {
     my $tmp_dir_obj = File::Temp->newdir( DIR => getcwd, CLEANUP => 0 );
-    return $tmp_dir_obj->dirname;
+    return $tmp_dir_obj;
 }
 
 sub _build__default_type {
@@ -113,7 +113,8 @@ sub archive {
 
     #set destination for symlinks
     my $tmp_dir = $self->_tmp_dir;
-    $self->_set_destination("$tmp_dir");
+	my $dirname = $tmp_dir->dirname;
+    $self->_set_destination("$dirname");
 
     #create symlinks
     $self->_create_symlinks;
@@ -222,7 +223,8 @@ sub _link_names {
 
 sub _tar {
     my ($self)            = @_;
-    my $tmp_dir           = $self->_tmp_dir;
+	my $tmp_dir_ob        = $self->_tmp_dir;
+    my $tmp_dir           = $tmp_dir_ob->dirname;
     my $arc_name          = $self->_checked_name;
     my $final_destination = $self->_given_destination;
     my $error             = 0;
