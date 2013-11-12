@@ -112,7 +112,8 @@ sub archive {
     my $final_dest = $self->_given_destination;
 
     #set destination for symlinks
-    my $tmp_dir = $self->_tmp_dir;
+    #my $tmp_dir = $self->_tmp_dir;
+	my $tmp_dir = File::Temp->newdir( DIR => getcwd, CLEANUP => 0 );
 	my $dirname = $tmp_dir->dirname;
     $self->_set_destination("$dirname");
 
@@ -121,11 +122,11 @@ sub archive {
 
     #tar and move to CWD
     print STDERR "Archiving lanes to $final_dest/$c_name:\n";
-    $self->_tar;
+    my $er_code = $self->_tar($dirname);
 
 	File::Temp::cleanup();
 
-	return 1;
+	return $er_code;
 }
 
 sub sym_links {
@@ -222,9 +223,9 @@ sub _link_names {
 }
 
 sub _tar {
-    my ($self)            = @_;
-	my $tmp_dir_ob        = $self->_tmp_dir;
-    my $tmp_dir           = $tmp_dir_ob->dirname;
+    my ($self, $tmp_dir)  = @_;
+	#my $tmp_dir_ob        = $self->_tmp_dir;
+    #my $tmp_dir           = $tmp_dir_ob->dirname;
     my $arc_name          = $self->_checked_name;
     my $final_destination = $self->_given_destination;
     my $error             = 0;
@@ -234,7 +235,6 @@ sub _tar {
     if ($sys != 0) {
         print STDERR "An error occurred while creating the archive: $arc_name\n";
         print STDERR "No output written to $arc_name.tar.gz\n";
-        #File::Temp::cleanup();
         return $sys;
     }
     else {
@@ -243,7 +243,6 @@ sub _tar {
         	print STDERR "An error occurred while writing archive $arc_name: error code $?\n";
 			return $sys2;
 		}
-        #File::Temp::cleanup();
         return 1;
     }
 }
