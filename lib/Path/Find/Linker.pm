@@ -135,6 +135,8 @@ sub sym_links {
     #create symlinks
     $self->_create_symlinks;
     print STDERR "Symlinks created in $dest/$s_d\n";
+
+	File::Temp::cleanup();
 }
 
 sub _create_symlinks {
@@ -206,7 +208,6 @@ sub _link_names {
         }
     }
     else {
-		print STDERR Dumper \@matching_files;
         foreach my $mf (@matching_files) {
             chomp $mf;
             $mf =~ /([^\/]+)$/;
