@@ -122,6 +122,7 @@ sub archive {
     $self->_tar;
 
     File::Temp::cleanup();
+	return 1;
 }
 
 sub sym_links {
@@ -137,6 +138,7 @@ sub sym_links {
     print STDERR "Symlinks created in $dest/$s_d\n";
 
 	File::Temp::cleanup();
+	return 1;
 }
 
 sub _create_symlinks {
