@@ -237,8 +237,8 @@ sub _tar {
 	print STDERR "$tmp_dir/$arc_name pre-tar:\n";
 	system("ls $tmp_dir/$arc_name");
     print STDERR "cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name\n";
+	system("chmod a+rw $tmp_dir");
     system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name") == 0 or $error = 1;
-	
 
     if ($error) {
         print STDERR "An error occurred while creating the archive: $arc_name: error code $?, $!\n";
