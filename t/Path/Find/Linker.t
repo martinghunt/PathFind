@@ -32,7 +32,6 @@ ok(
 
 #test symlink creation
 ok( $linker_obj->sym_links, 'testing sym linking' );
-system("ls $destination_directory/link_test");
 ok( -e "$destination_directory/link_test/test1.fastq",
     'checking link existence' );
 ok( -e "$destination_directory/link_test/test2.fastq",
