@@ -37,7 +37,7 @@ use Cwd;
 use Data::Dumper;
 
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has '_tmp_dir' => ( is => 'rw', isa => 'Str', builder  => '_build__tmp_dir' );
+has '_tmp_dir' => ( is => 'rw', isa => 'Str', lazy => 1, builder  => '_build__tmp_dir' );
 has 'name'     => ( is => 'ro', isa => 'Str', required => 1 );
 has '_checked_name' =>
   ( is => 'rw', isa => 'Str', lazy => 1, builder => '_build__checked_name' );
@@ -120,6 +120,8 @@ sub archive {
     #tar and move to CWD
     print STDERR "Archiving lanes to $final_dest/$c_name:\n";
     $self->_tar;
+
+	File::Temp::cleanup();
 
 	return 1;
 }
@@ -236,7 +238,7 @@ sub _tar {
     else {
         system("mv $tmp_dir/archive.tar.gz $final_destination/$arc_name.tar.gz")
           == 0
-          or die
+          or warn
           "An error occurred while writing archive $arc_name: error code $?\n";
         File::Temp::cleanup();
         return $error;
