@@ -237,7 +237,7 @@ sub _tar {
 	system("ls $tmp_dir/$arc_name");
 
     if ($error) {
-        print STDERR "An error occurred while creating the archive: $arc_name: error code $?\n";
+        print STDERR "An error occurred while creating the archive: $arc_name: error code $?, $!\n";
         print STDERR "No output written to $arc_name.tar.gz\n";
         return 0;
     }
