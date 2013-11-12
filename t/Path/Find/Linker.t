@@ -34,25 +34,25 @@ ok( $linker_obj->sym_links, 'testing sym linking' );
 print "\n\nLS of link_test:\n";
 system("ls link_test");
 print "\n\n";
-ok( -e "link_test/test1.fastq",
+ok( -e "./link_test/test1.fastq",
     'checking link existence' );
-ok( -e "link_test/test2.fastq",
+ok( -e "./link_test/test2.fastq",
     'checking link existence' );
-ok( -e "link_test/test3.fastq",
+ok( -e "./link_test/test3.fastq",
     'checking link existence' );
 #clean up
 remove_tree("link_test");
 
 #test archive creation
 ok( $linker_obj->archive, 'testing archive creation' );
-ok( -e "link_test.tar.gz" );
+ok( -e "./link_test.tar.gz" );
 
 system("tar xvfz link_test.tar.gz");
-ok( -e "link_test/test1.fastq",
+ok( -e "./link_test/test1.fastq",
     'checking file existence' );
-ok( -e "link_test/test2.fastq",
+ok( -e "./link_test/test2.fastq",
     'checking file existence' );
-ok( -e "link_test/test3.fastq",
+ok( -e "./link_test/test3.fastq",
     'checking file existence' );
 #clean up
 remove_tree("link_test");
