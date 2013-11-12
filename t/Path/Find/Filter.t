@@ -17,7 +17,7 @@ BEGIN {
 use_ok('Path::Find::Filter');
 
 my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info('pathogen_prok_track');
-my ( $filter, @matching_lanes );
+my ( $filter, @matching_lanes, @matching_lanes_edit );
 
 my %type_extensions = (
     fastq => '*.fastq.gz',
@@ -26,7 +26,7 @@ my %type_extensions = (
 
 # test fastq filtering
 my @fastq_lanes =
-  ( '5749_8#1', '5749_8#2', '5749_8#3', '5749_8#4', '5749_8#5', '5749_8#6' );
+  ( '5749_8#1', '5749_8#2', '5749_8#3' );
 my @fastq_obs = generate_lane_objects( $pathtrack, \@fastq_lanes );
 
 $filter = Path::Find::Filter->new(
@@ -39,13 +39,12 @@ $filter = Path::Find::Filter->new(
 @matching_lanes = $filter->filter;
 
 my @expected_fastq = retrieve("t/data/fastq_lanes.store");
-ok( scalar @matching_lanes == scalar @expected_fastq, 'correct number of fastqs found');
-foreach my $x (0..11){
-	ok($matching_lanes[$x]->{path} eq $expected_fastq[$x], 'path matches');
-}
+@matching_lanes_edit = remove_lane_objects(\@matching_lanes);
+is_deeply \@matching_lanes_edit, \@expected_fastq, 'correct fastqs retrieved';
+
 
 #test bam filtering
-my @bam_lanes = ( '4880_8#1', '4880_8#2', '4880_8#3', '4880_8#4', '4880_8#5' );
+my @bam_lanes = ( '4880_8#1', '4880_8#2', '4880_8#3' );
 my @bam_obs = generate_lane_objects( $pathtrack, \@bam_lanes );
 
 $filter = Path::Find::Filter->new(
@@ -58,10 +57,8 @@ $filter = Path::Find::Filter->new(
 @matching_lanes = $filter->filter;
 
 my @expected_bams = retrieve("t/data/bam_lanes.store");
-ok( scalar @matching_lanes == scalar @expected_bams, 'correct number of bams found');
-foreach my $x (0..4){
-	ok($matching_lanes[$x]->{path} eq $expected_bams[$x], 'path matches');
-}
+@matching_lanes_edit = remove_lane_objects(\@matching_lanes);
+is_deeply \@matching_lanes_edit, \@expected_bams, 'correct bams retrieved';
 
 #test verbose output
 my @verbose_lanes = (
@@ -106,4 +103,15 @@ sub generate_lane_objects {
         }
     }
     return @lane_obs;
+}
+
+sub remove_lane_objects {
+	my ($ds) = shift;
+	my @new_ds;
+	foreach my $d (@$ds){
+		my %h = %{ $d };
+		delete $h{lane};
+		push(@new_ds, \%h);
+	}
+	return @new_ds;
 }
