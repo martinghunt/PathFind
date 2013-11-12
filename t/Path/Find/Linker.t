@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use File::Slurp;
+use File::Path qw( remove_tree);
 
 BEGIN { unshift( @INC, './lib' ) }
 
@@ -10,9 +11,6 @@ BEGIN {
 }
 
 use_ok('Path::Find::Linker');
-
-my $destination_directory_obj = File::Temp->newdir( CLEANUP => 0 );
-my $destination_directory = $destination_directory_obj->dirname();
 
 my ( @lanes, $linker_obj );
 
@@ -23,7 +21,7 @@ my ( @lanes, $linker_obj );
 ok(
     $linker_obj = Path::Find::Linker->new(
         lanes => \@lanes,
-        name  => "$destination_directory/link_test",
+        name  => 'link_test',
 		_default_type => '/*.fastq',
 		use_default_type => 1
     ),
@@ -33,33 +31,31 @@ ok(
 #test symlink creation
 ok( $linker_obj->sym_links, 'testing sym linking' );
 
-print "LS of $destination_directory/link_test:\n";
-system("ls $destination_directory/link_test");
-
-ok( -e "$destination_directory/link_test/test1.fastq",
+print "\n\nLS of link_test:\n";
+system("ls link_test");
+print "\n\n";
+ok( -e "link_test/test1.fastq",
     'checking link existence' );
-ok( -e "$destination_directory/link_test/test2.fastq",
+ok( -e "link_test/test2.fastq",
     'checking link existence' );
-ok( -e "$destination_directory/link_test/test3.fastq",
+ok( -e "link_test/test3.fastq",
     'checking link existence' );
 #clean up
-unlink glob "$destination_directory/link_test/test*";
-rmdir "$destination_directory/link_test";
+remove_tree("link_test");
 
 #test archive creation
 ok( $linker_obj->archive, 'testing archive creation' );
-ok( -e "$destination_directory/link_test.tar.gz" );
+ok( -e "link_test.tar.gz" );
 
-system("gunzip $destination_directory/link_test.gz");
-ok( -e "$destination_directory/link_test/test1.fastq",
+system("tar xvfz link_test.tar.gz");
+ok( -e "link_test/test1.fastq",
     'checking file existence' );
-ok( -e "$destination_directory/link_test/test2.fastq",
+ok( -e "link_test/test2.fastq",
     'checking file existence' );
-ok( -e "$destination_directory/link_test/test3.fastq",
+ok( -e "link_test/test3.fastq",
     'checking file existence' );
 #clean up
-unlink glob "$destination_directory/link_test/test*";
-rmdir "$destination_directory/link_test";
+remove_tree("link_test");
 
 #test link renaming
 my %link_names = (
@@ -70,7 +66,7 @@ my %link_names = (
 ok(
     $linker_obj = Path::Find::Linker->new(
         lanes        => \@lanes,
-        name         => '$destination_directory/link_rename_test',
+        name         => 'link_rename_test',
         rename_links => \%link_names
     ),
     'creating linker object'
@@ -78,30 +74,27 @@ ok(
 
 #test renamed symlink creation
 ok( $linker_obj->sym_links, 'testing renamed sym linking' );
-ok( -e "$destination_directory/link_rename_test/t1.fastq",
+ok( -e "link_rename_test/t1.fastq",
     'checking link existence' );
-ok( -e "$destination_directory/link_rename_test/t2.fastq",
+ok( -e "link_rename_test/t2.fastq",
     'checking link existence' );
-ok( -e "$destination_directory/link_rename_test/t3.fastq",
+ok( -e "link_rename_test/t3.fastq",
     'checking link existence' );
 #clean up
-unlink glob "$destination_directory/link_rename_test/t*";
-rmdir "$destination_directory/link_rename_test";
+remove_tree("link_rename_test");
 
 #test archive creation
 ok( $linker_obj->archive, 'testing renamed archive creation' );
-ok( -e "$destination_directory/link_rename_test.gz" );
+ok( -e "link_rename_test.gz" );
 
-system("gunzip $destination_directory/link_rename_test.gz");
-ok( -e "$destination_directory/link_rename_test/t1.fastq",
+system("tar xvfz link_rename_test.tar.gz");
+ok( -e "link_rename_test/t1.fastq",
     'checking file existence' );
-ok( -e "$destination_directory/link_rename_test/t2.fastq",
+ok( -e "link_rename_test/t2.fastq",
     'checking file existence' );
-ok( -e "$destination_directory/link_rename_test/t3.fastq",
+ok( -e "link_rename_test/t3.fastq",
     'checking file existence' );
 #clean up
-unlink glob "$destination_directory/link_rename_test/t*";
-rmdir "$destination_directory/link_rename_test";
+remove_tree("link_rename_test");
 
-File::Temp::cleanup();
 done_testing();
