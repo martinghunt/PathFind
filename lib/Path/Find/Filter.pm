@@ -131,7 +131,6 @@ sub filter {
             }
         }
     }
-	store \@matching_paths, 'lanes.store';
     return @matching_paths;
 }
 
