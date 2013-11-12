@@ -11,7 +11,7 @@ BEGIN {
 
 use_ok('Path::Find::Linker');
 
-my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );
+my $destination_directory_obj = File::Temp->newdir( CLEANUP => 0 );
 my $destination_directory = $destination_directory_obj->dirname();
 
 my ( @lanes, $linker_obj );
@@ -45,7 +45,7 @@ rmdir "$destination_directory/link_test";
 
 #test archive creation
 ok( $linker_obj->archive, 'testing archive creation' );
-ok( -e "$destination_directory/link_test.gz" );
+ok( -e "$destination_directory/link_test.tar.gz" );
 
 system("gunzip $destination_directory/link_test.gz");
 ok( -e "$destination_directory/link_test/test1.fastq",
@@ -100,5 +100,5 @@ ok( -e "$destination_directory/link_rename_test/t3.fastq",
 unlink glob "$destination_directory/link_rename_test/t*";
 rmdir "$destination_directory/link_rename_test";
 
-
+File::Temp::cleanup();
 done_testing();
