@@ -239,7 +239,7 @@ sub _tar {
     if ($error) {
         print STDERR "An error occurred while creating the archive: $arc_name: error code $?\n";
         print STDERR "No output written to $arc_name.tar.gz\n";
-        return $sys;
+        return 0;
     }
     else {
 		my $mv_error = 0;
