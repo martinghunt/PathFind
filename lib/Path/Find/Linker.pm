@@ -69,9 +69,9 @@ sub _build__checked_name {
     # check if full path, if so, set given destination
     # if not, set given destination to CWD
     if ( $name =~ /^\// ) {
-        my @dirs = split( '/', $name );
-        $name = pop(@dirs);
-        $self->_set__given_destination( join( '/', @dirs ) );
+        my($filename, $directories, $suffix) = fileparse($name);
+        $self->_set__given_destination( $directories );
+		$name = $filename;
     }
     else {
         my $current_cwd = getcwd;
@@ -230,6 +230,8 @@ sub _tar {
     my $arc_name          = $self->_checked_name;
     my $final_destination = $self->_given_destination;
     my $error             = 0;
+
+	print STDERR "ARCNAME = $arc_name\n\n";
 
 	print STDERR "$tmp_dir/$arc_name pre-tar:\n";
 	system("ls $tmp_dir/$arc_name");
