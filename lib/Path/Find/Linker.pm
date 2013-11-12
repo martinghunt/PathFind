@@ -230,18 +230,23 @@ sub _tar {
     my $final_destination = $self->_given_destination;
     my $error             = 0;
 
-    my $sys = system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name > /dev/null >&2");
+	print STDERR "$tmp_dir/$arc_name pre-tar:\n";
+	system("ls $tmp_dir/$arc_name");
+    system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name > /dev/null >&2") == 0 or $error = 1;
+	print STDERR "$tmp_dir/$arc_name post-tar:\n";
+	system("ls $tmp_dir/$arc_name");
 
-    if ($sys != 0) {
-        print STDERR "An error occurred while creating the archive: $arc_name\n";
+    if ($error) {
+        print STDERR "An error occurred while creating the archive: $arc_name: error code $?\n";
         print STDERR "No output written to $arc_name.tar.gz\n";
         return $sys;
     }
     else {
-        my $sys2 = system("mv $tmp_dir/archive.tar.gz $final_destination/$arc_name.tar.gz");
-        if($sys2 != 0){
+		my $mv_error = 0;
+        system("mv $tmp_dir/archive.tar.gz $final_destination/$arc_name.tar.gz") == 0 or $mv_error = 1;
+        if($mv_error){
         	print STDERR "An error occurred while writing archive $arc_name: error code $?\n";
-			return $sys2;
+			return $mv_error;
 		}
         return 1;
     }
