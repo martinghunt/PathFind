@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use File::Slurp;
+use Data::Dumper;
 
 BEGIN { unshift( @INC, './lib' ) }
 
@@ -101,6 +102,9 @@ my @test_lanes4 = (
     '5749_8#1', '5749_8#2', '5749_8#3', '8080_1#72'
 );
 my @expected_lanes4 = generate_lane_objects( $pathtrack, \@test_lanes3 );
+
+print STDERR Dumper $lanes;
+print STDERR Dumper \@expected_lanes4;
 
 is_deeply $lanes, \@expected_lanes4, 'correct lanes recovered';
 
