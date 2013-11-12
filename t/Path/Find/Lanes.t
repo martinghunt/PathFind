@@ -101,7 +101,7 @@ $lanes = $lanes_obj->lanes;
 my @test_lanes4 = (
     '5749_8#1', '5749_8#2', '5749_8#3', '8080_1#72'
 );
-my @expected_lanes4 = generate_lane_objects( $pathtrack, \@test_lanes3 );
+my @expected_lanes4 = generate_lane_objects( $pathtrack, \@test_lanes4 );
 
 print STDERR Dumper $lanes;
 print STDERR Dumper \@expected_lanes4;
