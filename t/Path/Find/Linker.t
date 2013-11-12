@@ -50,21 +50,21 @@ ok( -l "$link_dir/test2.fastq",
 ok( -l "$link_dir/test3.fastq",
     'checking link existence' );
 #clean up
-remove_tree("$link_dir");
+#remove_tree("$link_dir");
 
 #test archive creation
 ok( $linker_obj->archive, 'testing archive creation' );
-ok( -e "./link_test.tar.gz" );
+ok( -e "link_test.tar.gz" );
 
 system("tar xvfz link_test.tar.gz");
-ok( -e "./link_test/test1.fastq",
+ok( -e "$link_dir/test1.fastq",
     'checking file existence' );
-ok( -e "./link_test/test2.fastq",
+ok( -e "$link_dir/test2.fastq",
     'checking file existence' );
-ok( -e "./link_test/test3.fastq",
+ok( -e "$link_dir/test3.fastq",
     'checking file existence' );
 #clean up
-remove_tree("link_test");
+#remove_tree("link_test");
 
 #test link renaming
 my %link_names = (
@@ -83,14 +83,14 @@ ok(
 
 #test renamed symlink creation
 ok( $linker_obj->sym_links, 'testing renamed sym linking' );
-ok( -e "link_rename_test/t1.fastq",
+ok( -l "link_rename_test/t1.fastq",
     'checking link existence' );
-ok( -e "link_rename_test/t2.fastq",
+ok( -l "link_rename_test/t2.fastq",
     'checking link existence' );
-ok( -e "link_rename_test/t3.fastq",
+ok( -l "link_rename_test/t3.fastq",
     'checking link existence' );
 #clean up
-remove_tree("link_rename_test");
+#remove_tree("link_rename_test");
 
 #test archive creation
 ok( $linker_obj->archive, 'testing renamed archive creation' );
@@ -104,6 +104,7 @@ ok( -e "link_rename_test/t2.fastq",
 ok( -e "link_rename_test/t3.fastq",
     'checking file existence' );
 #clean up
+remove_tree("link_test");
 remove_tree("link_rename_test");
 
 done_testing();
