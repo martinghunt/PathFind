@@ -24,7 +24,8 @@ ok(
     $linker_obj = Path::Find::Linker->new(
         lanes => \@lanes,
         name  => "$destination_directory/link_test",
-		_default_type => "/*.fastq";
+		_default_type => '/*.fastq',
+		use_default_type => 1
     ),
     'creating linker object'
 );
