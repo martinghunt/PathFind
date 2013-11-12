@@ -40,12 +40,7 @@ $filter = Path::Find::Filter->new(
 
 my $expected_fastq = retrieve("t/data/fastq_lanes.store");
 @matching_lanes_edit = remove_lane_objects(\@matching_lanes);
-
-print STDERR Dumper \@matching_lanes_edit;
-print STDERR Dumper $expected_fastq;
-
 is_deeply \@matching_lanes_edit, $expected_fastq, 'correct fastqs retrieved';
-
 
 #test bam filtering
 my @bam_lanes = ( '4880_8#1', '4880_8#2', '4880_8#3' );
@@ -65,10 +60,7 @@ my $expected_bams = retrieve("t/data/bam_lanes.store");
 is_deeply \@matching_lanes_edit, $expected_bams, 'correct bams retrieved';
 
 #test verbose output
-my @verbose_lanes = (
-    '8086_1#1', '8086_1#2', '8086_1#3', '8086_1#4',
-    '8086_1#5', '8086_1#6', '8086_1#7', '8086_1#8'
-);
+my @verbose_lanes = ( '8086_1#1', '8086_1#2', '8086_1#3' );
 my @verbose_obs = generate_lane_objects( $pathtrack, \@verbose_lanes );
 
 $filter = Path::Find::Filter->new(
@@ -88,6 +80,7 @@ $filter->{date} = "01-07-2013";
 @matching_lanes = $filter->filter;
 
 my @expected_date = retrieve("t/data/date_filter.store");
+@matching_lanes_edit = remove_lane_objects(\@matching_lanes);
 is_deeply \@matching_lanes, \@expected_date, 'correctly dated files recovered';
 
 done_testing();
