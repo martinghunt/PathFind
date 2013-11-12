@@ -81,7 +81,7 @@ sub _build__checked_name {
 }
 
 sub _build__tmp_dir {
-    my $tmp_dir_obj = File::Temp->newdir( DIR => getcwd, CLEANUP => 0 );
+    my $tmp_dir_obj = File::Temp->newdir( DIR => getcwd, CLEANUP => 1 );
     return $tmp_dir_obj->dirname;
 }
 
@@ -121,7 +121,6 @@ sub archive {
     print STDERR "Archiving lanes to $final_dest/$c_name:\n";
     $self->_tar;
 
-    File::Temp::cleanup();
 	return 1;
 }
 
@@ -137,7 +136,6 @@ sub sym_links {
     $self->_create_symlinks;
     print STDERR "Symlinks created in $dest/$s_d\n";
 
-	File::Temp::cleanup();
 	return 1;
 }
 
