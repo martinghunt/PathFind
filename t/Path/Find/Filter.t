@@ -40,6 +40,10 @@ $filter = Path::Find::Filter->new(
 
 my @expected_fastq = retrieve("t/data/fastq_lanes.store");
 @matching_lanes_edit = remove_lane_objects(\@matching_lanes);
+
+print STDERR Dumper \@matching_lanes_edit;
+print STDERR Dumper \@expected_fastq;
+
 is_deeply \@matching_lanes_edit, \@expected_fastq, 'correct fastqs retrieved';
 
 
@@ -76,12 +80,8 @@ $filter = Path::Find::Filter->new(
 @matching_lanes = $filter->filter;
 
 my @expected_verbose = retrieve("t/data/verbose.store");
-
-print STDERR Dumper \@matching_lanes;
-print STDERR Dumper \@expected_verbose;
-
-
-is_deeply \@matching_lanes, \@expected_verbose, 'correct verbose files recovered';
+@matching_lanes_edit = remove_lane_objects(\@matching_lanes);
+is_deeply \@matching_lanes_edit, \@expected_verbose, 'correct verbose files recovered';
 
 #filtered on date
 $filter->{date} = "01-07-2013";
