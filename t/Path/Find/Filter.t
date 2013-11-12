@@ -71,21 +71,21 @@ $filter = Path::Find::Filter->new(
 );
 @matching_lanes = $filter->filter;
 
-my @expected_verbose = retrieve("t/data/verbose.store");
+my $expected_verbose = retrieve("t/data/verbose.store");
 @matching_lanes_edit = remove_lane_objects(\@matching_lanes);
-is_deeply \@matching_lanes_edit, \@expected_verbose, 'correct verbose files recovered';
+is_deeply \@matching_lanes_edit, $expected_verbose, 'correct verbose files recovered';
 
 #filtered on date
 $filter->{date} = "01-07-2013";
 @matching_lanes = $filter->filter;
 
-my @expected_date = retrieve("t/data/date_filter.store");
+my $expected_date = retrieve("t/data/date_filter.store");
 @matching_lanes_edit = remove_lane_objects(\@matching_lanes);
 
 print STDERR Dumper \@matching_lanes_edit;
 print STDERR Dumper \@expected_date;
 
-is_deeply \@matching_lanes, \@expected_date, 'correctly dated files recovered';
+is_deeply \@matching_lanes, $expected_date, 'correctly dated files recovered';
 
 done_testing();
 
