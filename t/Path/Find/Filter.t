@@ -85,7 +85,7 @@ my $expected_date = retrieve("t/data/date_filter.store");
 print STDERR Dumper \@matching_lanes_edit;
 print STDERR Dumper $expected_date;
 
-is_deeply \@matching_lanes, $expected_date, 'correctly dated files recovered';
+is_deeply \@matching_lanes_edit, $expected_date, 'correctly dated files recovered';
 
 done_testing();
 
