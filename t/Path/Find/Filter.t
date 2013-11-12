@@ -38,13 +38,13 @@ $filter = Path::Find::Filter->new(
 );
 @matching_lanes = $filter->filter;
 
-my @expected_fastq = retrieve("t/data/fastq_lanes.store");
+my $expected_fastq = retrieve("t/data/fastq_lanes.store");
 @matching_lanes_edit = remove_lane_objects(\@matching_lanes);
 
 print STDERR Dumper \@matching_lanes_edit;
-print STDERR Dumper \@expected_fastq;
+print STDERR Dumper $expected_fastq;
 
-is_deeply \@matching_lanes_edit, \@expected_fastq, 'correct fastqs retrieved';
+is_deeply \@matching_lanes_edit, $expected_fastq, 'correct fastqs retrieved';
 
 
 #test bam filtering
@@ -60,9 +60,9 @@ $filter = Path::Find::Filter->new(
 );
 @matching_lanes = $filter->filter;
 
-my @expected_bams = retrieve("t/data/bam_lanes.store");
+my $expected_bams = retrieve("t/data/bam_lanes.store");
 @matching_lanes_edit = remove_lane_objects(\@matching_lanes);
-is_deeply \@matching_lanes_edit, \@expected_bams, 'correct bams retrieved';
+is_deeply \@matching_lanes_edit, $expected_bams, 'correct bams retrieved';
 
 #test verbose output
 my @verbose_lanes = (
