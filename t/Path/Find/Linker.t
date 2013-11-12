@@ -17,15 +17,14 @@ my $destination_directory = $destination_directory_obj->dirname();
 my ( @lanes, $linker_obj );
 
 @lanes = (
-    { lane => '../../data/test1.fastq' },
-    { lane => '../../data/test2.fastq' },
-    { lane => '../../data/test3.fastq' }
+    { lane => '../../data/links' }
 );
 
 ok(
     $linker_obj = Path::Find::Linker->new(
         lanes => \@lanes,
         name  => "$destination_directory/link_test"
+		_default_type => "/*.fast";
     ),
     'creating linker object'
 );
