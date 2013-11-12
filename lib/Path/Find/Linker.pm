@@ -78,8 +78,8 @@ sub _build__checked_name {
         my $current_cwd = getcwd;
         $self->_set__given_destination($current_cwd);
     }
-    print STDERR "$name\n";
     $name =~ s/\s+/_/;
+	print STDERR "$name\n";
     return $name;
 }
 
@@ -236,7 +236,7 @@ sub _tar {
 
 	print STDERR "$tmp_dir/$arc_name pre-tar:\n";
 	system("ls $tmp_dir/$arc_name");
-    print STDERR "cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name";
+    print STDERR "cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name\n";
     system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name") == 0 or $error = 1;
 	
 
