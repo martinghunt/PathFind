@@ -39,7 +39,10 @@ $filter = Path::Find::Filter->new(
 @matching_lanes = $filter->filter;
 
 my @expected_fastq = retrieve("t/data/fastq_lanes.store");
-#is_deeply \@matching_lanes, \@expected_fastq, 'correct fastq files recovered';
+ok( scalar @matching_lanes == scalar @expected_fastq, 'correct number of fastqs found');
+foreach my $x (0..11){
+	ok($matching_lanes[$x]->{path} eq $expected_fastq[$x], 'path matches');
+}
 
 #test bam filtering
 my @bam_lanes = ( '4880_8#1', '4880_8#2', '4880_8#3', '4880_8#4', '4880_8#5' );
@@ -54,10 +57,11 @@ $filter = Path::Find::Filter->new(
 );
 @matching_lanes = $filter->filter;
 
-print STDERR Dumper \@matching_lanes;
-
 my @expected_bams = retrieve("t/data/bam_lanes.store");
-is_deeply \@matching_lanes, \@expected_bams, 'correct bam files recovered';
+ok( scalar @matching_lanes == scalar @expected_bams, 'correct number of bams found');
+foreach $x (0..4){
+	ok($matching_lanes[$x]->{path} eq $expected_bams[$x], 'path matches');
+}
 
 #test verbose output
 my @verbose_lanes = (
@@ -75,6 +79,11 @@ $filter = Path::Find::Filter->new(
 @matching_lanes = $filter->filter;
 
 my @expected_verbose = retrieve("t/data/verbose.store");
+
+print STDERR Dumper \@matching_lanes;
+print STDERR Dumper \@expected_verbose;
+
+
 is_deeply \@matching_lanes, \@expected_verbose, 'correct verbose files recovered';
 
 #filtered on date
