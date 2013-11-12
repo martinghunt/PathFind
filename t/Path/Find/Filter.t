@@ -81,6 +81,10 @@ $filter->{date} = "01-07-2013";
 
 my @expected_date = retrieve("t/data/date_filter.store");
 @matching_lanes_edit = remove_lane_objects(\@matching_lanes);
+
+print STDERR Dumper \@matching_lanes_edit;
+print STDERR Dumper \@expected_date;
+
 is_deeply \@matching_lanes, \@expected_date, 'correctly dated files recovered';
 
 done_testing();
