@@ -43,14 +43,14 @@ else{
 	system("ls $link_dir");
 	print "\n\n";
 }
-ok( -e "$link_dir/test1.fastq",
+ok( -l "$link_dir/test1.fastq",
     'checking link existence' );
-ok( -e "$link_dir/test2.fastq",
+ok( -l "$link_dir/test2.fastq",
     'checking link existence' );
-ok( -e "$link_dir/test3.fastq",
+ok( -l "$link_dir/test3.fastq",
     'checking link existence' );
 #clean up
-#remove_tree("$link_dir");
+remove_tree("$link_dir");
 
 #test archive creation
 ok( $linker_obj->archive, 'testing archive creation' );
