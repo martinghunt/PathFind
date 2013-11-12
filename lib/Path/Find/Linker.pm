@@ -206,6 +206,7 @@ sub _link_names {
         }
     }
     else {
+		print STDERR Dumper \@matching_files;
         foreach my $mf (@matching_files) {
             chomp $mf;
             $mf =~ /([^\/]+)$/;
