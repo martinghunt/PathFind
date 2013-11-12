@@ -36,6 +36,7 @@ use File::Temp;
 use Cwd;
 use Data::Dumper;
 use Carp;
+use File::Basename;
 
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has '_tmp_dir' => ( is => 'rw', lazy => 1, builder  => '_build__tmp_dir' );
