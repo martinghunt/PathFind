@@ -238,7 +238,7 @@ sub _tar {
     else {
         system("mv $tmp_dir/archive.tar.gz $final_destination/$arc_name.tar.gz")
           == 0
-          or warn
+          or print STDERR
           "An error occurred while writing archive $arc_name: error code $?\n";
         File::Temp::cleanup();
         return $error;

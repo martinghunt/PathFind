@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use File::Slurp;
 use File::Path qw( remove_tree);
+use Cwd 'abs_path';
 
 BEGIN { unshift( @INC, './lib' ) }
 
@@ -12,16 +13,18 @@ BEGIN {
 
 use_ok('Path::Find::Linker');
 
-my ( @lanes, $linker_obj );
+my ( @lanes, $linker_obj, $link_dir );
 
 @lanes = (
     { path => 't/data/links' }
 );
 
+$link_dir = abs_path('./link_test');
+
 ok(
     $linker_obj = Path::Find::Linker->new(
         lanes => \@lanes,
-        name  => 'link_test',
+        name  => $link_dir,
 		_default_type => '/*.fastq',
 		use_default_type => 1
     ),
@@ -31,17 +34,17 @@ ok(
 #test symlink creation
 ok( $linker_obj->sym_links, 'testing sym linking' );
 
-print "\n\nLS of link_test:\n";
-system("ls link_test");
+print "\n\nLS of $link_dir:\n";
+system("ls $link_dir");
 print "\n\n";
-ok( -e "./link_test/test1.fastq",
+ok( -e "$link_dir/test1.fastq",
     'checking link existence' );
-ok( -e "./link_test/test2.fastq",
+ok( -e "$link_dir/test2.fastq",
     'checking link existence' );
-ok( -e "./link_test/test3.fastq",
+ok( -e "$link_dir/test3.fastq",
     'checking link existence' );
 #clean up
-remove_tree("link_test");
+remove_tree("$link_dir");
 
 #test archive creation
 ok( $linker_obj->archive, 'testing archive creation' );
