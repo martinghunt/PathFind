@@ -34,10 +34,15 @@ ok(
 #test symlink creation
 ok( $linker_obj->sym_links, 'testing sym linking' );
 
-print "\n\nLS of $link_dir:\n";
-system("ls $link_dir");
-print "\n\n";
-print "FILE FOUND\n\n" if( -e "$link_dir/test1.fastq");
+if( -e "$link_dir/test1.fastq"){
+	print "FILE FOUND\n\n";
+	print "$link_dir/test1.fastq";
+}
+else{
+	print "\n\nLS of $link_dir:\n";
+	system("ls $link_dir");
+	print "\n\n";
+}
 ok( -e "$link_dir/test1.fastq",
     'checking link existence' );
 ok( -e "$link_dir/test2.fastq",
