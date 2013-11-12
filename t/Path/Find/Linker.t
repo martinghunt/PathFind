@@ -53,15 +53,6 @@ ok( -l "$link_dir/test3.fastq",
 #remove_tree("$link_dir");
 
 #test archive creation
-ok(
-    $linker_obj = Path::Find::Linker->new(
-        lanes => \@lanes,
-        name  => $link_dir,
-		_default_type => '/*.fastq',
-		use_default_type => 1
-    ),
-    'creating linker object'
-);
 ok( $linker_obj->archive, 'testing archive creation' );
 ok( -e "link_test.tar.gz" );
 

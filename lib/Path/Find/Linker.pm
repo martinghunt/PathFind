@@ -234,16 +234,17 @@ sub _tar {
     if ($sys != 0) {
         print STDERR "An error occurred while creating the archive: $arc_name\n";
         print STDERR "No output written to $arc_name.tar.gz\n";
-        File::Temp::cleanup();
+        #File::Temp::cleanup();
         return $sys;
     }
     else {
         my $sys2 = system("mv $tmp_dir/archive.tar.gz $final_destination/$arc_name.tar.gz");
         if($sys2 != 0){
         	print STDERR "An error occurred while writing archive $arc_name: error code $?\n";
+			return $sys2;
 		}
-        File::Temp::cleanup();
-        return $sys2;
+        #File::Temp::cleanup();
+        return 1;
     }
 }
 
