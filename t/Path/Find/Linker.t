@@ -25,7 +25,7 @@ my ( @lanes, $linker_obj );
 ok(
     $linker_obj = Path::Find::Linker->new(
         lanes => \@lanes,
-        name  => '$destination_directory/link_test'
+        name  => "$destination_directory/link_test"
     ),
     'creating linker object'
 );
