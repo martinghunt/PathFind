@@ -50,7 +50,7 @@ ok( -e "$link_dir/test2.fastq",
 ok( -e "$link_dir/test3.fastq",
     'checking link existence' );
 #clean up
-remove_tree("$link_dir");
+#remove_tree("$link_dir");
 
 #test archive creation
 ok( $linker_obj->archive, 'testing archive creation' );
