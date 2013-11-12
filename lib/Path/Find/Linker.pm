@@ -82,7 +82,7 @@ sub _build__checked_name {
 }
 
 sub _build__tmp_dir {
-    my $tmp_dir_obj = File::Temp->newdir( DIR => getcwd, CLEANUP => 1 );
+    my $tmp_dir_obj = File::Temp->newdir( DIR => getcwd, CLEANUP => 0 );
     return $tmp_dir_obj->dirname;
 }
 
@@ -183,7 +183,7 @@ sub _check_dest {
 
     if ( !-e $destination ) {
         system("mkdir $destination") == 0
-          or croak "Could not create $destination: error code $?\n";
+          or croak "Could not create $destination: error code $? , $!\n";
     }
     return 1;
 }
