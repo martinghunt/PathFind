@@ -59,7 +59,7 @@ $filter = Path::Find::Filter->new(
 
 my @expected_bams = retrieve("t/data/bam_lanes.store");
 ok( scalar @matching_lanes == scalar @expected_bams, 'correct number of bams found');
-foreach $x (0..4){
+foreach my $x (0..4){
 	ok($matching_lanes[$x]->{path} eq $expected_bams[$x], 'path matches');
 }
 
