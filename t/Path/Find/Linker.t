@@ -19,14 +19,14 @@ my ( @lanes, $linker_obj, $link_dir );
     { path => 't/data/links' }
 );
 
-$link_dir = abs_path('./link_test');
+$link_dir = abs_path('./symlink_test');
 
 ok(
     $linker_obj = Path::Find::Linker->new(
         lanes => \@lanes,
         name  => $link_dir,
-		_default_type => '/*.fastq',
-		use_default_type => 1
+	_default_type => '/*.fastq',
+	use_default_type => 1
     ),
     'creating linker object'
 );
