@@ -227,10 +227,9 @@ sub _tar {
     my $final_destination = $self->_given_destination;
     my $error             = 0;
 
-    system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name > /dev/null >&2") == 0
-      or $error = 1;
+    my $sys = system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name > /dev/null >&2");
 
-    if ($error) {
+    if ($sys != 0) {
         print STDERR "An error occurred while creating the archive: $arc_name\n";
         print STDERR "No output written to $arc_name.tar.gz\n";
         File::Temp::cleanup();
