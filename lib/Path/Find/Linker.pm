@@ -82,7 +82,7 @@ sub _build__checked_name {
 }
 
 sub _build__tmp_dir {
-    my $tmp_dir_obj = File::Temp->newdir( DIR => getcwd, CLEANUP => 0 );
+    my $tmp_dir_obj = File::Temp->newdir( DIR => getcwd, CLEANUP => 1 );
     return $tmp_dir_obj->dirname;
 }
 
@@ -233,7 +233,7 @@ sub _tar {
         print STDERR "An error occurred while creating the archive: $arc_name\n";
         print STDERR "No output written to $arc_name.tar.gz\n";
         File::Temp::cleanup();
-        return 0;
+        return $sys;
     }
     else {
         system("mv $tmp_dir/archive.tar.gz $final_destination/$arc_name.tar.gz")
@@ -241,7 +241,7 @@ sub _tar {
           or print STDERR
           "An error occurred while writing archive $arc_name: error code $?\n";
         File::Temp::cleanup();
-        return $error;
+        return $sys;
     }
 }
 
