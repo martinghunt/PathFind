@@ -27,6 +27,8 @@ use VRTrack::Individual;
 use Path::Find;
 use Data::Dumper;
 
+use Storable;
+
 # required
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'root'      => ( is => 'ro', required => 1 );
@@ -129,7 +131,7 @@ sub filter {
             }
         }
     }
-
+	store \@matching_paths, 'lanes.store';
     return @matching_paths;
 }
 
