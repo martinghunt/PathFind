@@ -17,7 +17,7 @@ my $destination_directory = $destination_directory_obj->dirname();
 my ( @lanes, $linker_obj );
 
 @lanes = (
-    { path => '../../data/links' }
+    { path => 't/data/links' }
 );
 
 ok(
@@ -59,9 +59,9 @@ rmdir "$destination_directory/link_test";
 
 #test link renaming
 my %link_names = (
-    '../../data/links/test1.fastq' => 't1.fastq',
-    '../../data/links/test2.fastq' => 't2.fastq',
-    '../../data/links/test3.fastq' => 't3.fastq'
+    't/data/links/test1.fastq' => 't1.fastq',
+    't/data/links/test2.fastq' => 't2.fastq',
+    't/data/links/test3.fastq' => 't3.fastq'
 );
 ok(
     $linker_obj = Path::Find::Linker->new(
