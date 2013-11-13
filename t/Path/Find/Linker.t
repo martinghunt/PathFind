@@ -34,7 +34,6 @@ ok(
 #test symlink creation
 #ok( $linker_obj->sym_links, 'testing sym linking' );
 
-
 #ok( -l "$link_dir/test1.fastq",
 #    'checking link existence' );
 #ok( -l "$link_dir/test2.fastq",
