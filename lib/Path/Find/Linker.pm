@@ -226,13 +226,11 @@ sub _link_names {
 
 sub _tar {
     my ($self, $tmp_dir)  = @_;
-	#my $tmp_dir_ob        = $self->_tmp_dir;
-    #my $tmp_dir           = $tmp_dir_ob->dirname;
     my $arc_name          = $self->_checked_name;
     my $final_destination = $self->_given_destination;
     my $error             = 0;
 
-    system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name") == 0 or $error = 1;
+    system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name > /dev/null >&2") == 0 or $error = 1;
 
     if ($error) {
         print STDERR "An error occurred while creating the archive: $arc_name: error code $?, $!\n";
