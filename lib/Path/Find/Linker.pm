@@ -232,12 +232,6 @@ sub _tar {
     my $final_destination = $self->_given_destination;
     my $error             = 0;
 
-	print STDERR "ARCNAME = $arc_name\n\n";
-
-	print STDERR "$tmp_dir/$arc_name pre-tar:\n";
-	system("ls $tmp_dir/$arc_name");
-    print STDERR "cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name\n";
-	system("chmod a+rw $tmp_dir");
     system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name") == 0 or $error = 1;
 
     if ($error) {
@@ -246,7 +240,7 @@ sub _tar {
         return 0;
     }
     else {
-		my $mv_error = 0;
+	my $mv_error = 0;
         system("mv $tmp_dir/archive.tar.gz $final_destination/$arc_name.tar.gz") == 0 or $mv_error = 1;
         if($mv_error){
         	print STDERR "An error occurred while writing archive $arc_name: error code $?\n";
