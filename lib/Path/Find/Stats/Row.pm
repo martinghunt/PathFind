@@ -1,3 +1,29 @@
+# ABSTRACT: Generate cells for statistics spreadsheets
+
+=head1 NAME
+
+Path::Find::Stats::Row;
+
+=head1 SYNOPSIS
+
+	use Path::Find::Stats::Row;
+	my $row = Path::Find::Stats::Row->new(
+		vrtrack => $vrtrack,
+		lane    => $vrtrack_lane,
+		bamcheck => '/path/to/bamcheck/file.bc'
+	);
+   
+	print $row->reads_mapped;
+	print $row->bases_mapped;
+
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=head1 METHODS
+
+=cut
+
 package Path::Find::Stats::Row;
 
 use Moose;
@@ -9,6 +35,7 @@ has 'lane'       => ( is => 'ro', isa => 'VRTrack::Lane',            required =>
 has 'mapstats'   => ( is => 'ro', isa => 'Maybe[VRTrack::Mapstats]', required => 0 );    # mapstats
 has 'stats_file' => ( is => 'ro', isa => 'Str',                      required => 0 );    # assembly stats file
 has 'bamcheck'   => ( is => 'ro', isa => 'Str',                      required => 0 );    # assembly bamcheck file
+has 'gff_file'	 => ( is => 'ro', isa => 'Str',                      required => 0 );
 
 # Checks
 has 'is_qc_mapstats'      => ( is => 'ro', isa => 'Bool',        lazy_build => 1 );    # qc or mapping mapstats.
@@ -24,6 +51,7 @@ has '_basic_assembly_stats' => ( is => 'ro', isa => 'HashRef',                  
 
 # Cells
 # Mapping
+# REQUIRES: VRTrack::Mapstats object
 has 'study_id'             => ( is => 'ro', isa => 'Int',        lazy_build => 1 );    # study ssid
 has 'sample'               => ( is => 'ro', isa => 'Str',        lazy_build => 1 );    # sample name
 has 'lanename'             => ( is => 'ro', isa => 'Str',        lazy_build => 1 );    # lane name
@@ -52,9 +80,10 @@ has 'duplication_rate'     => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1
 has 'error_rate'           => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );    # error rate qc
 has 'npg_qc'               => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );    # npg qc
 has 'manual_qc'            => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );    # manual qc
+# END: VRTrack::Mapstats object
 
 # Assembly
-# From stats file
+# REQUIRES: assembly stats file
 has 'assembly_type'         => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
 has 'total_length'          => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'num_contigs'           => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
@@ -73,8 +102,9 @@ has 'n90_n'                 => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 
 has 'n100'                  => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'n100_n'                => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'n_count'               => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+# END: assembly stats file
 
-# From bamcheck file
+# REQUIRES: bamcheck file
 has 'sequences'          => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'reads_mapped'       => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'reads_unmapped'     => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
@@ -88,7 +118,13 @@ has 'max_length'         => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 )
 has 'avg_qual'           => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'avg_insert_size'    => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'sd_insert_size'     => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+# END: bamcheck file
 
+# Annotation
+# REQUIRES: GFF file
+has 'gene_n' => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+has 'cds_n'  => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
+# END: GFF file
 
 # Is mapstats entry from QC or Mapping
 sub _build_is_qc_mapstats {
@@ -680,7 +716,33 @@ sub _build_is_mapping_complete {
 		}
     }
 
-    #End Assembly Cells
+    # End Assembly Cells
+
+	# Annotation Cells
+	{
+		sub _build_gene_n {
+			my ($self) = @_;
+			my $gff = $self->gff_file;
+			return undef unless(defined $gff);
+			open(GFF, "<", $gff);
+			my $gene_count = 0;
+			while(my $line = <GFF>){
+				last if($line =~ /##FASTA/);
+				$gene_count++ unless($line =~ /^##/);
+			}
+			return $gene_count;
+		}
+
+		sub _build_cds_n {
+			my ($self) = @_;
+			my $gff = $self->gff_file;
+			return undef unless(defined $gff);
+			my $cds_count = `grep -c CDS $gff`;
+			chomp $cds_count;
+			return $cds_count;
+		}
+		
+	}
 }
 
 #End Build Cells

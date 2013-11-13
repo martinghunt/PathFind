@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use File::Slurp;
+use Data::Dumper;
 
 BEGIN { unshift( @INC, './lib' ) }
 
@@ -10,8 +11,9 @@ use Path::Find;
 
 BEGIN {
     use Test::Most;
-    use_ok('Path::Find::Lanes');
 }
+
+use_ok('Path::Find::Lanes');
 
 my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info('pathogen_prok_track');
 my ( $lanes, $lanes_obj );
@@ -29,7 +31,7 @@ ok(
 );
 isa_ok $lanes_obj, 'Path::Find::Lanes';
 
-$lanes = $find_lanes->lanes;
+$lanes = $lanes_obj->lanes;
 
 my @test_lanes1 = ( '7114_6#1', '7114_6#2', '7114_6#3' );
 my @expected_lanes1 = generate_lane_objects( $pathtrack, \@test_lanes1 );
@@ -40,7 +42,7 @@ is_deeply $lanes, \@expected_lanes1, 'correct lanes recovered';
 ok(
     $lanes_obj = Path::Find::Lanes->new(
         search_type    => 'file',
-        search_id      => '../../data/test_lanes.txt',
+        search_id      => 't/data/test_lanes.txt',
         pathtrack      => $pathtrack,
         dbh            => $dbh,
         processed_flag => 1
@@ -49,9 +51,9 @@ ok(
 );
 isa_ok $lanes_obj, 'Path::Find::Lanes';
 
-$lanes = $find_lanes->lanes;
+$lanes = $lanes_obj->lanes;
 
-open( FILE, "<", "../../data/test_lanes.txt" );
+open( FILE, "<", "t/data/test_lanes.txt" );
 my @test_lanes2 = <FILE>;
 chomp @test_lanes2;
 my @expected_lanes2 = generate_lane_objects( $pathtrack, \@test_lanes2 );
@@ -71,7 +73,7 @@ ok(
 );
 isa_ok $lanes_obj, 'Path::Find::Lanes';
 
-$lanes = $find_lanes->lanes;
+$lanes = $lanes_obj->lanes;
 
 my @test_lanes3 = (
     '8086_1#1', '8086_1#2', '8086_1#3', '8086_1#4',
@@ -94,13 +96,12 @@ ok(
 );
 isa_ok $lanes_obj, 'Path::Find::Lanes';
 
-$lanes = $find_lanes->lanes;
+$lanes = $lanes_obj->lanes;
 
 my @test_lanes4 = (
     '5749_8#1', '5749_8#2', '5749_8#3', '8080_1#72'
 );
-my @expected_lanes4 = generate_lane_objects( $pathtrack, \@test_lanes3 );
-
+my @expected_lanes4 = generate_lane_objects( $pathtrack, \@test_lanes4 );
 is_deeply $lanes, \@expected_lanes4, 'correct lanes recovered';
 
 done_testing();

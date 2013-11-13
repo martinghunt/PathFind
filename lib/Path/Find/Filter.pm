@@ -1,10 +1,8 @@
 package Path::Find::Filter;
 
-# ABSTRACT:
+# ABSTRACT: Logic to filter lanes based on given criteria
 
 =head1 SYNOPSIS
-
-Logic to filter lanes based on given criteria
 
    use Path::Find::Filter;
    my $lane_filter = Path::Find::Filter->new(
@@ -28,6 +26,8 @@ use VRTrack::Lane;
 use VRTrack::Individual;
 use Path::Find;
 use Data::Dumper;
+
+use Storable;
 
 # required
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
@@ -131,7 +131,6 @@ sub filter {
             }
         }
     }
-
     return @matching_paths;
 }
 
@@ -203,9 +202,13 @@ sub _get_stats_paths {
 	
 	my @stats_paths;
 	foreach my $l ( @lane_paths ){
+		$l =~ s/annotation//;
 		foreach my $sf ( @{ $stats } ){
-			if(-e "$l/$sf"){
-				push(@stats_paths, "$l/$sf");
+			my @stat_files = glob "$l/$sf";
+			foreach my $st_file ( @stat_files ){
+				if(-e $st_file){
+					push(@stats_paths, $st_file);
+				}
 			}
 		}
 		return \@stats_paths if( @stats_paths );
@@ -278,14 +281,27 @@ sub _reference_name {
     my ( $self, $lane ) = @_;
 
     my @mapstats = @{ $lane->mappings_excluding_qc };
-    return $mapstats[0]->assembly->name;
+	my $assembly_obj = $mapstats[0]->assembly;
+	
+	if(defined $assembly_obj){
+		return $assembly_obj->name;
+	}
+	else{
+		return 'NA';
+	}
 }
 
 sub _get_mapper {
     my ( $self, $lane ) = @_;
 
     my @mapstats = @{ $lane->mappings_excluding_qc };
-    return $mapstats[0]->mapper->name;
+	my $mapper_obj = $mapstats[0]->mapper;
+	if( defined $mapper_obj ){
+    	return $mapper_obj->name;
+	}
+	else{
+		return 'NA';
+	}
 }
 
 sub _date_changed {

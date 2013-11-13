@@ -1,12 +1,33 @@
 package Path::Find::Stats::Generator;
 
-# ABSTRACT:
+# ABSTRACT: Generate correct stats for *find scripts
+
+=head1 NAME
+
+Path::Find::Stats::Generator
 
 =head1 SYNOPSIS
 
+	use Path::Find::Stats::Generator;
+	use Path::Find;
+	
+	my @db_info = Path::Find->get_db_info($database);
+	my $vrtrack = shift(@db_info);
+	
+	my $gen = Path::Find::Stats::Generator->new(
+		lane_hashes => \@lanes
+		output      => 'stats_file.csv',
+		vrtrack     => $vrtrack
+	);
 
+	$gen->pathfind;
+	$gen->mapfind;
    
-=method 
+=head1 CONTACT
+
+path-help@sanger.ac.uk
+
+=head1 METHODS
 
 =cut
 
@@ -18,10 +39,10 @@ use Data::Dumper;
 
 # lane_hashes || lanes is required
 has 'lane_hashes' => ( is => 'ro', isa => 'ArrayRef', required => 0 );
-has 'lanes'       => ( is => 'ro', isa => 'ArrayRef[VRTrack::Lane]', required => 0,  );
+has 'lanes' => ( is => 'ro', isa => 'ArrayRef[VRTrack::Lane]', required => 0, );
 
-has 'output'      => ( is => 'ro', isa => 'Str', required => 1 );
-has 'vrtrack'     => ( is => 'rw', required => 1 );
+has 'output' => ( is => 'ro', isa => 'Str', required => 1 );
+has 'vrtrack' => ( is => 'rw', required => 1 );
 
 sub pathfind {
     my ($self) = @_;
@@ -79,7 +100,7 @@ sub pathfind {
     #loop through lanes and print info to file
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
-		my $l = $l_h->{lane};
+        my $l       = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->qc_mappings );
         my $row     = Path::Find::Stats::Row->new(
             lane     => $l,
@@ -92,9 +113,10 @@ sub pathfind {
             my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
-        my $row_joined = join( ',', @info );
+        my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
+	close(OUT);
 }
 
 sub mapfind {
@@ -150,7 +172,7 @@ sub mapfind {
     #loop through lanes and print info to file
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
-		my $l = $l_h->{lane};
+        my $l       = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
         my $row     = Path::Find::Stats::Row->new(
             lane     => $l,
@@ -163,14 +185,15 @@ sub mapfind {
             my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
-        my $row_joined = join( ',', @info );
+        my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
+	close(OUT);
 }
 
 sub assemblyfind {
     my ($self) = @_;
-	my @lanes = @{ $self->lane_hashes };
+    my @lanes = @{ $self->lane_hashes };
 
     my @headers = (
         'Lane',
@@ -207,7 +230,7 @@ sub assemblyfind {
         'Insert Size Std Dev'
     );
     my @columns = (
-		'lanename',				 'assembly_type',
+        'lanename',              'assembly_type',
         'total_length',          'num_contigs',
         'average_contig_length', 'largest_contig',
         'n50',                   'n50_n',
@@ -235,16 +258,16 @@ sub assemblyfind {
     #loop through lanes and print info to file
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
-		my $l = $l_h->{lane};
+        my $l       = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
-		my ($stats_file, $bamcheck_file) = @{ $l_h->{stats} };
-		die "Stats file not found at $stats_file" unless(-e $stats_file);
-        my $row     = Path::Find::Stats::Row->new(
-            lane          => $l,
-            mapstats      => $mapstat,
-            vrtrack       => $vrtrack,
-			stats_file    => $stats_file,
-			bamcheck      => $bamcheck_file
+        my ( $stats_file, $bamcheck_file ) = @{ $l_h->{stats} };
+        die "Stats file not found at $stats_file" unless ( -e $stats_file );
+        my $row = Path::Find::Stats::Row->new(
+            lane       => $l,
+            mapstats   => $mapstat,
+            vrtrack    => $vrtrack,
+            stats_file => $stats_file,
+            bamcheck   => $bamcheck_file
         );
 
         my @info;
@@ -255,6 +278,7 @@ sub assemblyfind {
         my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
+	close(OUT);
 }
 
 sub rnaseqfind {
@@ -310,12 +334,14 @@ sub rnaseqfind {
     #loop through lanes and print info to file
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
-		my $l = $l_h->{lane};
-        my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
-        my $row     = Path::Find::Stats::Row->new(
-            lane     => $l,
-            mapstats => $mapstat,
-            vrtrack  => $vrtrack
+        my $l     = $l_h->{lane};
+        my $ms_id = $l_h->{mapstat_id};
+        my $mapstat =
+          $self->_select_mapstat( $l->mappings_excluding_qc, $ms_id );
+        my $row = Path::Find::Stats::Row->new(
+            lane       => $l,
+            mapstats   => $mapstat,
+            vrtrack    => $vrtrack
         );
 
         my @info;
@@ -323,20 +349,93 @@ sub rnaseqfind {
             my $i = defined( $row->$c ) ? $row->$c : "NA";
             push( @info, $i );
         }
-        my $row_joined = join( ',', @info );
+        my $row_joined = join( "\t", @info );
         print OUT "$row_joined\n";
     }
+	close(OUT);
 }
 
+sub annotationfind {
+    my ($self) = @_;
+    my @lanes = @{ $self->lane_hashes };
+
+    # set up headers and info to retrieve for each row
+    my @headers = (
+        'Study ID',
+        'Lane Name',
+        'Reads',
+        'Reference',
+        'Reference Size',
+        'Mapped %',
+        'Depth of Coverage',
+        'Adapter %',
+        'Total Length',
+        'No Contigs',
+        'N50',
+        'Reads Mapped',
+        'Average Quality',
+        'No. genes',
+        'No. CDS genes'
+    );
+
+    my @columns = (
+        'study_id',          'lanename',
+        'reads',             'reference',
+        'reference_size',    'mapped_perc',
+        'depth_of_coverage', 'adapter_perc',
+        'total_length',      'num_contigs',
+        'n50',               'reads_mapped',
+        'avg_qual',          'gene_n',
+        'cds_n'
+    );
+
+    # set up output file handle
+    open( OUT, ">", $self->output );
+
+    #output headers
+    my $header_line = join( ",", @headers );
+    print OUT "$header_line\n";
+
+    #loop through lanes and print info to file
+    my $vrtrack = $self->vrtrack;
+    foreach my $l_h (@lanes) {
+        my $l       = $l_h->{lane};
+        my $mapstat = $self->_select_mapstat( $l->qc_mappings );
+		my ( $stats_file, $bamcheck_file, $gff_file ) = @{ $l_h->{stats} };
+        my $row = Path::Find::Stats::Row->new(
+            lane       => $l,
+            mapstats   => $mapstat,
+            vrtrack    => $vrtrack,
+            stats_file => $stats_file,
+            bamcheck   => $bamcheck_file,
+			gff_file   => $gff_file
+        );
+
+        my @info;
+        foreach my $c (@columns) {
+            my $i = defined( $row->$c ) ? $row->$c : "NA";
+            push( @info, $i );
+        }
+        my $row_joined = join( "\t", @info );
+        print OUT "$row_joined\n";
+    }
+	close(OUT);
+}
 
 sub _select_mapstat {
-    my ( $self, $mapstats ) = @_;
+    my ( $self, $mapstats, $id ) = @_;
 
-    my @sorted_mapstats = sort { $a->row_id <=> $b->row_id } @{$mapstats};
-
-	print Dumper \@sorted_mapstats;
-	
-    return pop(@sorted_mapstats);
+    if ( defined $id ) {
+        foreach my $ms ( @{$mapstats} ) {
+            if ( $ms->id eq $id ) {
+                return $ms;
+            }
+        }
+    }
+    else {
+        my @sorted_mapstats = sort { $a->row_id <=> $b->row_id } @{$mapstats};
+        return pop(@sorted_mapstats);
+    }
 }
 
 no Moose;

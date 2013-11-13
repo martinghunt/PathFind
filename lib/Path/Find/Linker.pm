@@ -1,6 +1,6 @@
 package Path::Find::Linker;
 
-# ABSTRACT:
+# ABSTRACT: Logic to create symlinks or archives for a list of lanes
 
 =head1 SYNOPSIS
 
@@ -35,9 +35,11 @@ use Moose;
 use File::Temp;
 use Cwd;
 use Data::Dumper;
+use Carp;
+use File::Basename;
 
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has '_tmp_dir' => ( is => 'rw', isa => 'Str', builder  => '_build__tmp_dir' );
+has '_tmp_dir' => ( is => 'rw', lazy => 1, builder  => '_build__tmp_dir' );
 has 'name'     => ( is => 'ro', isa => 'Str', required => 1 );
 has '_checked_name' =>
   ( is => 'rw', isa => 'Str', lazy => 1, builder => '_build__checked_name' );
@@ -50,7 +52,8 @@ has '_default_type' => (
     lazy     => 1,
     builder  => '_build__default_type'
 );
-has 'use_default_type' => ( is => 'ro', isa => 'Bool', required => 1 );
+has 'use_default_type' =>
+  ( is => 'ro', isa => 'Bool', required => 0, default => 0 );
 has '_given_destination' => (
     is       => 'ro',
     isa      => 'Str',
@@ -58,6 +61,7 @@ has '_given_destination' => (
     writer   => '_set__given_destination'
 );
 has 'rename_links' => ( is => 'ro', isa => 'HashRef', required => 0 );
+has 'script_name'  => ( is => 'ro', isa => 'Str', required => 0, default => $0 );
 
 sub _build__checked_name {
     my ($self) = @_;
@@ -66,37 +70,40 @@ sub _build__checked_name {
     # check if full path, if so, set given destination
     # if not, set given destination to CWD
     if ( $name =~ /^\// ) {
-        my @dirs = split( '/', $name );
-        $name = pop(@dirs);
-        $self->_set__given_destination( join( '/', @dirs ) );
+        my($filename, $directories, $suffix) = fileparse($name);
+        $self->_set__given_destination( $directories );
+		$name = $filename;
     }
     else {
         my $current_cwd = getcwd;
         $self->_set__given_destination($current_cwd);
     }
     $name =~ s/\s+/_/;
+	print STDERR "$name\n";
     return $name;
 }
 
 sub _build__tmp_dir {
-    my $tmp_dir_obj = File::Temp->newdir( CLEANUP => 0 );
-    return $tmp_dir_obj->dirname;
+    my $tmp_dir_obj = File::Temp->newdir( DIR => getcwd, CLEANUP => 1 );
+    return $tmp_dir_obj;
 }
 
 sub _build__default_type {
     my ($self) = @_;
+	my $script_name = $self->script_name;
+	
     my %default_ft = (
         pathfind       => '/*.fastq.gz',
-        assemblyfind   => 'contigs',
         annotationfind => '/*.gff',
         mapfind        => '/*markdup.bam',
         snpfind        => '/*.snp/mpileup.unfilt.vcf.gz',
-        rnaseqfind     => '/*expression.csv',
+        rnaseqfind     => '/*corrected.bam',
         tradisfind     => '/*insertion.csv',
+		reffind        => '/*.fa'
     );
 
     # capture calling script name
-    $0 =~ /([^\/]+$)/;
+    $script_name =~ /([^\/]+$)/;
     return $default_ft{$1};
 }
 
@@ -107,17 +114,21 @@ sub archive {
     my $final_dest = $self->_given_destination;
 
     #set destination for symlinks
-    my $tmp_dir = $self->_tmp_dir;
-    $self->_set_destination("$tmp_dir");
+    #my $tmp_dir = $self->_tmp_dir;
+	my $tmp_dir = File::Temp->newdir( DIR => getcwd, CLEANUP => 0 );
+	my $dirname = $tmp_dir->dirname;
+    $self->_set_destination("$dirname");
 
     #create symlinks
     $self->_create_symlinks;
 
     #tar and move to CWD
-    print "Archiving lanes to $final_dest/$c_name:\n";
-    $self->_tar;
+    print STDERR "Archiving lanes to $final_dest/$c_name:\n";
+    my $er_code = $self->_tar($dirname);
 
-    File::Temp::cleanup();
+	File::Temp::cleanup();
+
+	return $er_code;
 }
 
 sub sym_links {
@@ -130,7 +141,9 @@ sub sym_links {
 
     #create symlinks
     $self->_create_symlinks;
-    print "Symlinks created in $dest/$s_d\n";
+    print STDERR "Symlinks created in $dest/$s_d\n";
+
+	return 1;
 }
 
 sub _create_symlinks {
@@ -151,9 +164,15 @@ sub _create_symlinks {
     #create symlink
     foreach my $lane (@lanes) {
         my $l = $lane->{path};
-        my @files2link = $self->_link_names( $l, $default_type );
+        my @files2link;
+		if(defined $default_type){
+			@files2link = $self->_link_names( $l, $default_type );
+		}
+		else {
+			@files2link = $self->_link_names( $l, undef );
+		}
         foreach my $linkf (@files2link) {
-			my ($source, $dest) = @{ $linkf };
+            my ( $source, $dest ) = @{$linkf};
             my $cmd = "ln -s $source $dest";
             system($cmd) == 0
               or die
@@ -168,7 +187,7 @@ sub _check_dest {
 
     if ( !-e $destination ) {
         system("mkdir $destination") == 0
-          or die "Could not create $destination: error code $?\n";
+          or croak "Could not create $destination: error code $? , $!\n";
     }
     return 1;
 }
@@ -177,50 +196,55 @@ sub _link_names {
     my ( $self, $lane, $dt ) = @_;
     my $destination = $self->destination;
     my $name        = $self->_checked_name;
-	my $linknames = $self->rename_links;
+    my $linknames   = $self->rename_links;
 
-	my @files2link;
-    my @matching_files = `ls $lane$dt`;
-    if ( $linknames ) {
+    my @files2link;
+	my @matching_files;
+    if ( $dt ) {
+        @matching_files = `ls $lane$dt`;
+    }
+	else{
+		@matching_files = ($lane);
+	}
+	
+	if ($linknames) {
         foreach my $mf (@matching_files) {
-			chomp $mf;
+            chomp $mf;
             my $lf = $linknames->{$mf};
-            push( @files2link, [$mf, "$destination/$name/$lf"] );
+            push( @files2link, [ $mf, "$destination/$name/$lf" ] );
         }
     }
     else {
         foreach my $mf (@matching_files) {
-			chomp $mf;
+            chomp $mf;
             $mf =~ /([^\/]+)$/;
-            push( @files2link, [$mf, "$destination/$name/$1"] );
+            push( @files2link, [ $mf, "$destination/$name/$1" ] );
         }
     }
-	return @files2link;
+    return @files2link;
 }
 
 sub _tar {
-    my ($self)            = @_;
-    my $tmp_dir           = $self->_tmp_dir;
+    my ($self, $tmp_dir)  = @_;
     my $arc_name          = $self->_checked_name;
     my $final_destination = $self->_given_destination;
     my $error             = 0;
 
-    system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name") == 0
-      or $error = 1;
+    system("cd $tmp_dir; tar cvhfz archive.tar.gz $arc_name > /dev/null >&2") == 0 or $error = 1;
 
     if ($error) {
-        print "An error occurred while creating the archive: $arc_name\n";
-        print "No output written to $arc_name.tar.gz\n";
-        File::Temp::cleanup();
+        print STDERR "An error occurred while creating the archive: $arc_name: error code $?, $!\n";
+        print STDERR "No output written to $arc_name.tar.gz\n";
         return 0;
     }
     else {
-        system("mv $tmp_dir/archive.tar.gz $final_destination/$arc_name.tar.gz")
-          == 0
-          or die
-          "An error occurred while writing archive $arc_name: error code $?\n";
-        File::Temp::cleanup();
-        return $error;
+	my $mv_error = 0;
+        system("mv $tmp_dir/archive.tar.gz $final_destination/$arc_name.tar.gz") == 0 or $mv_error = 1;
+        if($mv_error){
+        	print STDERR "An error occurred while writing archive $arc_name: error code $?\n";
+			return $mv_error;
+		}
+        return 1;
     }
 }
 

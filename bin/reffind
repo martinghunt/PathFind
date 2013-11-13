@@ -1,170 +1,19 @@
 #!/usr/bin/env perl
 
-=head1 NAME
+package Path::Find::Bin::RefFind;
 
-reffind
+# ABSTRACT: 
+# PODNAME: 
 
 =head1 SYNOPSIS
 
-# find reference directories
-reffind -s "Aedes"
-reffind -s "Salmonella Typhi"
-reffind -s "Aedes" -symlink
-
-# find reference files by type
-reffind -s "Aedes" -f gff 
-reffind -s "Aedes" -f embl 
-reffind -s "Aedes" -f fa
-
-# symlink to reference files
-reffind -s "Aedes" -f gff -symlink
-reffind -s "Aedes" -f embl -symlink
-reffind -s "Aedes" -f fa -symlink
-
-=head1 DESCRIPTION
-
-Given a species return a the location of the references that match.
-
-=head1 CONTACT
-
-path-help@sanger.ac.uk
-
-=head1 METHODS
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
-use lib "/software/pathogen/internal/prod/lib";
-use Cwd;
-use Getopt::Long;
-use PathfindLog;
-eval{ PathfindLog->new(logfile => '/nfs/pathnfs05/log/pathfindlog/reffind.log', args => \@ARGV)->commandline(); };
+BEGIN { unshift( @INC, '../lib' ) }
+BEGIN { unshift( @INC, './lib' ) }
+BEGIN { unshift( @INC, '/software/pathogen/internal/prod/lib/' ) }
 
-my ($species, $filetype, $symlink, $help);
+use Path::Find::CommandLine::Ref;
 
-GetOptions(
-   's|species=s'        => \$species,
-   'f|filetype=s'       => \$filetype,
-   'symlink'            => \$symlink,
-   'h|help'             => \$help,
-    );
-
-($species && (!$filetype || ($filetype && ($filetype eq 'fa' || $filetype eq 'gff' || $filetype eq 'embl' ))) ) or die <<USAGE;
-
-Usage: $0
-     -s|species         <Species or regex>
-     -f|filetype        <fa|gff|embl>
-     -symlink           <create a symlink to the data>
-     -h|help            <print this message>
-
-Given a species or a partial name of a species, this script will output the path (on pathogen disk) to the reference. 
-Using the option -filetype (fa, gff, or embl) will 
-return the path to the files of this type for the given data. 
-Using the option -symlink will create a symlink to the queried data in the current 
-directory.
-
-USAGE
-
-my $found = 0; #assume nothing found
-
-my $root = '/lustre/scratch108/pathogen/pathpipe/refs/';
-my $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/refs.index';
-
-my @references = search_index_file_for_directories($index_file, $species);
-
-if(@references >= 1)
-{
-  $found = 1;
-  @references = find_files_of_given_type(@references,$filetype) if(defined $filetype);
-  create_symlinks(@references) if(defined $symlink);
-  print_references(@references);
-}
-
-unless ($found) {
-    print "Could not find references\n";
-}
-
-sub find_files_of_given_type
-{
-  my ($reference_directories, $filetype) = @_;
-  my @found_files;
-  $found = 0;
-  for my $directory (@$reference_directories)
-  {
-    opendir(DIR,$directory);
-    my @files = grep { /$filetype$/i } 
-    readdir(DIR);
-    for my $file (@files)
-    {
-      push(@found_files, $directory.'/'.$file);
-      $found = 1;
-    }
-    closedir(DIR); 
-  }
-  @found_files = remove_duplicates(@found_files);
-  return \@found_files;
-}
-
-sub print_references
-{
-  my ($references) = @_;
-  for my $reference (@$references)
-  {
-    print $reference."\n";
-  }
-}
-
-sub create_symlinks
-{
-  my ($objects_to_link) = @_;
-  
-  for my $file_or_directory (@$objects_to_link)
-  {
-    next if(-l $file_or_directory);
-    my $cmd = qq[ ln -s $file_or_directory ];
-    qx( $cmd );
-  }
-  
-}
-
-
-sub search_index_file_for_directories
-{
-  my ($index_file,$search_query) = @_;
-  my @search_results;
-  $search_query =~ s! !|!gi;
-
-  open(INDEX_FILE, $index_file) or die 'Couldnt find the refs.index file';
-  while(<INDEX_FILE>)
-  {
-    chomp;
-    my $line = $_;
-    if($line =~ m/$search_query/i)
-    {
-      if($line =~ m!\t(.+)/[^/]+fa$!)
-      {
-        my $directory = $1;
-        push(@search_results, $directory) if(-d $directory);
-      }
-    }
-  }
-  
-  close(INDEX_FILE);
-  
-  return \@search_results;
-}
-
-sub remove_duplicates
-{
-    my @file_list = @_;
-    my %file_hash;
-
-    foreach my $file (sort @file_list)
-    {
-	$file_hash{$file}=1;
-    }
-
-    return sort keys %file_hash;
-}
+Path::Find::CommandLine::Ref->new(args => \@ARGV, script_name => $0)->run;
