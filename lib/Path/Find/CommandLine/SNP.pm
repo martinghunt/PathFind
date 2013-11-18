@@ -288,6 +288,11 @@ sub create_pseudogenome {
         my $ref_path = $self->find_reference($ref);
         system("echo \">$ref\" >> $pg_filename");
         system("grep -v \">\" $ref_path >> $pg_filename");
+		
+		# add newline to ref
+		open(PG, ">>", $pg_filename);
+		print PG "\n";
+		close(PG);
     }
 
     # next, add all found sequences
