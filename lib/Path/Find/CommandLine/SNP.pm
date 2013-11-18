@@ -26,7 +26,7 @@ where \@ARGV contains the following parameters:
  -r|reference <filter results based on reference>
  -m|mapper    <filter results based on mapper>
  -d|date      <show only results produced after a given date>
- -p|pseudo    <generate a pseudogenome based on the given reference (-r)>
+ -p|pseudo    <generate a pseudogenome based on the given reference>
  -h|help      <print help message>
 
 =head1 CONTACT
@@ -98,7 +98,7 @@ sub BUILD {
         'r|reference=s' => \$ref,
         'd|date=s'      => \$date,
         'm|mapper=s'    => \$mapper,
-        'p|pseudo'      => \$pseudogenome,
+        'p|pseudo=s'    => \$pseudogenome,
         'q|qc=s'        => \$qc
     );
 
@@ -157,8 +157,8 @@ sub run {
     die "The archive and symlink options cannot be used together\n"
       if ( defined $archive && defined $symlink );
 
-    die "Please specify a reference to base the pseudogenome on\n"
-      if ( defined $pseudogenome && !defined $ref );
+    #die "Please specify a reference to base the pseudogenome on\n"
+    #  if ( defined $pseudogenome && !defined $ref );
 
     # set file type extension regular expressions
     my %type_extensions = (
@@ -279,7 +279,7 @@ sub run {
 sub create_pseudogenome {
     my ($self, $mlanes)       = @_;
     my @matching_lanes = @{$mlanes};
-    my $ref            = $self->ref;
+    my $ref            = $self->pseudogenome;
 
     my $pg_filename = $self->pseudogenome_filename();
 
@@ -299,9 +299,9 @@ sub create_pseudogenome {
 }
 
 sub pseudogenome_filename {
-	my ($self) = @_;
+    my ($self) = @_;
     my $pseudo_genome_filename = "concatenated";
-    my $ref                    = $self->ref;
+    my $ref                    = $self->pseudogenome;
     my $id                     = $self->id;
 
     unless ( $ref eq 'none' ) {
@@ -365,7 +365,7 @@ Usage: $script_name
      -r|reference <filter results based on reference>
      -m|mapper    <filter results based on mapper>
      -d|date      <show only results produced after a given date>
-     -p|pseudo    <generate a pseudogenome based on the given reference (-r)>
+     -p|pseudo    <generate a pseudogenome based on this reference. Pass 'none' to exclude reference from pseudogenome>
      -h|help      <print this message>
 
 Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the VCF files with the specified study or lane. Using the option -qc (passed|failed|pending) will limit the 
@@ -373,8 +373,11 @@ results to data of the specified qc status. Using the option -symlink will creat
 directory, alternativley an output directory can be specified in which the symlinks will be created.
 Using the option -archive will create an archive (.tar.gz) containing the VCF and index files.
 
-The -p option will generate a pseudogenome based on the reference passed via the -r option. If you wish to omit the reference from the multifasta file, pass 'none' as the reference.
-E.g: snpfind -t file -i my_lanes.txt -p -r none
+The -p option will generate a pseudogenome based on the reference passed via this option. If you wish to omit the reference from the multifasta file, pass 'none' as the reference. Examples:
+# generate a pseudogenome, but exclude the reference
+snpfind -t file -i my_lanes.txt -p none
+# generate a pseudogenome based on Salmonella enterica Typhi Ty2
+snpfind -t file -i my_lanes.txt -p Salmonella_enterica_subsp_enterica_serovar_Typhi_Ty2_v1
 
 USAGE
     exit;
