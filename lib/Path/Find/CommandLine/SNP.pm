@@ -284,7 +284,7 @@ sub create_pseudogenome {
     my $pg_filename = $self->pseudogenome_filename();
 
     # first add reference as one sequence
-    if ( defined $ref ) {
+    unless ( $ref eq 'none' ) {
         my $ref_path = $self->find_reference($ref);
         system("echo \">$ref\" >> $pg_filename");
         system("grep -v \">\" $ref_path >> $pg_filename");
@@ -304,7 +304,7 @@ sub pseudogenome_filename {
     my $ref                    = $self->ref;
     my $id                     = $self->id;
 
-    if ( defined($ref) ) {
+    unless ( $ref eq 'none' ) {
         $pseudo_genome_filename = $ref . "_" . $pseudo_genome_filename;
     }
 
@@ -372,6 +372,9 @@ Given a study, lane or a file containing a list of lanes, this script will outpu
 results to data of the specified qc status. Using the option -symlink will create a symlink to the queried data in the current 
 directory, alternativley an output directory can be specified in which the symlinks will be created.
 Using the option -archive will create an archive (.tar.gz) containing the VCF and index files.
+
+The -p option will generate a pseudogenome based on the reference passed via the -r option. If you wish to omit the reference from the multifasta file, pass 'none' as the reference.
+E.g: snpfind -t file -i my_lanes.txt -p -r none
 
 USAGE
     exit;
