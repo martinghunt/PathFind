@@ -179,6 +179,9 @@ sub run {
         );
         my @matching_lanes = $lane_filter->filter;
 
+		print STDERR "1\n";
+		print STDERR Dumper $lane_filter;
+
       # Set up to symlink/archive. Check whether default filetype should be used
         my $use_default = 0;
         $use_default = 1 if ( !defined $filetype );
@@ -203,6 +206,8 @@ sub run {
             $linker->archive   if ( defined $archive );
         }
 
+		print STDERR "2\n";
+
         foreach my $ml (@matching_lanes) {
             my $l = $ml->{path};
             print "$l\n";
@@ -210,9 +215,9 @@ sub run {
 
         $dbh->disconnect();
 
+		print STDERR "3\n";
         #no need to look in the next database if relevant data has been found
         if ( $lane_filter->found ) {
-
             if ( defined $stats ) {
                 $stats = "$id.csv" if ( $stats eq '' );
                 $stats =~ s/\s+/_/g;
@@ -225,11 +230,10 @@ sub run {
             return 1;
         }
     }
-
+	
+	print STDERR "4\n";
     unless ( $lane_filter->found ) {
-
         print "Could not find lanes or files for input data \n";
-
     }
 }
 
