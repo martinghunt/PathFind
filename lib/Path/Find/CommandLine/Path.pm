@@ -145,6 +145,7 @@ sub run {
     );
 
     my $lane_filter;
+    my $found = 0;
 
     # Get databases and loop through
     my @pathogen_databases = Path::Find->pathogen_databases;
@@ -203,16 +204,18 @@ sub run {
             $linker->archive   if ( defined $archive );
         }
 
-        foreach my $ml (@matching_lanes) {
-            my $l = $ml->{path};
-            print "$l\n";
-        }
+	if(@matching_lanes){
+	    foreach my $ml (@matching_lanes) {
+		my $l = $ml->{path};
+		print "$l\n";
+	    }
+	    $found = 1;
+	}
 
         $dbh->disconnect();
 
         #no need to look in the next database if relevant data has been found
         if ( $lane_filter->found ) {
-
             if ( defined $stats ) {
                 $stats = "$id.csv" if ( $stats eq '' );
                 $stats =~ s/\s+/_/g;
@@ -225,11 +228,9 @@ sub run {
             return 1;
         }
     }
-
-    unless ( $lane_filter->found ) {
-
+	
+    unless ( $found ) {
         print "Could not find lanes or files for input data \n";
-
     }
 }
 
