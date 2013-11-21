@@ -67,6 +67,8 @@ sub _lookup_by_lane {
         }
     }
 
+    print Dumper \@lanes;
+
     return \@lanes;
 }
 
