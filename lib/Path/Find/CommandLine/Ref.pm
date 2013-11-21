@@ -79,6 +79,7 @@ sub BUILD {
     $self->help($help)         if ( defined $help );
 
     (
+     $type &&
              ( $type eq 'species' || $type eq 'file' )
           && $id
           && (
