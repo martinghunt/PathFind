@@ -94,7 +94,7 @@ sub pathfind {
     open( OUT, ">", $self->output );
 
     #output headers
-    my $header_line = join( ",", @headers );
+    my $header_line = join( "\t", @headers );
     print OUT "$header_line\n";
 
     #loop through lanes and print info to file
@@ -166,7 +166,7 @@ sub mapfind {
     open( OUT, ">", $self->output );
 
     #output headers
-    my $header_line = join( ",", @headers );
+    my $header_line = join( "\t", @headers );
     print OUT "$header_line\n";
 
     #loop through lanes and print info to file
@@ -328,7 +328,7 @@ sub rnaseqfind {
     open( OUT, ">", $self->output );
 
     #output headers
-    my $header_line = join( ",", @headers );
+    my $header_line = join( "\t", @headers );
     print OUT "$header_line\n";
 
     #loop through lanes and print info to file
@@ -393,7 +393,7 @@ sub annotationfind {
     open( OUT, ">", $self->output );
 
     #output headers
-    my $header_line = join( ",", @headers );
+    my $header_line = join( "\t", @headers );
     print OUT "$header_line\n";
 
     #loop through lanes and print info to file
