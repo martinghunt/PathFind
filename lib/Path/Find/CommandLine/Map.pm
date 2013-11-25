@@ -151,6 +151,8 @@ sub run {
     my $lane_filter;
     my $found = 0;
 
+	$filetype = 'bam' if(!defined $filetype);
+
     # Get databases and loop through them
     my @pathogen_databases = Path::Find->pathogen_databases;
     for my $database (@pathogen_databases) {
