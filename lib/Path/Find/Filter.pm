@@ -90,9 +90,9 @@ sub filter {
 
         # check ref, date or mapper matches
         #print STDERR "check ref, date or mapper matches\n";
-        next if ( $ref    && !$self->_reference_matches($l) );
-        next if ( $mapper && !$self->_mapper_matches($l) );
-        next if ( $date   && !$self->_date_is_later($l) );
+        next if ( defined $ref    && !$self->_reference_matches($l) );
+        next if ( defined $mapper && !$self->_mapper_matches($l) );
+        next if ( defined $date   && !$self->_date_is_later($l) );
 
         if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
 
