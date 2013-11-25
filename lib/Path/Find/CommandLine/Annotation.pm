@@ -174,7 +174,7 @@ sub run {
         ffn => '*.ffn'
     );
 
-    if ($gene) {
+    if ($gene || !defined $filetype) {
         $filetype = 'gff';
     }
 

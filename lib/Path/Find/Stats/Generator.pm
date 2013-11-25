@@ -44,6 +44,15 @@ has 'lanes' => ( is => 'ro', isa => 'ArrayRef[VRTrack::Lane]', required => 0, );
 has 'output' => ( is => 'ro', isa => 'Str', required => 1 );
 has 'vrtrack' => ( is => 'rw', required => 1 );
 
+has '_out_filehandle' => (is => 'rw', required => 0, lazy_build => 1);
+
+sub _build__out_filehandle {
+    my ($self) = @_;
+    my $outfile = $self->output;
+    open(my $fh, ">", $outfile) or die "Can't open $outfile for statistics. Error code: $?\n";
+    return $fh;
+}
+
 sub pathfind {
     my ($self) = @_;
     my @lanes = @{ $self->lane_hashes };
@@ -90,12 +99,11 @@ sub pathfind {
         'manual_qc'
     );
 
-    # set up output file handle
-    open( OUT, ">", $self->output );
+    my $fileh = $self->_out_filehandle;
 
     #output headers
     my $header_line = join( "\t", @headers );
-    print OUT "$header_line\n";
+    print $fileh "$header_line\n";
 
     #loop through lanes and print info to file
 	my @all_stats;
@@ -117,9 +125,9 @@ sub pathfind {
         my $row_joined = join( "\t", @info );
         push(@all_stats, $row_joined);
     }
-	@all_stats = remove_dups(\@all_stats);
-	print OUT join( "\n", @all_stats );
-	close(OUT);
+	@all_stats = $self->remove_dups(\@all_stats);
+	print $fileh join( "\n", @all_stats );
+	$self->close_filehandle;
 }
 
 sub mapfind {
@@ -166,11 +174,11 @@ sub mapfind {
     );
 
     # set up output file handle
-    open( OUT, ">", $self->output );
+    my $fileh = $self->_out_filehandle;
 
     #output headers
     my $header_line = join( "\t", @headers );
-    print OUT "$header_line\n";
+    print $fileh "$header_line\n";
 
     #loop through lanes and print info to file
 	my @all_stats;
@@ -192,9 +200,9 @@ sub mapfind {
         my $row_joined = join( "\t", @info );
         push(@all_stats, $row_joined);
     }
-	@all_stats = remove_dups(\@all_stats);
-	print OUT join( "\n", @all_stats );
-	close(OUT);
+	@all_stats = $self->remove_dups(\@all_stats);
+	print $fileh join( "\n", @all_stats );
+	$self->close_filehandle;
 }
 
 sub assemblyfind {
@@ -255,14 +263,14 @@ sub assemblyfind {
     );
 
     # set up output file handle
-    open( OUT, ">", $self->output );
+    my $fileh = $self->_out_filehandle;
 
     #output headers
     my $header_line = join( "\t", @headers );
-    print OUT "$header_line\n";
+    print $fileh "$header_line\n";
 
     #loop through lanes and print info to file
-	my @all_stats;
+    my @all_stats;
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
         my $l       = $l_h->{lane};
@@ -285,9 +293,9 @@ sub assemblyfind {
         my $row_joined = join( "\t", @info );
         push(@all_stats, $row_joined);
     }
-	@all_stats = remove_dups(\@all_stats);
-	print OUT join( "\n", @all_stats );
-	close(OUT);
+    @all_stats = $self->remove_dups(\@all_stats);
+    print $fileh join( "\n", @all_stats );
+    $self->close_filehandle;
 }
 
 sub rnaseqfind {
@@ -334,14 +342,14 @@ sub rnaseqfind {
     );
 
     # set up output file handle
-    open( OUT, ">", $self->output );
+    my $fileh = $self->_out_filehandle;
 
     #output headers
     my $header_line = join( "\t", @headers );
-    print OUT "$header_line\n";
+    print $fileh "$header_line\n";
 
     #loop through lanes and print info to file
-	my @all_stats;
+    my @all_stats;
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
         my $l     = $l_h->{lane};
@@ -362,9 +370,9 @@ sub rnaseqfind {
         my $row_joined = join( "\t", @info );
         push(@all_stats, $row_joined);
     }
-	@all_stats = remove_dups(\@all_stats);
-	print OUT join( "\n", @all_stats );
-	close(OUT);
+	@all_stats = $self->remove_dups(\@all_stats);
+	print $fileh join( "\n", @all_stats );
+	$self->close_filehandle;
 }
 
 sub annotationfind {
@@ -402,11 +410,11 @@ sub annotationfind {
     );
 
     # set up output file handle
-    open( OUT, ">", $self->output );
+    my $fileh = $self->_out_filehandle;
 
     #output headers
     my $header_line = join( "\t", @headers );
-    print OUT "$header_line\n";
+    print $fileh "$header_line\n";
 
     #loop through lanes and print info to file
 	my @all_stats;
@@ -432,9 +440,9 @@ sub annotationfind {
         my $row_joined = join( "\t", @info );
         push(@all_stats, $row_joined);
     }
-	@all_stats = remove_dups(\@all_stats);
-	print OUT join( "\n", @all_stats );
-	close(OUT);
+    @all_stats = $self->remove_dups(\@all_stats);
+    print $fileh join( "\n", @all_stats );
+    $self->close_filehandle;
 }
 
 sub _select_mapstat {
@@ -462,6 +470,14 @@ sub remove_dups {
 	}
 	return keys %sh;
 }
+
+sub close_filehandle { 
+    my ($self) = @_;
+    my $outf = $self->output;
+    my $fh = $self->_out_filehandle;
+    print STDERR "Statistics written to $outf\n";
+    close($fh);
+} 
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
