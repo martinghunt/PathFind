@@ -123,7 +123,7 @@ sub BUILD {
 
 sub run {
     my ($self) = @_;
-    my ( $qc, $found, $destination, $tmpdirectory_name, $archive_name,
+    my ( $qc, $destination, $tmpdirectory_name, $archive_name,
         $all_stats, $archive_path, $archive_suffix );
 
     # assign variables
@@ -133,6 +133,8 @@ sub run {
     my $stats    = $self->stats;
     my $filetype = $self->filetype;
     my $archive  = $self->archive;
+
+    my $found = 0;
 
     eval {
         Path::Find::Log->new(
@@ -242,6 +244,7 @@ sub run {
 
         #no need to look in the next database if relevant data has been found
         if ( $lane_filter->found ) {
+	    $found = 1;
             if ( defined $stats ) {
                 $stats = "$id.assembly_stats.csv" if ( $stats eq '' );
                 $stats =~ s/\s+/_/g;
@@ -256,7 +259,7 @@ sub run {
         }
     }
 
-    unless ( $lane_filter->found ) {
+    unless ( $found ) {
 
         print "Could not find lanes or files for input data\n";
 
