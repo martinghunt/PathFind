@@ -16,7 +16,8 @@ BEGIN { unshift( @INC, './lib' ) }
 
 BEGIN {
     use Test::Most;
-	use Test::Output;
+    use Test::Output;
+    use Test::Exception;
 }
 
 use_ok('Path::Find::CommandLine::Map');
@@ -107,6 +108,12 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmo
 $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
 stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test date filter with incorrect date
+@args = qw(-t file -i t/data/map_verbose_lanes.txt -v -d notadate);
+$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
+dies_ok { $map_obj->run } 'Dies with incorrect date format';
+
 
 # test reference filter
 @args = qw(-t file -i t/data/map_verbose_lanes.txt -v -r Salmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1);

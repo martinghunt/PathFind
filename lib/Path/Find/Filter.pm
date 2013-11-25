@@ -89,7 +89,9 @@ sub filter {
         }
 
 	# check date format
-	( $date =~ /\d{2}-\d{2}-\d{4}/ ) or die "Date (-d option) '$date' is not in the correct format. Use format: DD-MM-YYYY\n";
+	if(defined $date){
+	    ( $date =~ /\d{2}-\d{2}-\d{4}/ ) or die "Date (-d option) '$date' is not in the correct format. Use format: DD-MM-YYYY\n";
+	}
 
         # check ref, date or mapper matches
         #print STDERR "check ref, date or mapper matches\n";
