@@ -98,6 +98,7 @@ sub pathfind {
     print OUT "$header_line\n";
 
     #loop through lanes and print info to file
+	my @all_stats;
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
         my $l       = $l_h->{lane};
@@ -114,8 +115,10 @@ sub pathfind {
             push( @info, $i );
         }
         my $row_joined = join( "\t", @info );
-        print OUT "$row_joined\n";
+        push(@all_stats, $row_joined);
     }
+	@all_stats = remove_dups(\@all_stats);
+	print OUT join( "\n", @all_stats );
 	close(OUT);
 }
 
@@ -170,6 +173,7 @@ sub mapfind {
     print OUT "$header_line\n";
 
     #loop through lanes and print info to file
+	my @all_stats;
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
         my $l       = $l_h->{lane};
@@ -186,8 +190,10 @@ sub mapfind {
             push( @info, $i );
         }
         my $row_joined = join( "\t", @info );
-        print OUT "$row_joined\n";
+        push(@all_stats, $row_joined);
     }
+	@all_stats = remove_dups(\@all_stats);
+	print OUT join( "\n", @all_stats );
 	close(OUT);
 }
 
@@ -256,6 +262,7 @@ sub assemblyfind {
     print OUT "$header_line\n";
 
     #loop through lanes and print info to file
+	my @all_stats;
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
         my $l       = $l_h->{lane};
@@ -276,8 +283,10 @@ sub assemblyfind {
             push( @info, $i );
         }
         my $row_joined = join( "\t", @info );
-        print OUT "$row_joined\n";
+        push(@all_stats, $row_joined);
     }
+	@all_stats = remove_dups(\@all_stats);
+	print OUT join( "\n", @all_stats );
 	close(OUT);
 }
 
@@ -332,6 +341,7 @@ sub rnaseqfind {
     print OUT "$header_line\n";
 
     #loop through lanes and print info to file
+	my @all_stats;
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
         my $l     = $l_h->{lane};
@@ -350,8 +360,10 @@ sub rnaseqfind {
             push( @info, $i );
         }
         my $row_joined = join( "\t", @info );
-        print OUT "$row_joined\n";
+        push(@all_stats, $row_joined);
     }
+	@all_stats = remove_dups(\@all_stats);
+	print OUT join( "\n", @all_stats );
 	close(OUT);
 }
 
@@ -397,6 +409,7 @@ sub annotationfind {
     print OUT "$header_line\n";
 
     #loop through lanes and print info to file
+	my @all_stats;
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
         my $l       = $l_h->{lane};
@@ -417,8 +430,10 @@ sub annotationfind {
             push( @info, $i );
         }
         my $row_joined = join( "\t", @info );
-        print OUT "$row_joined\n";
+        push(@all_stats, $row_joined);
     }
+	@all_stats = remove_dups(\@all_stats);
+	print OUT join( "\n", @all_stats );
 	close(OUT);
 }
 
@@ -436,6 +451,16 @@ sub _select_mapstat {
         my @sorted_mapstats = sort { $a->row_id <=> $b->row_id } @{$mapstats};
         return pop(@sorted_mapstats);
     }
+}
+
+sub remove_dups {
+	my ($self, $st) = @_;
+	my @stats = @{ $st };
+	my %sh;
+	foreach my $line (@stats){
+		$sh{$line} = 1;
+	}
+	return keys %sh;
 }
 
 no Moose;
