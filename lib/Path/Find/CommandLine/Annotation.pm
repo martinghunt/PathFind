@@ -44,7 +44,7 @@ use Cwd;
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
 #use File::Temp;
@@ -289,7 +289,7 @@ sub set_linker_name {
     my $archive = $self->archive;
     my $symlink = $self->symlink;
     my $id = $self->id;
-    my $script_name = $self->script_name
+    my $script_name = $self->script_name;
 
     my $name;
     if ( defined $symlink ) {
@@ -301,7 +301,7 @@ sub set_linker_name {
 
     if( $name eq '' ){
         $id =~ /([^\/]+$)/;
-        $name = "$script_name_$1";
+        $name = $script_name . "_" . $1;
     }
     return $name;
 }

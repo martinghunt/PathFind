@@ -35,7 +35,7 @@ use warnings;
 no warnings 'uninitialized';
 use Moose;
 
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
 use Data::Dumper;

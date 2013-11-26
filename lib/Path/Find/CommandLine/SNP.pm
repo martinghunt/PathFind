@@ -49,7 +49,7 @@ use File::Temp;
 use File::Copy qw(move);
 use Getopt::Long qw(GetOptionsFromArray);
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
 use Path::Find;
