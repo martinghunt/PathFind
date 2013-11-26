@@ -299,9 +299,10 @@ Using the option -a|archive will create an archive of the queried data.
 For both -l and -a, a destination may be specified or a default will be created in the current directory.
 
 Examples:
-reffind -s bongori -l bongori_links 
+reffind -t species -i bongori -l bongori_links 
 creates symlinks in a directory called bongori_links
-reffind -s bongori -a 
+
+reffind -t species -i bongori -a 
 creates an archive with a default name in the current directory
 
 USAGE
