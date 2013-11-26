@@ -49,7 +49,7 @@ use File::Temp;
 use File::Copy qw(move);
 use Getopt::Long qw(GetOptionsFromArray);
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
 use Path::Find;
@@ -213,15 +213,7 @@ sub run {
 
         # Set up to symlink/archive. Check whether default filetype should be used
         if ( @matching_lanes && ( defined $symlink || defined $archive ) ) {
-            my $name;
-            if ( defined $symlink ) {
-                $name = $symlink;
-            }
-            elsif ( defined $archive ) {
-                $name = $archive;
-            }
-            $name = "snpfind_$id" if ( $name eq '' );
-
+            my $name = $self->set_linker_name;
             my %link_names = $self->link_rename_hash( \@matching_lanes );
 
             my $linker = Path::Find::Linker->new(
@@ -286,6 +278,7 @@ sub create_pseudogenome {
     # first add reference as one sequence
     unless ( $ref eq 'none' ) {
         my $ref_path = $self->find_reference($ref);
+        (defined $ref_path) or die "Could not find reference: $ref\n";
         system("echo \">$ref\" >> $pg_filename");
         system("grep -v \">\" $ref_path >> $pg_filename");
 		
@@ -352,6 +345,28 @@ sub find_reference {
         }
     }
     return undef;
+}
+
+sub set_linker_name {
+    my  ($self) = @_;
+    my $archive = $self->archive;
+    my $symlink = $self->symlink;
+    my $id = $self->id;
+    my $script_name = $self->script_name
+
+    my $name;
+    if ( defined $symlink ) {
+        $name = $symlink;
+    }
+    elsif ( defined $archive ) {
+        $name = $archive;
+    }
+
+    if( $name eq '' ){
+        $id =~ /([^\/]+$)/;
+        $name = "$script_name_$1";
+    }
+    return $name;
 }
 
 sub usage_text {

@@ -35,7 +35,7 @@ use warnings;
 no warnings 'uninitialized';
 use Moose;
 
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
 use Data::Dumper;
@@ -201,14 +201,7 @@ sub sym_archive {
 
     my $use_default = $self->filetype ? 1 : 0;
 
-    my $name;
-    if ( defined $symlink ) {
-        $name = $symlink;
-    }
-    elsif ( defined $archive ) {
-        $name = $archive;
-    }
-    $name = "reffind_$id" if ( $name eq '' );
+    my $name = $self->set_linker_name;
 
     my $links  = $self->format_for_links($objects_to_link);
     my $linker = Path::Find::Linker->new(
@@ -220,6 +213,28 @@ sub sym_archive {
 
     $linker->sym_links if ( defined $symlink );
     $linker->archive   if ( defined $archive );
+}
+
+sub set_linker_name {
+    my  ($self) = @_;
+    my $archive = $self->archive;
+    my $symlink = $self->symlink;
+    my $id = $self->id;
+    my $script_name = $self->script_name
+
+    my $name;
+    if ( defined $symlink ) {
+        $name = $symlink;
+    }
+    elsif ( defined $archive ) {
+        $name = $archive;
+    }
+
+    if( $name eq '' ){
+        $id =~ /([^\/]+$)/;
+        $name = "$script_name_$1";
+    }
+    return $name;
 }
 
 sub format_for_links {
@@ -284,9 +299,10 @@ Using the option -a|archive will create an archive of the queried data.
 For both -l and -a, a destination may be specified or a default will be created in the current directory.
 
 Examples:
-reffind -s bongori -l bongori_links 
+reffind -t species -i bongori -l bongori_links 
 creates symlinks in a directory called bongori_links
-reffind -s bongori -a 
+
+reffind -t species -i bongori -a 
 creates an archive with a default name in the current directory
 
 USAGE
