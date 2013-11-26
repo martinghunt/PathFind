@@ -198,14 +198,7 @@ sub run {
         my $use_default = 0;
         $use_default = 1 if ( !defined $filetype );
         if ( $lane_filter->found && ( defined $symlink || defined $archive ) ) {
-            my $name;
-            if ( defined $symlink ) {
-                $name = $symlink;
-            }
-            elsif ( defined $archive ) {
-                $name = $archive;
-            }
-            $name = "mapfind_$id" if ( $name eq '' );
+            my $name = $self->set_linker_name;
 
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
@@ -260,6 +253,28 @@ sub run {
         print "Could not find lanes or files for input data \n";
 
     }
+}
+
+sub set_linker_name {
+    my  ($self) = @_;
+    my $archive = $self->archive;
+    my $symlink = $self->symlink;
+    my $id = $self->id;
+    my $script_name = $self->script_name
+
+    my $name;
+    if ( defined $symlink ) {
+        $name = $symlink;
+    }
+    elsif ( defined $archive ) {
+        $name = $archive;
+    }
+
+    if( $name eq '' ){
+        $id =~ /([^\/]+$)/;
+        $name = "$script_name_$1";
+    }
+    return $name;
 }
 
 sub usage_text {
