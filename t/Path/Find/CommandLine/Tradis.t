@@ -44,11 +44,11 @@ stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
 # test symlink
 @args = ("-t", "study", "-i", "2561", "-l", "$destination_directory/symlink_test");
 $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/1_CR_TraDIS/SLX/1_CR_TraDIS_6982967/9521_1#1
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Pseudomonas/aeruginosa/TRACKING/2561/Gm_input_1/SLX/Gm_input_1_6982965/9521_1#14
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Pseudomonas/aeruginosa/TRACKING/2561/Gm_input_2/SLX/Gm_input_2_6982966/9521_1#15
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/2_CR_TraDIS/SLX/2_CR_TraDIS_6982970/9521_1#2
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/2_CR_TraDIS/SLX/2_CR_TraDIS_6982968/9521_1#3
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/1_CR_TraDIS/SLX/1_CR_TraDIS_6982969/9521_1#5\n";
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/1_CR_TraDIS/SLX/1_CR_TraDIS_6982969/9521_1#5
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Pseudomonas/aeruginosa/TRACKING/2561/Gm_input_1/SLX/Gm_input_1_6982965/9521_1#14
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Pseudomonas/aeruginosa/TRACKING/2561/Gm_input_2/SLX/Gm_input_2_6982966/9521_1#15\n";
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);

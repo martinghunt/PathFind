@@ -60,6 +60,7 @@ use Path::Find::Filter;
 use Path::Find::Linker;
 use Path::Find::Stats::Generator;
 use Path::Find::Log;
+use Path::Find::Sort;
 
 has 'args'            => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name'     => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -215,6 +216,9 @@ sub run {
         );
         my @matching_lanes = $lane_filter->filter;
 
+        my $sorted_ml = Path::Find::Sort->new(lanes => \@matching_lanes)->sort_lanes;
+        @matching_lanes = @{ $sorted_ml };
+
       # symlink or archive
       # Set up to symlink/archive. Check whether default filetype should be used
         my $use_default = 0;
@@ -246,9 +250,15 @@ sub run {
             }
             my $amino_acids = 1;
             $amino_acids = 0 if ($nucleotides);
+
+            my @gffs;
+            foreach my $file_hash (@matching_lanes){
+                push(@gffs, $file_hash->{path});
+            }
+
             my $gene_finder =
               Bio::AutomatedAnnotation::ParseGenesFromGFFs->new(
-                gff_files         => \@matching_lanes,
+                gff_files         => \@gffs,
                 search_query      => $gene,
                 search_qualifiers => $qualifiers_to_search,
                 amino_acids       => $amino_acids

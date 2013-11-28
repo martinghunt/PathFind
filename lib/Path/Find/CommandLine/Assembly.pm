@@ -45,7 +45,7 @@ use Data::Dumper;
 #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";
 
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
 use Getopt::Long qw(GetOptionsFromArray);
@@ -61,6 +61,7 @@ use Path::Find::Filter;
 use Path::Find::Linker;
 use Path::Find::Log;
 use Path::Find::Stats::Generator;
+use Path::Find::Sort;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -207,6 +208,9 @@ sub run {
         );
         my @matching_lanes = $lane_filter->filter;
 
+        my $sorted_ml = Path::Find::Sort->new(lanes => \@matching_lanes)->sort_lanes;
+        @matching_lanes = @{ $sorted_ml };
+
       # symlink or archive
       # Set up to symlink/archive. Check whether default filetype should be used
         my $use_default = 0;
@@ -264,7 +268,7 @@ sub set_linker_name {
     my $archive = $self->archive;
     my $symlink = $self->symlink;
     my $id = $self->id;
-    my $script_name = $self->script_name
+    my $script_name = $self->script_name;
 
     my $name;
     if ( defined $symlink ) {
@@ -276,7 +280,7 @@ sub set_linker_name {
 
     if( $name eq '' ){
         $id =~ /([^\/]+$)/;
-        $name = "$script_name_$1";
+        $name = $script_name . "_" . $1;
     }
     return $name;
 }
@@ -306,21 +310,6 @@ sub link_rename_hash {
     }
 
     return %link_names;
-}
-
-# Sort routine for multiplexed lane names (eg 1234_5#6)
-# Run, Lane and Tag are sorted in ascending order.
-# Reverts to alphabetic sort if cannot sort numerically
-sub lanesort {
-    my @a = split( /\_|\#/, $a->name() );
-    my @b = split( /\_|\#/, $b->name() );
-
-    for my $i ( 0 .. 2 ) {
-        return ( $a->name cmp $b->name )
-          if ( $a[$i] =~ /\D+/ || $b[$i] =~ /\D+/ );
-    }
-
-    $a[0] <=> $b[0] || $a[1] <=> $b[1] || $a[2] <=> $b[2];
 }
 
 sub usage_text {

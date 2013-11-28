@@ -43,7 +43,7 @@ use Moose;
 use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
 use Getopt::Long qw(GetOptionsFromArray);
@@ -54,6 +54,7 @@ use Path::Find::Lanes;
 use Path::Find::Filter;
 use Path::Find::Linker;
 use Path::Find::Log;
+use Path::Find::Sort;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -200,6 +201,9 @@ sub run {
         );
         my @matching_lanes = $lane_filter->filter;
 
+        my $sorted_ml = Path::Find::Sort->new(lanes => \@matching_lanes)->sort_lanes;
+        @matching_lanes = @{ $sorted_ml };
+
       # Set up to symlink/archive. Check whether default filetype should be used
         my $use_default = 0;
         $use_default = 1 if ( !defined $filetype );
@@ -256,7 +260,7 @@ sub set_linker_name {
     my $archive = $self->archive;
     my $symlink = $self->symlink;
     my $id = $self->id;
-    my $script_name = $self->script_name
+    my $script_name = $self->script_name;
 
     my $name;
     if ( defined $symlink ) {
@@ -268,7 +272,7 @@ sub set_linker_name {
 
     if( $name eq '' ){
         $id =~ /([^\/]+$)/;
-        $name = "$script_name_$1";
+        $name = $script_name . "_" . $1;
     }
     return $name;
 }

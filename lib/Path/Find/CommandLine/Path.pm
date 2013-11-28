@@ -53,6 +53,7 @@ use Path::Find::Filter;
 use Path::Find::Log;
 use Path::Find::Linker;
 use Path::Find::Stats::Generator;
+use Path::Find::Sort;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -180,6 +181,9 @@ sub run {
         );
         my @matching_lanes = $lane_filter->filter;
 
+        my $sorted_ml = Path::Find::Sort->new(lanes => \@matching_lanes)->sort_lanes;
+        @matching_lanes = @{ $sorted_ml };
+
       # Set up to symlink/archive. Check whether default filetype should be used
         my $use_default = 0;
         $use_default = 1 if ( !defined $filetype );
@@ -197,17 +201,16 @@ sub run {
             $linker->archive   if ( defined $archive );
         }
 
-	if(@matching_lanes){
-	    foreach my $ml (@matching_lanes) {
-		my $l = $ml->{path};
-		print "$l\n";
-	    }
-	    $found = 1;
-	}
+	   if(@matching_lanes){
+	        foreach my $ml (@matching_lanes) {
+		      my $l = $ml->{path};
+		      print "$l\n";
+	        }
+	       $found = 1;
+	   }
 
         $dbh->disconnect();
 
-        #no need to look in the next database if relevant data has been found
         if ( $lane_filter->found ) {
             if ( defined $stats ) {
                 $stats = "$id.csv" if ( $stats eq '' );
@@ -221,7 +224,6 @@ sub run {
             return 1;
         }
     }
-	
     unless ( $found ) {
         print "Could not find lanes or files for input data \n";
     }
@@ -232,7 +234,7 @@ sub set_linker_name {
     my $archive = $self->archive;
     my $symlink = $self->symlink;
     my $id = $self->id;
-    my $script_name = $self->script_name
+    my $script_name = $self->script_name;
 
     my $name;
     if ( defined $symlink ) {
@@ -244,7 +246,7 @@ sub set_linker_name {
 
     if( $name eq '' ){
         $id =~ /([^\/]+$)/;
-        $name = "$script_name_$1";
+        $name = $script_name . "_" . $1;
     }
     return $name;
 }

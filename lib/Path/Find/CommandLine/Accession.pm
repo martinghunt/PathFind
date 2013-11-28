@@ -135,6 +135,7 @@ sub run {
             $dbh->disconnect();
             next;
         }
+
         for my $lane (@lanes) {
 
             # get sample and lane accessions

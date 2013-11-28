@@ -1,4 +1,4 @@
-Study ID,Sample,Lane Name,Cycles,Reads,Bases,Map Type,Reference,Reference Size,Mapper,Mapstats ID,Mapped %,Paired %,Mean Insert Size,Depth of Coverage,Depth of Coverage sd,Adapter %,Transposon %,Genome Covered,Duplication Rate,Error Rate,NPG QC,Manual QC
+Study ID	Sample	Lane Name	Cycles	Reads	Bases	Map Type	Reference	Reference Size	Mapper	Mapstats ID	Mapped %	Paired %	Mean Insert Size	Depth of Coverage	Depth of Coverage sd	Adapter %	Transposon %	Genome Covered	Duplication Rate	Error Rate	NPG QC	Manual QC
+1714	SMRU587	6730_1#11	75	5803800	435285000	QC	Streptococcus_pneumoniae_ATCC_700669_v1	2221315	bwa	68549	83.0	80.5	844.2	158.84	NA	0.1	NA	NA	0.0000	0.013	pass	pending
 664	M01_0087	5477_6#7	76	12219082	928650232	QC	Streptococcus_pneumoniae_ATCC_700669_v1	2221315	bwa	1615	89.8	88.9	16471.1	370.05	NA	0.4	NA	NA	0.0023	0.011	pass	passed
 1817	MS0020	6578_4#8	75	8503694	637777050	QC	Shigella_sonnei_Ss046_v1	5055316	bwa	53742	82.2	80.1	424	100.14	NA	0.0	NA	NA	0.0000	0.014	pass	pending
-1714	SMRU587	6730_1#11	75	5803800	435285000	QC	Streptococcus_pneumoniae_ATCC_700669_v1	2221315	bwa	68549	83.0	80.5	844.2	158.84	NA	0.1	NA	NA	0.0000	0.013	pass	pending

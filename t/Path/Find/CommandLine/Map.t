@@ -76,7 +76,7 @@ stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system("cd $destination_directory; tar xvfz archive_test.tar.gz");
 ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
-ok( -e "$destination_directory/archive_test/659132.pe.markdup.bam", 'archived file exists');
+ok( -e "$destination_directory/archive_test/665968.pe.markdup.bam", 'archived file exists');
 remove_tree("$destination_directory/archive_test");
 unlink("$destination_directory/archive_test.tar.gz");
 
