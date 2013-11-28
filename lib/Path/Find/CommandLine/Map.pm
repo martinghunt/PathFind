@@ -264,7 +264,9 @@ sub set_linker_name {
     my $archive = $self->archive;
     my $symlink = $self->symlink;
     my $id = $self->id;
-    my $script_name = $self->script_name;
+    my $script_path = $self->script_name;
+    $script_path =~ /([^\/]+$)/;
+    my $script_name = $1;
 
     my $name;
     if ( defined $symlink ) {
@@ -279,7 +281,12 @@ sub set_linker_name {
         $name = $script_name . "_" . $1;
     }
     my $cwd = getcwd;
-    return "$cwd/$name";
+    if($name =~ /^\//){
+        return $name;
+    }
+    else{
+        return "$cwd/$name";
+    }
 }
 
 sub usage_text {
