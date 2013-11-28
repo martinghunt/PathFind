@@ -35,10 +35,10 @@ stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test file type & file parse
 @args = qw(-t file -i t/data/snp_lanes.txt -f vcf);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5539185/SLX/7734077/10316_1#85/559303.pe.markdup.snp/mpileup.unfilt.vcf.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5539185/SLX/7734077/10316_1#85/606177.pe.markdup.snp/mpileup.unfilt.vcf.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/522/A16329/SLX/A16329_153823/4821_3#1/443255.pe.markdup.snp/mpileup.unfilt.vcf.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Vibrio/cholerae/TRACKING/352/A363_Vc/SLX/A363_Vc_5274327/8036_3#15/174114.pe.markdup.snp/mpileup.unfilt.vcf.gz\n";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/522/A16329/SLX/A16329_153823/4821_3#1/443255.pe.markdup.snp/mpileup.unfilt.vcf.gz
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Vibrio/cholerae/TRACKING/352/A363_Vc/SLX/A363_Vc_5274327/8036_3#15/174114.pe.markdup.snp/mpileup.unfilt.vcf.gz
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5539185/SLX/7734077/10316_1#85/559303.pe.markdup.snp/mpileup.unfilt.vcf.gz
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5539185/SLX/7734077/10316_1#85/606177.pe.markdup.snp/mpileup.unfilt.vcf.gz\n";
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
@@ -78,9 +78,9 @@ unlink("$destination_directory/archive_test.tar.gz");
 
 # test verbose output
 @args = qw(-t file -i t/data/snp_verbose_lanes.txt -v);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/HKU16_3/SLX/HKU16_3_4002741/7138_8#3\tStreptococcus_pyogenes_BC2_HKU16_v0.1\tbwa\t12-04-2013
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Vibrio/cholerae/TRACKING/352/F15KTH7/SLX/F15KTH7_3152222/6714_5#15\tVibrio_cholerae_O1_biovar_eltor_str_N16961_v1\tsmalt\t18-10-2013
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/HKU16_3/SLX/HKU16_3_4002741/7138_8#3\tStreptococcus_pyogenes_BC2_HKU16_v0.1\tbwa\t12-04-2013
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/HKU30_1/SLX/HKU30_1_4002742/7138_8#4\tStreptococcus_pyogenes_BC2_HKU16_v0.1\tbwa\t12-04-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Vibrio/cholerae/TRACKING/352/F15KTH7/SLX/F15KTH7_3152222/6714_5#15\tVibrio_cholerae_O1_biovar_eltor_str_N16961_v1\tsmalt\t18-10-2013
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Wolbachia/endosymbiont_of_Drosophila_simulans/TRACKING/651/wAu_070612/SLX/wAu_070612_5552870/8163_8#94\tSalmonella_enterica_subsp_enterica_serovar_Paratyphi_A_str_AKU_12601_v1\tsmalt\t01-10-2013\n";
 
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);

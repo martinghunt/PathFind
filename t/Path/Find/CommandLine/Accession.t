@@ -32,8 +32,8 @@ stdout_is { $acc_obj->run } $exp_out, "Correct results for '$arg_str'";
 # test file parse
 @args = qw(-t file -i t/data/accession_lanes.txt);
 $exp_out = "2047STDY5552273\tERS311560\t10660_2#13\tERR363472
-2047STDY5552104\tERS311393\t10665_2#81\tnot found
-2047STDY5552201\tERS311489\t10665_2#90\tnot found\n";
+2047STDY5552104\tERS311393\t10665_2#81\tERR369155
+2047STDY5552201\tERS311489\t10665_2#90\tERR369164\n";
 $acc_obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
 stdout_is { $acc_obj->run } $exp_out, "Correct results for '$arg_str'";

@@ -39,26 +39,24 @@ has 'lanes' =>
   ( is => 'ro', isa => 'ArrayRef', lazy => 1, builder => '_build_lanes' );
 
 sub _lookup_by_lane {
-    my ($self) = @_;
+    my ($self, $s_id) = @_;
+    my $search_id = (defined $s_id) ? $s_id : $self->search_id;
     my @lanes;
 
-    my $search_id_suffix = '%';
-    if ( $self->search_id =~ /\#/ ) {
-        $search_id_suffix = '';
-    }
-
-    my $lane_names =
-      $self->dbh->selectall_arrayref(
-            'select lane.name from latest_lane as lane where'
-          . ' ( lane.name like "'
-          . $self->search_id
-          . $search_id_suffix . '"'
+    my $search_term = 'select lane.name from latest_lane as lane where'
+          . ' ( lane.name = "'
+          . $search_id . '"'
+          . ' OR lane.name like "'
+          . $search_id . '#%"'
           . ' OR lane.acc like "'
-          . $self->search_id . '" )'
+          . $search_id . '" )'
           . ' AND lane.processed & '
           . $self->processed_flag . ' = '
           . $self->processed_flag
-          . ' order by lane.name asc' );
+          . ' order by lane.name asc';
+
+    my $lane_names =
+      $self->dbh->selectall_arrayref($search_term);
     for my $lane_name (@$lane_names) {
         my $lane =
           VRTrack::Lane->new_by_name( $self->pathtrack, @$lane_name[0] );
@@ -66,7 +64,6 @@ sub _lookup_by_lane {
             push( @lanes, $lane );
         }
     }
-
     return \@lanes;
 }
 
@@ -96,7 +93,6 @@ sub _lookup_by_sample {
             push( @lanes, $lane );
         }
     }
-
     return \@lanes;
 }
 
@@ -126,7 +122,6 @@ sub _lookup_by_study {
             push( @lanes, $lane );
         }
     }
-
     return \@lanes;
 }
 
@@ -154,7 +149,6 @@ sub _lookup_by_species {
             push( @lanes, $lane );
         }
     }
-
     return \@lanes;
 }
 
@@ -183,7 +177,6 @@ sub _lookup_by_database {
             push( @lanes, $lane );
         }
     }
-
     return \@lanes;
 }
 
@@ -202,40 +195,10 @@ sub _lookup_by_file {
     close $fh;
 
     my @all_lane_names = keys %lanenames;
-    for ( my $i = 0 ; $i < @all_lane_names ; $i++ ) {
-        unless ( $all_lane_names[$i] =~ /\#/ ) {
-            $all_lane_names[$i] .= '%';
-        }
-
+    foreach my $ln (@all_lane_names){
+      my $lane_lookup = $self->_lookup_by_lane($ln);
+      push(@lanes, @{$lane_lookup});
     }
-
-    my $lane_name_search_query =
-      join( '" OR lane.name like "', @all_lane_names );
-    $lane_name_search_query =
-      ' (lane.name like "' . $lane_name_search_query . '") ';
-
-    my $lane_acc_search_query =
-      join( '" OR lane.acc like "', ( keys %lanenames ) );
-    $lane_acc_search_query =
-      ' (lane.acc like "' . $lane_acc_search_query . '") ';
-
-    my $lane_names =
-      $self->dbh->selectall_arrayref(
-            'select lane.name from latest_lane as lane where ' . '( '
-          . $lane_name_search_query . ' OR '
-          . $lane_acc_search_query . ' )'
-          . ' AND lane.processed & '
-          . $self->processed_flag . ' = '
-          . $self->processed_flag
-          . ' order by lane.name asc' );
-    for my $lane_name (@$lane_names) {
-        my $lane =
-          VRTrack::Lane->new_by_name( $self->pathtrack, @$lane_name[0] );
-        if ($lane) {
-            push( @lanes, $lane );
-        }
-    }
-
     return \@lanes;
 }
 

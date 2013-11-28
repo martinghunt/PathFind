@@ -35,7 +35,7 @@ use warnings;
 no warnings 'uninitialized';
 use Moose;
 
-#use lib "/software/pathogen/internal/prod/lib";
+use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
 use Data::Dumper;
@@ -220,7 +220,7 @@ sub set_linker_name {
     my $archive = $self->archive;
     my $symlink = $self->symlink;
     my $id = $self->id;
-    my $script_name = $self->script_name
+    my $script_name = $self->script_name;
 
     my $name;
     if ( defined $symlink ) {
@@ -232,7 +232,7 @@ sub set_linker_name {
 
     if( $name eq '' ){
         $id =~ /([^\/]+$)/;
-        $name = "$script_name_$1";
+        $name = $script_name . "_" . $1;
     }
     return $name;
 }

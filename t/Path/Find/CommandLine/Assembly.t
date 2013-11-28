@@ -39,8 +39,8 @@ stdout_is { $ass_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test file type & file parse
 @args = qw(-t file -i t/data/assembly_lanes.txt -f contigs);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staphylococcus/aureus/TRACKING/2662/2662STDY5553572/SLX/8094217/10770_3#64/velvet_assembly/unscaffolded_contigs.fa
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/466/ILBStrepP15424631/SLX/6714257/9517_4#15/velvet_assembly/unscaffolded_contigs.fa\n";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/466/ILBStrepP15424631/SLX/6714257/9517_4#15/velvet_assembly/unscaffolded_contigs.fa
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staphylococcus/aureus/TRACKING/2662/2662STDY5553572/SLX/8094217/10770_3#64/velvet_assembly/unscaffolded_contigs.fa\n";
 
 $ass_obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);

@@ -1,4 +1,4 @@
-Study ID,Sample,Lane Name,Cycles,Reads,Bases,Map Type,Reference,Reference Size,Mapper,Mapstats ID,Mapped %,Paired %,Mean Insert Size,Depth of Coverage,Depth of Coverage sd,Genome Covered (% >= 1X),Genome Covered (% >= 5X),Genome Covered (% >= 10X),Genome Covered (% >= 50X),Genome Covered (% >= 100X)
+Study ID	Sample	Lane Name	Cycles	Reads	Bases	Map Type	Reference	Reference Size	Mapper	Mapstats ID	Mapped %	Paired %	Mean Insert Size	Depth of Coverage	Depth of Coverage sd	Genome Covered (% >= 1X)	Genome Covered (% >= 5X)	Genome Covered (% >= 10X)	Genome Covered (% >= 50X)	Genome Covered (% >= 100X)
+607	BDs_2hr	8896_1#9	46	5532048	254474208	Mapping	Streptococcus_suis_P1_7_v1	2007491	smalt	544579	1.1	0.0	NA	0.59	20.15	0.6	0.3	0.2	0.1	0.1
 607	APP_N2_OP2	10018_1#9	47	257167	12086849	Mapping	Streptococcus_suis_P1_7_v1	2007491	smalt	544432	0.9	0.0	NA	0.05	1.79	0.5	0.3	0.1	0.0	0.0
 607	2B_in	10421_1#60	54	420411	22702194	Mapping	Streptococcus_suis_P1_7_v1	2007491	smalt	589890	1.1	0.0	NA	0.10	8.28	0.1	0.1	0.0	0.0	0.0
-607	BDs_2hr	8896_1#9	46	5532048	254474208	Mapping	Streptococcus_suis_P1_7_v1	2007491	smalt	544579	1.1	0.0	NA	0.59	20.15	0.6	0.3	0.2	0.1	0.1

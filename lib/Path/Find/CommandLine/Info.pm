@@ -137,9 +137,6 @@ sub run {
             next;
         }
 
-        # Sample Data
-        @lanes = sort lanesort @lanes;    # sort lanes by run, lane, tag.
-
         # open csv file and print column headers
         if ( $output && @lanes ) {
             $csv_out =
@@ -199,15 +196,6 @@ qq[select supplier_name, public_name, strain from current_samples where internal
 
     $warehouse_dbh->disconnect();
     return 1;
-}
-
-# Sort routine for multiplexed lane names (eg 1234_5#6)
-# Run, Lane and Tag are sorted in ascending order.
-sub lanesort {
-    my @a = split( /\_|\#/, $a->name() );
-    my @b = split( /\_|\#/, $b->name() );
-
-    $a[0] <=> $b[0] || $a[1] <=> $b[1] || $a[2] <=> $b[2];
 }
 
 sub usage_text {
