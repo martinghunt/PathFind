@@ -282,7 +282,8 @@ sub set_linker_name {
         $id =~ /([^\/]+$)/;
         $name = $script_name . "_" . $1;
     }
-    return $name;
+    my $cwd = getcwd;
+    return "$cwd/$name";
 }
 
 sub link_rename_hash {
