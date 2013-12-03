@@ -51,6 +51,7 @@ use Getopt::Long qw(GetOptionsFromArray);
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
+use File::Basename;
 
 use Path::Find;
 use Path::Find::Lanes;
@@ -220,20 +221,21 @@ sub run {
             my $name = $self->set_linker_name;
             my %link_names = $self->link_rename_hash( \@matching_lanes );
 
+            my $index_files;
+            $index_files = "tbi" if( $filetype eq 'vcf' );
+
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,
                 use_default_type => 0,
 				script_name      => $self->script_name,
-                rename_links     => \%link_names
+                rename_links     => \%link_names,
+                index_files      => $index_files
             );
 
             $linker->sym_links if ( defined $symlink );
             $linker->archive   if ( defined $archive );
         }
-
-        $self->create_pseudogenome( \@matching_lanes )
-          if ( defined $pseudogenome && @matching_lanes );
 
         if (@matching_lanes) {
             $found = 1;
@@ -254,6 +256,7 @@ sub run {
                     print "$l\n";
                 }
             }
+            $self->create_pseudogenome( \@matching_lanes ) if ( defined $pseudogenome );
         }
 
         $dbh->disconnect();
@@ -276,13 +279,21 @@ sub create_pseudogenome {
     my $ref            = $self->pseudogenome;
 
     my $pg_filename = $self->pseudogenome_filename();
+    print STDERR "Creating pseudogenome in $pg_filename\n";
 
     # first add reference as one sequence
     unless ( $ref eq 'none' ) {
         my $ref_path = $self->find_reference($ref);
-        (defined $ref_path) or die "Could not find reference: $ref\n";
-        system("echo \">$ref\" >> $pg_filename");
-        system("grep -v \">\" $ref_path >> $pg_filename");
+        unless( defined $ref_path ){
+            unlink($pg_filename);
+            print STDERR "Could not find reference: $ref. Pseudogenome creation aborted.\n";
+            return 1;
+        }
+
+        my $cmd = "echo \">$ref\" >> $pg_filename";
+        system($cmd);
+        $cmd = "grep -v \">\" $ref_path >> $pg_filename";
+        system($cmd);
 		
 		# add newline to ref
 		open(PG, ">>", $pg_filename);
@@ -308,7 +319,14 @@ sub pseudogenome_filename {
         $pseudo_genome_filename = $ref . "_" . $pseudo_genome_filename;
     }
 
-    $pseudo_genome_filename = $id . "_" . $pseudo_genome_filename;
+    unless(-e $id){
+        $pseudo_genome_filename = $id . "_" . $pseudo_genome_filename;
+    }
+    else{
+        my($filename, $directories, $suffix) = fileparse($id, qr/\.[^.]*/);
+        print "Filename:\t$filename\nDirs:\t$directories\nSuffix:\t$suffix\n";
+        $pseudo_genome_filename = $filename . "_" . $pseudo_genome_filename;
+    }
     $pseudo_genome_filename =~ s![\W]!_!gi;
     $pseudo_genome_filename .= '.aln';
     `touch $pseudo_genome_filename`;
@@ -323,29 +341,30 @@ sub link_rename_hash {
     foreach my $mf (@matching_lanes) {
         my $lane = $mf->{path};
         $lane =~ /(\d+)[^\/]+\/([^\/]+)$/;
-        $link_names{$lane} = "$1.$2";
+        my $lane_n = $mf->{lane}->{name};
+        $link_names{$lane} = "$lane_n.$1.$2";
     }
     return %link_names;
 }
 
 sub find_reference {
-	my ($self) = @_;
-    my $passed_in_reference = shift;
-    return undef unless ( defined($passed_in_reference) );
-    my $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/refs.index';
+    my ($self, $ref) = @_; 
+    my $reffind_args = "-t species -i $ref -f fa";
+    my @refs = `reffind $reffind_args`;
 
-    open( my $fh, $index_file ) or die 'Couldnt open index file';
-    while (<$fh>) {
-        chomp;
-        my $line         = $_;
-        my $search_query = $passed_in_reference . '.fa$';
-        if ( $line =~ m/$search_query/i ) {
-            my @ref_details = split( /\t/, $line );
-            if ( -e $ref_details[1] ) {
-                return $ref_details[1];
-            }
+    chomp @refs;
+
+    if (scalar @refs > 1){
+        my @ref_names;
+        foreach my $r (@refs){
+            $r =~ /([^\/]+)\.fa$/;
+            push(@ref_names, $1);
         }
+        print STDERR "Ambiguous reference. Did you mean:\n" . join("\n", @ref_names) . "\n"; 
+        return undef;
     }
+    my $ref_path = $refs[0];
+    return $ref_path if( -e $ref_path );
     return undef;
 }
 
