@@ -62,6 +62,7 @@ has '_given_destination' => (
 );
 has 'rename_links' => ( is => 'ro', isa => 'HashRef', required => 0 );
 has 'script_name'  => ( is => 'ro', isa => 'Str', required => 0, default => $0 );
+has 'index_files'   => ( is => 'rw', isa => 'Maybe[Str]', required => 0 );
 
 sub _build__checked_name {
     my ($self) = @_;
@@ -101,6 +102,14 @@ sub _build__default_type {
         tradisfind     => '/*insertion.csv',
 		reffind        => '/*.fa'
     );
+
+    #index files
+    if($script_name eq 'mapfind'){
+        $self->index_files('bai');
+    }
+    elsif($script_name eq 'snpfind'){
+        $self->index_files('tbi')
+    }
 
     # capture calling script name
     $script_name =~ /([^\/]+$)/;
@@ -153,6 +162,7 @@ sub _create_symlinks {
     my @lanes       = @{ $self->lanes };
     my $destination = $self->destination;
     my $name        = $self->_checked_name;
+    my $index_files  = $self->index_files;
 
     #check destination exists and create if not
     $self->_check_dest("$destination/$name");
@@ -174,9 +184,11 @@ sub _create_symlinks {
         foreach my $linkf (@files2link) {
             my ( $source, $dest ) = @{$linkf};
             my $cmd = "ln -sf $source $dest";
-            system($cmd) == 0
-              or die
-"Could not create symlink for $lane in $destination/$name: error code $?\n";
+            system($cmd) == 0 or die "Could not create symlink for $lane in $destination/$name: error code $?\n";
+            if( defined $index_files && -e "$source.$index_files" ){
+                $cmd = "ln -sf $source.$index_files $dest.$index_files";
+                system($cmd) == 0 or die "Could not create symlink for $lane in $destination/$name: error code $?\n";
+            }
         }
     }
     return 1;
@@ -206,7 +218,12 @@ sub _link_names {
 	else{
 		@matching_files = ($lane);
 	}
-	
+
+    #if(defined $index_suff){
+    #    my @indexes = `ls $lane$index_suff`;
+    #    push(@matching_files, @indexes);
+    #}
+
 	if ($linknames) {
         foreach my $mf (@matching_files) {
             chomp $mf;

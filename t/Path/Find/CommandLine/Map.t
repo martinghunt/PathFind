@@ -59,9 +59,12 @@ $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $scr
 $arg_str = join(" ", @args);
 stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
-ok( -e "$destination_directory/symlink_test/116135.pe.markdup.bam", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/116138.pe.markdup.bam", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/116141.pe.markdup.bam", 'symlink exists');
+ok( -e "$destination_directory/symlink_test/7114_6#1.116135.pe.markdup.bam", 'symlinked file exists');
+ok( -e "$destination_directory/symlink_test/7114_6#1.116135.pe.markdup.bam.bai", 'symlinked index exists');
+ok( -e "$destination_directory/symlink_test/7114_6#2.116138.pe.markdup.bam", 'symlinked file exists');
+ok( -e "$destination_directory/symlink_test/7114_6#2.116138.pe.markdup.bam.bai", 'symlinked index exists');
+ok( -e "$destination_directory/symlink_test/7114_6#3.116141.pe.markdup.bam", 'symlinked file exists');
+ok( -e "$destination_directory/symlink_test/7114_6#3.116141.pe.markdup.bam.bai", 'symlinked index exists');
 remove_tree("$destination_directory/symlink_test");
 
 # test archive
@@ -76,7 +79,10 @@ stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system("cd $destination_directory; tar xvfz archive_test.tar.gz");
 ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
-ok( -e "$destination_directory/archive_test/665968.pe.markdup.bam", 'archived file exists');
+ok( -e "$destination_directory/archive_test/9472_4#78.659132.pe.markdup.bam", 'archived file exists');
+ok( -e "$destination_directory/archive_test/9472_4#78.659132.pe.markdup.bam.bai", 'archived index exists');
+ok( -e "$destination_directory/archive_test/9472_4#78.665968.pe.markdup.bam", 'archived file exists');
+ok( -e "$destination_directory/archive_test/9472_4#78.665968.pe.markdup.bam.bai", 'archived index exists');
 remove_tree("$destination_directory/archive_test");
 unlink("$destination_directory/archive_test.tar.gz");
 

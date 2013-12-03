@@ -45,7 +45,7 @@ use Data::Dumper;
 use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use Getopt::Long qw(GetOptionsFromArray);
 
@@ -203,12 +203,18 @@ sub run {
         $use_default = 1 if ( !defined $filetype );
         if ( $lane_filter->found && ( defined $symlink || defined $archive ) ) {
             my $name = $self->set_linker_name;
+            my %link_names = $self->link_rename_hash( \@matching_lanes );
+
+            my $ind;
+            $ind = "bai" if ($filetype eq "bam");
 
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,
                 use_default_type => $use_default,
-				script_name      => $self->script_name
+				script_name      => $self->script_name,
+                rename_links     => \%link_names,
+                index_files      => $ind
             );
 
             $linker->sym_links if ( defined $symlink );
@@ -257,6 +263,21 @@ sub run {
         print "Could not find lanes or files for input data \n";
 
     }
+}
+
+sub link_rename_hash {
+    my ($self, $mlanes) = @_;
+    my @matching_lanes = @{ $mlanes };
+
+    my %link_names;
+    foreach my $mf (@matching_lanes) {
+        my $lane = $mf->{path};
+        my @parts = split('/', $lane);
+        my $f = pop(@parts);
+        my $l = pop(@parts);
+        $link_names{$lane} = "$l.$f";
+    }
+    return %link_names;
 }
 
 sub set_linker_name {

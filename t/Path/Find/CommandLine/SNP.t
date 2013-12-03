@@ -45,7 +45,7 @@ $arg_str = join(" ", @args);
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test symlink
-@args = ("-t", "study", "-i", "2005", "-l", "$destination_directory/symlink_test");
+@args = ("-t", "study", "-i", "2005", "-f", "vcf", "-l", "$destination_directory/symlink_test");
 $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lactobacillus/casei/TRACKING/2005/Lc_vit_exp/SLX/Lc_vit_exp_3980720/7114_6#1/116135.pe.markdup.snp/mpileup.unfilt.vcf.gz
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lactobacillus/casei/TRACKING/2005/Lc_vit_sta/SLX/Lc_vit_sta_3980721/7114_6#2/116138.pe.markdup.snp/mpileup.unfilt.vcf.gz
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lactobacillus/casei/TRACKING/2005/Lc_viv_cae/SLX/Lc_viv_cae_3980722/7114_6#3/116141.pe.markdup.snp/mpileup.unfilt.vcf.gz\n";
@@ -55,14 +55,17 @@ $arg_str = join(" ", @args);
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
-ok( -e "$destination_directory/symlink_test/116135.mpileup.unfilt.vcf.gz", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/116138.mpileup.unfilt.vcf.gz", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/116141.mpileup.unfilt.vcf.gz", 'symlink exists');
+system("ls $destination_directory/symlink_test");
+ok( -e "$destination_directory/symlink_test/7114_6#1.116135.mpileup.unfilt.vcf.gz", 'symlinked file exists');
+ok( -e "$destination_directory/symlink_test/7114_6#1.116135.mpileup.unfilt.vcf.gz.tbi", 'symlinked index exists');
+ok( -e "$destination_directory/symlink_test/7114_6#2.116138.mpileup.unfilt.vcf.gz", 'symlinked file exists');
+ok( -e "$destination_directory/symlink_test/7114_6#2.116138.mpileup.unfilt.vcf.gz.tbi", 'symlinked index exists');
+ok( -e "$destination_directory/symlink_test/7114_6#3.116141.mpileup.unfilt.vcf.gz", 'symlinked file exists');
+ok( -e "$destination_directory/symlink_test/7114_6#3.116141.mpileup.unfilt.vcf.gz.tbi", 'symlinked index exists');
 remove_tree('symlink_test');
 
 # test archive
 @args = ("-t", "study", "-i", "2005", "-a", "$destination_directory/archive_test");
-
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
@@ -70,11 +73,16 @@ stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
 system("cd $destination_directory; tar xvfz archive_test.tar.gz");
 ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
-ok( -e "$destination_directory/archive_test/116135.mpileup.unfilt.vcf.gz", 'archived file exists');
-ok( -e "$destination_directory/archive_test/116138.mpileup.unfilt.vcf.gz", 'archived file exists');
-ok( -e "$destination_directory/archive_test/116141.mpileup.unfilt.vcf.gz", 'archived file exists');
+ok( -e "$destination_directory/archive_test/7114_6#1.116135.mpileup.unfilt.vcf.gz", 'archived file exists');
+ok( -e "$destination_directory/archive_test/7114_6#1.116135.mpileup.unfilt.vcf.gz.tbi", 'archived index file exists');
+ok( -e "$destination_directory/archive_test/7114_6#2.116138.mpileup.unfilt.vcf.gz", 'archived file exists');
+ok( -e "$destination_directory/archive_test/7114_6#2.116138.mpileup.unfilt.vcf.gz.tbi", 'archived index file exists');
+ok( -e "$destination_directory/archive_test/7114_6#3.116141.mpileup.unfilt.vcf.gz", 'archived file exists');
+ok( -e "$destination_directory/archive_test/7114_6#3.116141.mpileup.unfilt.vcf.gz.tbi", 'archived index file exists');
 remove_tree("$destination_directory/archive_test");
 unlink("$destination_directory/archive_test.tar.gz");
+
+File::Temp::cleanup();
 
 # test verbose output
 @args = qw(-t file -i t/data/snp_verbose_lanes.txt -v);
@@ -113,5 +121,39 @@ $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Strep
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test pseudogenome creation
+@args = ('-t', 'lane', '-i', '10464_1#1', '-p', 'Norovirus_Hu_Pune_PC52_2007_India_v2' );
+$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
+$snp_obj->run;
+ok( -e '10464_1_1_Norovirus_Hu_Pune_PC52_2007_India_v2_concatenated.aln', 'pseudogenome created' );
+is(
+	read_file('10464_1_1_Norovirus_Hu_Pune_PC52_2007_India_v2_concatenated.aln'),
+	read_file('t/data/pseudogenome_exp.aln'),
+	'pseudogenome is correct'
+);
+unlink('10464_1_1_Norovirus_Hu_Pune_PC52_2007_India_v2_concatenated.aln');
+
+# test pseudogenome with ambiguous reference
+@args = ('-t', 'lane', '-i', '10464_1#1', '-p', 'Dublin' );
+$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
+my $exp_err = "Creating pseudogenome in 10464_1_1_Dublin_concatenated.aln
+Ambiguous reference. Did you mean:
+Salmonella_enterica_subsp_enterica_serovar_Dublin_str_BA207_v0.1
+Salmonella_enterica_subsp_enterica_serovar_Dublin_str_SC50_v0.1
+Could not find reference: Dublin. Pseudogenome creation aborted.\n";
+stderr_is { $snp_obj->run } $exp_err, "Correct message for ambiguous reference";
+
+# test pseudogenome without reference
+@args = ('-t', 'lane', '-i', '10464_1#1', '-p', 'none' );
+$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
+$snp_obj->run;
+ok( -e '10464_1_1_concatenated.aln', 'pseudogenome created');
+is(
+	read_file('10464_1_1_concatenated.aln'),
+	read_file('t/data/pseudogenome_no_ref.aln'),
+	'pseudogenome without reference seq correct'
+);
+unlink('10464_1_1_concatenated.aln');
 
 done_testing();
