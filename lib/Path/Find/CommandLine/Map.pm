@@ -45,7 +45,7 @@ use Data::Dumper;
 use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-#use lib "/software/pathogen/internal/prod/lib";
+use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use Getopt::Long qw(GetOptionsFromArray);
 
@@ -136,6 +136,8 @@ sub run {
     my $mapper   = $self->mapper;
     my $qc       = $self->qc;
 
+    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+
     eval {
         Path::Find::Log->new(
             logfile => '/nfs/pathnfs05/log/pathfindlog/mapfind.log',
@@ -176,6 +178,7 @@ sub run {
         }
 
         # filter lanes
+        $filetype = "bam" if ( $verbose || $date || $ref || $mapper );
         $lane_filter = Path::Find::Filter->new(
             lanes           => \@lanes,
             filetype        => $filetype,

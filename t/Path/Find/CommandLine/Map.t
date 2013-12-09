@@ -37,6 +37,11 @@ $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $scr
 $arg_str = join(" ", @args);
 stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# test die on non-existent file
+@args = qw(-t file -i i_dont_exist.txt);
+$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
+dies_ok { $map_obj->run } 'Dies with non-existent input file';
+
 # test file type & file parse
 @args = qw(-t file -i t/data/map_lanes.txt -f bam);
 $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2195/692_NTS/SLX/692_NTS_5140354/7969_2#8/488578.pe.markdup.bam
@@ -88,12 +93,12 @@ unlink("$destination_directory/archive_test.tar.gz");
 
 # test verbose output
 @args = qw(-t file -i t/data/map_verbose_lanes.txt -v);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Campylobacter/jejuni/TRACKING/2310/57_33_cj/SLX/57_33_cj_5765944/8489_8#89/405022.pe.markdup.bam\tCampylobacter_jejuni_subsp_jejuni_M1_v1\tbwa\t22-04-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Klebsiella/pneumoniae/TRACKING/2585/202M1D0/SLX/202M1D0_7080284/9659_1#2/454750.pe.markdup.bam\tKlebsiella_pneumoniae_subsp_pneumoniae_Ecl8_v1.1\tbwa\t27-06-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490471/SLX/7346728/9953_5#58/531892.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t15-08-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490471/SLX/7346728/9953_5#58/608787.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t15-08-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490472/SLX/7346740/9953_5#59/531895.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t15-08-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490472/SLX/7346740/9953_5#59/611376.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t15-08-2013\n";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Campylobacter/jejuni/TRACKING/2310/57_33_cj/SLX/57_33_cj_5765944/8489_8#89/405022.pe.markdup.bam\tCampylobacter_jejuni_subsp_jejuni_M1_v1\tsmalt\t04-12-2012
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Klebsiella/pneumoniae/TRACKING/2585/202M1D0/SLX/202M1D0_7080284/9659_1#2/454750.pe.markdup.bam\tKlebsiella_pneumoniae_subsp_pneumoniae_Ecl8_v1.1\tbwa\t16-04-2013
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490471/SLX/7346728/9953_5#58/531892.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t09-07-2013
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490471/SLX/7346728/9953_5#58/608787.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Paratyphi_A_str_AKU_12601_plasmid_v1\tsmalt\t31-08-2013
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490472/SLX/7346740/9953_5#59/531895.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t09-07-2013
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490472/SLX/7346740/9953_5#59/611376.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Paratyphi_A_str_AKU_12601_plasmid_v1\tsmalt\t31-08-2013\n";
 
 $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
@@ -101,8 +106,7 @@ stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test mapper filter
 @args = qw(-t file -i t/data/map_verbose_lanes.txt -v -m bwa);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Campylobacter/jejuni/TRACKING/2310/57_33_cj/SLX/57_33_cj_5765944/8489_8#89/405022.pe.markdup.bam\tCampylobacter_jejuni_subsp_jejuni_M1_v1\tbwa\t22-04-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Klebsiella/pneumoniae/TRACKING/2585/202M1D0/SLX/202M1D0_7080284/9659_1#2/454750.pe.markdup.bam\tKlebsiella_pneumoniae_subsp_pneumoniae_Ecl8_v1.1\tbwa\t27-06-2013\n";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Klebsiella/pneumoniae/TRACKING/2585/202M1D0/SLX/202M1D0_7080284/9659_1#2/454750.pe.markdup.bam\tKlebsiella_pneumoniae_subsp_pneumoniae_Ecl8_v1.1\tbwa\t16-04-2013\n";
 
 $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
@@ -110,10 +114,8 @@ stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test date filter
 @args = qw(-t file -i t/data/map_verbose_lanes.txt -v -d 01-08-2013);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490471/SLX/7346728/9953_5#58/531892.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t15-08-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490471/SLX/7346728/9953_5#58/608787.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t15-08-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490472/SLX/7346740/9953_5#59/531895.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t15-08-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490472/SLX/7346740/9953_5#59/611376.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t15-08-2013\n";
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490471/SLX/7346728/9953_5#58/608787.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Paratyphi_A_str_AKU_12601_plasmid_v1\tsmalt\t31-08-2013
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490472/SLX/7346740/9953_5#59/611376.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Paratyphi_A_str_AKU_12601_plasmid_v1\tsmalt\t31-08-2013\n";
 
 $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
@@ -125,7 +127,7 @@ $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $scr
 dies_ok { $map_obj->run } 'Dies with incorrect date format';
 
 # test reference filter
-@args = qw(-t file -i t/data/map_verbose_lanes.txt -v -r Salmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1);
+@args = qw(-t file -i t/data/map_verbose_lanes.txt -v -r Salmonella_enterica_subsp_enterica_serovar_Paratyphi_A_str_AKU_12601_plasmid_v1);
 
 $map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);

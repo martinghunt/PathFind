@@ -129,6 +129,8 @@ sub run {
     my $symlink  = $self->symlink;
     my $output   = $self->output;
 
+    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+
     eval {
         Path::Find::Log->new(
             logfile => '/nfs/pathnfs05/log/pathfindlog/pathfind.log',

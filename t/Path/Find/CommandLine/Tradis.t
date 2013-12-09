@@ -85,10 +85,10 @@ remove_tree("$destination_directory/archive_test");
 # test verbose
 @args = qw(-t file -i t/data/tradis_verbose_lanes.txt -v);
 $exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/A_M_6_IN_2/SLX/A_M_6_IN_2_5647193/8211_1#4/539502.se.markdup.bam.corrected.bam\tStreptococcus_suis_P1_7_v1\tsmalt\t13-07-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S1/SLX/R20291_S1_5765227/8405_4#7/377155.pe.markdup.bam.corrected.bam\tClostridium_difficile_630_v1\tbwa\t23-05-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S1/SLX/R20291_S1_5765227/8405_4#7/445618.pe.markdup.bam.corrected.bam\tClostridium_difficile_630_v1\tbwa\t23-05-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S2/SLX/R20291_S2_5765228/8405_4#8/377152.pe.markdup.bam.corrected.bam\tClostridium_difficile_630_v1\tbwa\t23-05-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S2/SLX/R20291_S2_5765228/8405_4#8/445621.pe.markdup.bam.corrected.bam\tClostridium_difficile_630_v1\tbwa\t23-05-2013
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S1/SLX/R20291_S1_5765227/8405_4#7/377155.pe.markdup.bam.corrected.bam\tClostridium_difficile_R20291_v1.1\tbwa\t07-10-2012
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S1/SLX/R20291_S1_5765227/8405_4#7/445618.pe.markdup.bam.corrected.bam\tClostridium_difficile_R20291_v1.1\tbwa\t17-03-2013
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S2/SLX/R20291_S2_5765228/8405_4#8/377152.pe.markdup.bam.corrected.bam\tClostridium_difficile_R20291_v1.1\tbwa\t07-10-2012
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S2/SLX/R20291_S2_5765228/8405_4#8/445621.pe.markdup.bam.corrected.bam\tClostridium_difficile_R20291_v1.1\tbwa\t17-03-2013
 /lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2342/5_STyphi_Rif_2/SLX/5_STyphi_Rif_2_6098734/8788_8#24/557441.se.markdup.bam.corrected.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_Ty2_v1\tsmalt\t29-07-2013\n";
 
 $tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);

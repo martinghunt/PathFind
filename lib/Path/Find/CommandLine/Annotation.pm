@@ -150,6 +150,8 @@ sub run {
     my $archive         = $self->archive;
     my $stats           = $self->stats;
 
+    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+
     eval {
         Path::Find::Log->new(
             logfile => '/nfs/pathnfs05/log/pathfindlog/annotationfind.log',
