@@ -108,6 +108,8 @@ sub run {
 	my $submitted = $self->submitted;
     my $outfile   = $self->outfile;
 
+    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+
     eval {
         Path::Find::Log->new(
             logfile => '/nfs/pathnfs05/log/pathfindlog/accessionfind.log',

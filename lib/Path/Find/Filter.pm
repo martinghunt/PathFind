@@ -88,48 +88,42 @@ sub filter {
             $type_extn =~ s/MAPSTAT_ID/$ms_id/;
         }
 
-	# check date format
-	if(defined $date){
-	    ( $date =~ /\d{2}-\d{2}-\d{4}/ ) or die "Date (-d option) '$date' is not in the correct format. Use format: DD-MM-YYYY\n";
-	}
-
-        # check ref, date or mapper matches
-        #print STDERR "check ref, date or mapper matches\n";
-	next if ( defined $ref    && !$self->_reference_matches($l) );
-        next if ( defined $mapper && !$self->_mapper_matches($l) );
-        next if ( defined $date   && !$self->_date_is_later($l) );
+	   # check date format
+	   if(defined $date){
+	       ( $date =~ /\d{2}-\d{2}-\d{4}/ ) or die "Date (-d option) '$date' is not in the correct format. Use format: DD-MM-YYYY\n";
+	   }
 
         if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
-
-            #print STDERR "get full paths\n";
             my @paths = $self->_get_full_path($l);
 
-            #print STDERR "loop through paths\n";
             foreach my $full_path (@paths) {
                 if ($filetype) {
-
-                    #print STDERR "filtering by filetype\n";
                     my $search_path = "$full_path/$type_extn";
                     next unless my $mfiles = $self->find_files($search_path);
-					my @matching_files = @{ $mfiles };
+				    my @matching_files = @{ $mfiles };
 
-					# exclude pool_1.fastq.gz files
-					@matching_files = grep {!/pool_1.fastq.gz/} @matching_files;
+				    # exclude pool_1.fastq.gz files
+				    @matching_files = grep {!/pool_1.fastq.gz/} @matching_files;
 
-                    #print STDERR "add files to print\n";
                     for my $m ( @matching_files ) {
                         if ( -e $m ) {
                             $self->_set_found(1);
-							my %lane_hash = $self->_make_lane_hash( $m, $l );
+						    my %lane_hash = $self->_make_lane_hash( $m, $l );
+
+                            # check ref, date or mapper matches
+                            next if ( defined $ref    && !$self->_reference_matches($lane_hash{ref}) );
+                            next if ( defined $mapper && !$self->_mapper_matches($lane_hash{mapper}) );
+                            next if ( defined $date   && !$self->_date_is_later($lane_hash{date}) );
+
+
                             push( @matching_paths, \%lane_hash );
                         }
                     }
                 }
                 else {
-                    #print STDERR "no need to filter..add to print\n";
                     if ( -e $full_path ) {
                         $self->_set_found(1);
-						my %lane_hash = $self->_make_lane_hash( $full_path, $l );
+					    my %lane_hash = $self->_make_lane_hash( $full_path, $l );
                         push( @matching_paths, \%lane_hash);
                     }
                 }
@@ -158,12 +152,13 @@ sub _make_lane_hash {
 	
 	my %lane_hash;
     if ($vb) {
+        my $mapstat = $self->_match_mapstat($path, $lane_obj);
         %lane_hash = (
             lane   => $lane_obj,
 			path   => $path,
-            ref    => $self->_reference_name($lane_obj),
-            mapper => $self->_get_mapper($lane_obj),
-            date   => $self->_date_changed($lane_obj),
+            ref    => $self->_reference_name($mapstat),
+            mapper => $self->_get_mapper($mapstat),
+            date   => $self->_date_changed($mapstat),
         );
 
     }
@@ -179,6 +174,19 @@ sub _make_lane_hash {
 	}
 	
 	return %lane_hash;
+}
+
+sub _match_mapstat {
+    my ($self, $path, $lane) = @_;
+
+    $path =~ /(\d+)\.[ps]e/;
+    my $ms_id = $1;
+
+    my @mapstats = @{ $lane->mappings_excluding_qc };
+    foreach my $ms ( @mapstats ){
+        return $ms if($ms_id eq $ms->id);
+    }
+    return undef;
 }
 
 sub _get_full_path {
@@ -221,28 +229,10 @@ sub _get_stats_paths {
 	return undef;
 }
 
-sub get_verbose_info {
-    my ($self) = @_;
-    my ( $ref, $mapper, $date );
-
-    my @lanes = @{ $self->lanes };
-    my @vb;
-    foreach my $l (@lanes) {
-        $ref    = $self->_reference_name($l);
-        $mapper = $self->_get_mapper($l);
-        $date   = $self->_bam_date($l);
-
-        push( @vb, "$l\t$ref\t$mapper\t$date" );
-    }
-    $self->_set_found(1) if ( \@vb );
-    return \@vb;
-}
-
 sub _reference_matches {
-    my ( $self, $lane ) = @_;
+    my ( $self, $lane_ref ) = @_;
     my $given_ref = $self->reference;
 
-    my $lane_ref = $self->_reference_name($lane);
     if ( $lane_ref eq $given_ref ) {
         return 1;
     }
@@ -252,10 +242,9 @@ sub _reference_matches {
 }
 
 sub _mapper_matches {
-    my ( $self, $lane ) = @_;
+    my ( $self, $lane_mapper ) = @_;
     my $given_mapper = $self->mapper;
 
-    my $lane_mapper = $self->_get_mapper($lane);
     if ( $lane_mapper eq $given_mapper ) {
         return 1;
     }
@@ -265,9 +254,8 @@ sub _mapper_matches {
 }
 
 sub _date_is_later {
-    my ( $self, $lane ) = @_;
+    my ( $self, $given_date ) = @_;
     my $earliest_date = $self->date;
-    my $given_date    = $self->_date_changed($lane);
 
     my ( $e_dy, $e_mn, $e_yr ) = split( "-", $earliest_date );
     my ( $g_dy, $g_mn, $g_yr ) = split( "-", $given_date );
@@ -283,10 +271,9 @@ sub _date_is_later {
 }
 
 sub _reference_name {
-    my ( $self, $lane ) = @_;
+    my ( $self, $mapstat ) = @_;
 
-    my @mapstats = @{ $lane->mappings_excluding_qc };
-	my $assembly_obj = $mapstats[0]->assembly;
+	my $assembly_obj = $mapstat->assembly;
 	
 	if(defined $assembly_obj){
 		return $assembly_obj->name;
@@ -297,10 +284,9 @@ sub _reference_name {
 }
 
 sub _get_mapper {
-    my ( $self, $lane ) = @_;
+    my ( $self, $mapstat ) = @_;
 
-    my @mapstats = @{ $lane->mappings_excluding_qc };
-	my $mapper_obj = $mapstats[0]->mapper;
+	my $mapper_obj = $mapstat->mapper;
 	if( defined $mapper_obj ){
     	return $mapper_obj->name;
 	}
@@ -310,10 +296,10 @@ sub _get_mapper {
 }
 
 sub _date_changed {
-    my ( $self, $lane ) = @_;
+    my ( $self, $mapstat ) = @_;
 
-    my $lc = $lane->changed;
-    my ( $date, $time ) = split( /\s+/, $lc );
+    my $msch = $mapstat->changed;
+    my ( $date, $time ) = split( /\s+/, $msch );
     my @date_elements = split( '-', $date );
     return join( '-', reverse @date_elements );
 }

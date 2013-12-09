@@ -144,6 +144,8 @@ sub run {
     my $date     = $self->date;
     my $mapper   = $self->mapper;
 
+    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+
     eval {
         Path::Find::Log->new(
             logfile => '/nfs/pathnfs05/log/pathfindlog/tradisfind.log',

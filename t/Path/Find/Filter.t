@@ -2,9 +2,6 @@
 use strict;
 use warnings;
 
-use Storable;
-$Storable::drop_utf8 = 1;
-
 use File::Slurp;
 use Data::Dumper;
 
@@ -24,7 +21,8 @@ my ( $filter, @matching_lanes, @matching_lanes_edit );
 
 my %type_extensions = (
     fastq => '*.fastq.gz',
-    bam   => '*.bam'
+    bam   => '*.bam',
+    map_bam => '*markdup.bam'
 );
 
 # test fastq filtering
@@ -99,6 +97,8 @@ $filter = Path::Find::Filter->new(
     lanes           => \@verbose_obs,
     root            => $root,
     pathtrack       => $pathtrack,
+    filetype        => 'map_bam',
+    type_extensions => \%type_extensions,
     verbose         => 1
 );
 @matching_lanes = $filter->filter;
@@ -107,20 +107,20 @@ my $expected_verbose = [
           {
             'ref' => 'Salmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1',
             'mapper' => 'smalt',
-            'date' => '11-07-2013',
-            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCTRL1/SLX/TyCTRL1_5521546/8086_1#1'
+            'date' => '10-07-2013',
+            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCTRL1/SLX/TyCTRL1_5521546/8086_1#1/539784.se.markdup.bam'
           },
           {
             'ref' => 'Salmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1',
             'mapper' => 'smalt',
             'date' => '25-06-2013',
-            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCTRL2/SLX/TyCTRL2_5521547/8086_1#2'
+            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCTRL2/SLX/TyCTRL2_5521547/8086_1#2/522282.se.markdup.bam'
           },
           {
             'ref' => 'Salmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1',
             'mapper' => 'smalt',
             'date' => '25-06-2013',
-            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCPI1/SLX/TyCPI1_5521548/8086_1#3'
+            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCPI1/SLX/TyCPI1_5521548/8086_1#3/522279.se.markdup.bam'
           }
         ];
 @matching_lanes_edit = remove_lane_objects(\@matching_lanes);
@@ -134,8 +134,8 @@ my $expected_date = [
           {
             'ref' => 'Salmonella_enterica_subsp_enterica_serovar_Typhimurium_SL1344_v1',
             'mapper' => 'smalt',
-            'date' => '11-07-2013',
-            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCTRL1/SLX/TyCTRL1_5521546/8086_1#1'
+            'date' => '10-07-2013',
+            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2234/TyCTRL1/SLX/TyCTRL1_5521546/8086_1#1/539784.se.markdup.bam'
           }
         ];
 @matching_lanes_edit = remove_lane_objects(\@matching_lanes);
