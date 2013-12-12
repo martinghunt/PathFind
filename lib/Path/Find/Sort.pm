@@ -50,8 +50,19 @@ sub lanesort {
         return ( $a cmp $b )
           if ( $a[$i] =~ /\D+/ || $b[$i] =~ /\D+/ );
     }
-
-    $a[0] <=> $b[0] || $a[1] <=> $b[1] || $a[2] <=> $b[2] || $end_a cmp $end_b;
+    
+    if( $#a == 2 && $#b == 2 && defined $end_a && defined $end_b ){
+	return $a[0] <=> $b[0] || $a[1] <=> $b[1] || $a[2] <=> $b[2] || $end_a cmp $end_b;
+    }
+    elsif( $#a == 2 && $#b == 2 && !defined $end_a && !defined $end_b ){
+	return $a[0] <=> $b[0] || $a[1] <=> $b[1] || $a[2] <=> $b[2];
+    }
+    elsif( $#a == 1 && $#b == 1 && defined $end_a && defined $end_b ){
+	return $a[0] <=> $b[0] || $a[1] <=> $b[1] || $end_a cmp $end_b;
+    }
+    else{
+	return $a[0] <=> $b[0] || $a[1] <=> $b[1];
+    }
 }
 
 sub _get_lane_name {
