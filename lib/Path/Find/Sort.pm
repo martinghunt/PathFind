@@ -22,16 +22,22 @@ sub sort_lanes {
     my ($self) = @_;
     my @lanes = @{ $self->lanes };
 
-    my %lane_paths;
+    my %lane_s;
     foreach my $i (0..$#lanes){
-        my $lane_hash = $lanes[$i];
-        my $p = $lane_hash->{path};
-        $lane_paths{$p} = $i;
+	if(ref($lanes[$i]) eq 'HASH'){
+            my $lane_hash = $lanes[$i];
+            my $p = $lane_hash->{path};
+            $lane_s{$p} = $i;
+	}
+	else{
+	    my $lanename = $lanes[$i]->name;
+	    $lane_s{$lanename} = $i;
+	}
     }
 
     my @sorted;
-    foreach my $ln (sort lanesort keys %lane_paths){
-        my $index = $lane_paths{$ln};
+    foreach my $ln (sort lanesort keys %lane_s){
+        my $index = $lane_s{$ln};
         push(@sorted, $lanes[$index]);
     }
 
@@ -66,13 +72,16 @@ sub lanesort {
 }
 
 sub _get_lane_name {
-    my ($path) = @_;
+    my ($lane) = @_;
 
-    my @dirs = split('/', $path);
-
-    my $end = join('/', splice(@dirs, 15));
-
-    return ($dirs[14], $end);
+    if ($lane =~ /\//){
+	my @dirs = split('/', $lane);
+	my $end = join('/', splice(@dirs, 15));
+	return ($dirs[14], $end);
+    }
+    else {
+	return ($lane, undef);
+    }
 }
 
 no Moose;
