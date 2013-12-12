@@ -44,6 +44,7 @@ use Text::CSV;
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Log;
+use Path::Find::Sort;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -132,12 +133,15 @@ sub run {
             dbh            => $dbh,
             processed_flag => 0
         );
-        my @lanes = @{ $find_lanes->lanes };
+        my @unsorted_lanes = @{ $find_lanes->lanes };
 
-        unless (@lanes) {
+        unless (@unsorted_lanes) {
             $dbh->disconnect();
             next;
         }
+
+	my $sorted = Path::Find::Sort->new(lanes => \@unsorted_lanes)->sort_lanes;
+	my @lanes = @{ $sorted };
 
         # open csv file and print column headers
         if ( $output && @lanes ) {
