@@ -199,7 +199,7 @@ sub run {
             reference       => $ref,
             mapper          => $mapper,
             date            => $date,
-            verbose         => $verbose,
+            verbose         => $verbose_info,
             stats           => \@req_stats
         );
         my @matching_lanes = $lane_filter->filter;
