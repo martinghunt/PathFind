@@ -126,6 +126,16 @@ $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $scr
 $arg_str = join(" ", @args);
 stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# test reference filter without -v option
+@args = qw(-t file -i t/data/verbose_test.lanes -r Streptococcus_pneumoniae_str_110.58_v0.4);
+$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/2245/2245STDY5609344/SLX/8529277/11511_8#88/703681.pe.markdup.snp/mpileup.unfilt.vcf.gz
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/2245/2245STDY5609347/SLX/8529194/11511_8#89/703774.pe.markdup.snp/mpileup.unfilt.vcf.gz
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/2245/2245STDY5609348/SLX/8529206/11511_8#90/704062.pe.markdup.snp/mpileup.unfilt.vcf.gz\n";
+
+$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
+
 # test pseudogenome creation
 @args = ('-t', 'lane', '-i', '10464_1#1', '-p', 'Norovirus_Hu_Pune_PC52_2007_India_v2' );
 $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
