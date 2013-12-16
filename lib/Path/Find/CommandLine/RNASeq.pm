@@ -184,7 +184,11 @@ sub run {
         @req_stats = ('*corrected.bam') if ( defined $stats );
 
         # filter lanes
-        $filetype = "bam" if ( $verbose || $date || $ref || $mapper );
+        my $verbose_info = 0;
+        if ( $verbose || $date || $ref || $mapper ){
+            $filetype = "bam";
+            $verbose_info = 1;
+        }
         $lane_filter = Path::Find::Filter->new(
             lanes           => \@lanes,
             filetype        => $filetype,
@@ -195,7 +199,7 @@ sub run {
             reference       => $ref,
             mapper          => $mapper,
             date            => $date,
-            verbose         => $verbose,
+            verbose         => $verbose_info,
             stats           => \@req_stats
         );
         my @matching_lanes = $lane_filter->filter;

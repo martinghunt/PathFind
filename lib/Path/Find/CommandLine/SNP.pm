@@ -202,7 +202,11 @@ sub run {
         {
             $filetype = "vcf";
         }
-        $filetype = "vcf" if ( $verbose || $date || $ref || $mapper );
+        my $verbose_info = 0;
+        if ( $verbose || $date || $ref || $mapper ){
+            $filetype = "vcf";
+            $verbose_info = 1;
+        }
         $lane_filter = Path::Find::Filter->new(
             lanes           => \@lanes,
             filetype        => $filetype,
@@ -212,7 +216,7 @@ sub run {
             reference       => $ref,
             mapper          => $mapper,
             date            => $date,
-            verbose         => $verbose
+            verbose         => $verbose_info
         );
         my @matching_lanes = $lane_filter->filter;
 
