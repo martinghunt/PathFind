@@ -33,13 +33,13 @@ ok(my $pang_dummy_obj = Path::Find::CommandLine::PanGenome->new(args => \@args,
   script_name => $script_name, 
   _create_pan_genome_cmd => $dummy_pan_genome_cmd), 'initialise object with dummy create_pan_genome');
 ok($pang_dummy_obj->run, 'run the full script');
-ok(-e 'xxx/pan_genome_results', 'the script got run');
+ok(-e 'output_file_t_data_annotation_lanes_txt/pan_genome_results', 'the script got run');
+ok(-e 'output_file_t_data_annotation_lanes_txt/9852_1#81.gff', 'db gff symlink created');
+ok(-e 'output_file_t_data_annotation_lanes_txt/9802_1#66.gff', 'db gff symlink created');
+ok(-e 'output_file_t_data_annotation_lanes_txt/9716_4#9.gff', 'db gff symlink created');
+ok(-e 'output_file_t_data_annotation_lanes_txt/empty_annotation_file.gff', 'user gff symlink created');
 
-# Check the files were symlinked 
-
-
-
-#stdout_is($pang_obj->run, $exp_out, "Correct results for '$args'");
+remove_tree('output_file_t_data_annotation_lanes_txt');
 
 done_testing();
 

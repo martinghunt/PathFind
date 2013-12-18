@@ -196,8 +196,8 @@ sub _symlink_user_gff_files
   
   for my $gff_file_path (@{$self->user_gff_files})
   {
-     my($filename, $directories, $suffix) = fileparse($gff_file_path);
-     my $destination = join('/', ($output_directory, $filename));
+     my($filename, $directories, $suffix) = fileparse(abs_path($gff_file_path));
+     my $destination = $filename);
      system("ln -sf $gff_file_path $destination");
   }
 }
