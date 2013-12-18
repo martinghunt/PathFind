@@ -6,6 +6,7 @@ use File::Path qw( remove_tree);
 use Cwd 'abs_path';
 
 BEGIN { unshift( @INC, './lib' ) }
+BEGIN { unshift(@INC, '/software/pathogen/internal/pathdev/vr-codebase/modules') }
 
 BEGIN {
     use Test::Most;
