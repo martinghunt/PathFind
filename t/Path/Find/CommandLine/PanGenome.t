@@ -16,7 +16,7 @@ BEGIN {
 my $script_name = 'Path::Find::CommandLine::PanGenome';
 my $cwd = getcwd();
 
-my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );
+my $destination_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
 my $destination_directory = $destination_directory_obj->dirname();
 
 my ($args, $exp_out, $pang_obj);
