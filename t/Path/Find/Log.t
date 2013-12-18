@@ -13,7 +13,7 @@ BEGIN {
 use_ok('Path::Find::Log');
 
 # set tempdir
-my $temp_directory_obj = File::Temp->newdir( CLEANUP => 1 );
+my $temp_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
 my $temp_directory     = $temp_directory_obj->dirname();
 
 # set fake command line args

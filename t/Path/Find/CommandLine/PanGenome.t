@@ -10,21 +10,35 @@ BEGIN { unshift( @INC, './lib' ) }
 
 BEGIN {
     use Test::Most;
-	use Test::Output;
+    use Test::Output;
     use_ok('Path::Find::CommandLine::PanGenome');
 }
 my $script_name = 'Path::Find::CommandLine::PanGenome';
 my $cwd = getcwd();
 
-my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );
+my $destination_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
 my $destination_directory = $destination_directory_obj->dirname();
 
-my ($args, $exp_out, $pang_obj);
+my (@args, $exp_out, $pang_obj);
 
 # test file parse
-$args = "-t file -i t/data/annotation_lanes.txt";
-$exp_out = "***";
-#$pang_obj = Path::Find::CommandLine::PanGenome->new(args => $args, script_name => $script_name);
+@args = ("-t", "file", "-i", "t/data/annotation_lanes.txt");
+
+ok($pang_obj = Path::Find::CommandLine::PanGenome->new(args => \@args, script_name => $script_name), 'initialise object');
+is($pang_obj->_create_pan_genome_cmd, 'create_pan_genome --output_multifasta_files --job_runner LSF --perc_identity 98 *.gff', 'create pan genome command correctly generated');
+
+@args = ("-t", "file", "-i", "t/data/annotation_lanes.txt", "t/data/empty_annotation_file.gff");
+my $dummy_pan_genome_cmd = $cwd.'/t/bin/dummy_create_pan_genome';
+ok(my $pang_dummy_obj = Path::Find::CommandLine::PanGenome->new(args => \@args, 
+  script_name => $script_name, 
+  _create_pan_genome_cmd => $dummy_pan_genome_cmd), 'initialise object with dummy create_pan_genome');
+ok($pang_dummy_obj->run, 'run the full script');
+ok(-e 'xxx/pan_genome_results', 'the script got run');
+
+# Check the files were symlinked 
+
+
+
 #stdout_is($pang_obj->run, $exp_out, "Correct results for '$args'");
 
 done_testing();
