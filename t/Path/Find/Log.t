@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use File::Temp;
 use File::Path qw(make_path);
+use Cwd;
 
 BEGIN { unshift( @INC, './lib' ) }
 BEGIN { unshift(@INC, '/software/pathogen/internal/pathdev/vr-codebase/modules') }
