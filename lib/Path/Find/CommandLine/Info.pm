@@ -63,6 +63,7 @@ sub BUILD {
         \@args,
         't|type=s'   => \$type,
         'i|id=s'     => \$id,
+        'o|output=s' => \$output,
         'h|help'     => \$help
     );
 
@@ -211,6 +212,7 @@ sub usage_text {
 Usage: $script_name
      -t|type            <study|lane|file|sample|species>
      -i|id              <study id|study name|lane name|file of lane names>
+     -o|output          <output results to CSV file>
      -h|help            <print this message>
 
 Given a study, lane or a file containing a list of lanes, this script will return the name, 

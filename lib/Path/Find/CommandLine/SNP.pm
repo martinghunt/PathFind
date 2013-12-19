@@ -49,7 +49,7 @@ use File::Temp;
 use File::Copy qw(move);
 use Getopt::Long qw(GetOptionsFromArray);
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use File::Basename;
 
@@ -61,21 +61,27 @@ use Path::Find::Stats::Generator;
 use Path::Find::Log;
 use Path::Find::Sort;
 
-has 'args'         => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has 'script_name'  => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'type'         => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'id'           => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'symlink'      => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'archive'      => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'help'         => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'verbose'      => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'stats'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'filetype'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'ref'          => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'date'         => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'mapper'       => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'pseudogenome' => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'qc'           => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'args'         => ( is => 'ro', isa => 'ArrayRef',   required => 1 );
+has 'script_name'  => ( is => 'ro', isa => 'Str',        required => 1 );
+has 'type'         => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'id'           => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'symlink'      => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'archive'      => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'help'         => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'verbose'      => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'stats'        => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'filetype'     => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'ref'          => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'date'         => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'mapper'       => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'pseudogenome' => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'qc'           => ( is => 'rw', isa => 'Str',        required => 0 );
+has '_ref_path'    => ( is => 'rw', isa => 'Maybe[Str]', required => 0, lazy_build => 1 );
+
+sub _build__ref_path {
+    my ($self) = @_;
+    return my $check_ref = $self->find_reference($self->ref);
+}
 
 sub BUILD {
     my ($self) = @_;
@@ -100,7 +106,7 @@ sub BUILD {
         'r|reference=s' => \$ref,
         'd|date=s'      => \$date,
         'm|mapper=s'    => \$mapper,
-        'p|pseudo=s'    => \$pseudogenome,
+        'p|pseudo:s'    => \$pseudogenome,
         'q|qc=s'        => \$qc
     );
 
@@ -161,8 +167,9 @@ sub run {
     die "The archive and symlink options cannot be used together\n"
       if ( defined $archive && defined $symlink );
 
-    #die "Please specify a reference to base the pseudogenome on\n"
-    #  if ( defined $pseudogenome && !defined $ref );
+    die "Please specify a reference to base the pseudogenome on\n"
+      if ( defined $pseudogenome && $pseudogenome ne 'none' && !defined $ref );
+
 
     # set file type extension regular expressions
     my %type_extensions = (
@@ -204,7 +211,7 @@ sub run {
         }
         my $verbose_info = 0;
         if ( $verbose || $date || $ref || $mapper ){
-            $filetype = "vcf";
+            $filetype = "vcf" if (!defined $filetype);
             $verbose_info = 1;
         }
         $lane_filter = Path::Find::Filter->new(
@@ -283,19 +290,24 @@ sub run {
 sub create_pseudogenome {
     my ($self, $mlanes)       = @_;
     my @matching_lanes = @{$mlanes};
-    my $ref            = $self->pseudogenome;
+    my $ref            = $self->pseudogenome eq 'none' ? $self->pseudogenome : $self->ref;
+
+    print "Using reference: $ref\n";
 
     my $pg_filename = $self->pseudogenome_filename();
     print STDERR "Creating pseudogenome in $pg_filename\n";
 
     # first add reference as one sequence
     unless ( $ref eq 'none' ) {
-        my $ref_path = $self->find_reference($ref);
+        my $ref_path = $self->_ref_path;
         unless( defined $ref_path ){
             unlink($pg_filename);
             print STDERR "Could not find reference: $ref. Pseudogenome creation aborted.\n";
             return 1;
         }
+
+        `rm $pg_filename` if ( -e $pg_filename );
+        `touch $pg_filename`;
 
         my $cmd = "echo \">$ref\" >> $pg_filename";
         system($cmd);
@@ -319,7 +331,7 @@ sub create_pseudogenome {
 sub pseudogenome_filename {
     my ($self) = @_;
     my $pseudo_genome_filename = "concatenated";
-    my $ref                    = $self->pseudogenome;
+    my $ref                    = $self->pseudogenome eq 'none' ? $self->pseudogenome : $self->ref;
     my $id                     = $self->id;
 
     unless ( $ref eq 'none' ) {
@@ -331,12 +343,10 @@ sub pseudogenome_filename {
     }
     else{
         my($filename, $directories, $suffix) = fileparse($id, qr/\.[^.]*/);
-        print "Filename:\t$filename\nDirs:\t$directories\nSuffix:\t$suffix\n";
         $pseudo_genome_filename = $filename . "_" . $pseudo_genome_filename;
     }
     $pseudo_genome_filename =~ s![\W]!_!gi;
     $pseudo_genome_filename .= '.aln';
-    `touch $pseudo_genome_filename`;
     return $pseudo_genome_filename;
 }
 
@@ -356,6 +366,7 @@ sub link_rename_hash {
 
 sub find_reference {
     my ($self, $ref) = @_; 
+    chomp $ref;
     my $reffind_args = "-t species -i $ref -f fa";
     my @refs = `reffind $reffind_args`;
 
@@ -364,6 +375,7 @@ sub find_reference {
     if (scalar @refs > 1){
         my @ref_names;
         foreach my $r (@refs){
+            return $r if ($ref eq $r);
             $r =~ /([^\/]+)\.fa$/;
             push(@ref_names, $1);
         }
@@ -429,11 +441,11 @@ results to data of the specified qc status. Using the option -symlink will creat
 directory, alternativley an output directory can be specified in which the symlinks will be created.
 Using the option -archive will create an archive (.tar.gz) containing the VCF and index files.
 
-The -p option will generate a pseudogenome based on the reference passed via this option. If you wish to omit the reference from the multifasta file, pass 'none' as the reference. Examples:
+The -p option will generate a pseudogenome based on the reference passed via the -r option. If you wish to omit the reference from the multifasta file, pass 'none' after the -p option. Examples:
 # generate a pseudogenome, but exclude the reference
 snpfind -t file -i my_lanes.txt -p none
 # generate a pseudogenome based on Salmonella enterica Typhi Ty2
-snpfind -t file -i my_lanes.txt -p Salmonella_enterica_subsp_enterica_serovar_Typhi_Ty2_v1
+snpfind -t file -i my_lanes.txt -p -r Salmonella_enterica_subsp_enterica_serovar_Typhi_Ty2_v1
 
 USAGE
     exit;
