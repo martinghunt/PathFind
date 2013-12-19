@@ -52,6 +52,22 @@ sub lanesort {
     my @a = split( /\_|\#/, $lane_a );
     my @b = split( /\_|\#/, $lane_b );
 
+    # check @a and @b are the same length
+    my $len_a = scalar(@a);
+    my $len_b = scalar(@b);
+    unless($len_a == $len_b){
+        if($len_a > $len_b){
+            foreach my $x (1 .. ($len_a-$len_b)){
+                push(@b, '0');
+            }
+        }
+        else{
+            foreach my $x (1 .. ($len_b-$len_a)){
+                push(@a, '0');
+            }
+        }
+    }
+
     for my $i ( 0 .. $#a ) {
         return ( $a cmp $b )
           if ( $a[$i] =~ /\D+/ || $b[$i] =~ /\D+/ );

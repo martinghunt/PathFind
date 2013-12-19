@@ -324,7 +324,7 @@ sub rnaseqfind {
         'Genome Covered (% >= 5X)',
         'Genome Covered (% >= 10X)',
         'Genome Covered (% >= 50X)',
-        'Genome Covered (% >= 100X)',
+        'Genome Covered (% >= 100X)'
     );
 
     my @columns = (
