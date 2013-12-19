@@ -3,8 +3,10 @@ use strict;
 use warnings;
 use File::Temp;
 use File::Path qw(make_path);
+use Cwd;
 
 BEGIN { unshift( @INC, './lib' ) }
+BEGIN { unshift(@INC, '/software/pathogen/internal/pathdev/vr-codebase/modules') }
 
 BEGIN {
     use Test::Most;
@@ -13,7 +15,7 @@ BEGIN {
 use_ok('Path::Find::Log');
 
 # set tempdir
-my $temp_directory_obj = File::Temp->newdir( CLEANUP => 1 );
+my $temp_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
 my $temp_directory     = $temp_directory_obj->dirname();
 
 # set fake command line args
