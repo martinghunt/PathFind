@@ -273,6 +273,7 @@ sub _date_is_later {
 sub _reference_name {
     my ( $self, $mapstat ) = @_;
 
+  return 'NA' if(!defined($mapstat));
 	my $assembly_obj = $mapstat->assembly;
 	
 	if(defined $assembly_obj){
