@@ -131,17 +131,13 @@ sub run {
     }
 
     foreach my $species (@species_to_find) {
-        my @references =
-          $self->search_index_file_for_directories( $index_file, $species );
-        if ( @references >= 1 ) {
+        my $references = $self->search_index_file_for_directories_and_references( $index_file, $species );
+        if ( keys %{$references} >= 1 ) {
             $found = 1;
-            @references =
-              $self->find_files_of_given_type( \@references, $filetype )
-              if ( defined $filetype );
-            @references = $self->remove_duplicates( \@references );
-            $self->sym_archive( \@references )
-              if ( defined $symlink || defined $archive );
-            $self->print_references( \@references );
+            my $reference_paths =  $self->find_files_of_given_type( $references, $filetype ) if ( defined $filetype );
+            $reference_paths = $self->remove_duplicates( $reference_paths );
+            $self->sym_archive( $reference_paths ) if ( defined $symlink || defined $archive );
+            $self->print_references( $reference_paths );
         }
     }
 
@@ -165,32 +161,37 @@ sub parse_species_from_file {
 }
 
 sub find_files_of_given_type {
-    my ( $self, $reference_directories, $filetype ) = @_;
+    my ( $self, $references, $filetype ) = @_;
     my @found_files;
 
     my %exts = (
-        fa         => '*.fa',
-        gff        => '*.gff',
-        embl       => '*.embl',
-        annotation => 'annotation/*.gff'
+        fa         => '%p/%r.fa',
+        gff        => '%p/%r.gff',
+        embl       => '%p/%r.embl',
+        annotation => '%p/annotation/%r.gff'
     );
 
     my $found = 0;
-    my $ex    = $exts{$filetype};
-    for my $directory (@$reference_directories) {
-        my $search_path = "$directory/$ex";
-        my @files       = glob $search_path;
-        for my $file (@files) {
-            push( @found_files, $file );
-            $found = 1;
-        }
+    
+    for my $reference_name (keys %{$references})
+    {
+      my $reference_path = $references->{$reference_name};
+      my $current_path_to_reference = $exts{$filetype}."";
+      $current_path_to_reference =~ s!%p!$reference_path!i;
+      $current_path_to_reference =~ s!%r!$reference_name!i;
+      
+      if(-e $current_path_to_reference)
+      {
+        push( @found_files, $current_path_to_reference );
+        $found = 1;
+      }
     }
-    return @found_files;
+    return \@found_files;
 }
 
 sub print_references {
     my ( $self, $references ) = @_;
-    for my $reference (@$references) {
+    for my $reference ( @{$references}) {
         print $reference. "\n";
     }
 }
@@ -257,9 +258,9 @@ sub format_for_links {
     return \@refs;
 }
 
-sub search_index_file_for_directories {
+sub search_index_file_for_directories_and_references {
     my ( $self, $index_file, $search_query ) = @_;
-    my @search_results;
+    my %search_results;
     $search_query =~ s! !|!gi;
 
     open( INDEX_FILE, $index_file ) or die 'Couldnt find the refs.index file';
@@ -267,26 +268,30 @@ sub search_index_file_for_directories {
         chomp;
         my $line = $_;
         if ( $line =~ m/$search_query/i ) {
-            if ( $line =~ m!\t(.+)/[^/]+fa$! ) {
-                my $directory = $1;
-                push( @search_results, $directory ) if ( -d $directory );
+            if ( $line =~ m!([^\t]+)\t(.+)/[^/]+fa$! ) {
+                my $reference_name = $1;
+                my $directory = $2;
+                if ( -d $directory )
+                {
+                  $search_results{$reference_name} = $directory;
+                }
             }
         }
     }
 
     close(INDEX_FILE);
-    return @search_results;
+    return \%search_results;
 }
 
 sub remove_duplicates {
     my ( $self, $file_list ) = @_;
-    my %file_hash;
+    my %dedup_file_list;
 
     foreach my $file ( sort @{$file_list} ) {
-        $file_hash{$file} = 1;
+        $dedup_file_list{$file} = 1;
     }
-    my @ks = sort keys %file_hash;
-    return @ks;
+    my @ks = sort keys %dedup_file_list;
+    return \@ks;
 }
 
 sub usage_text {
