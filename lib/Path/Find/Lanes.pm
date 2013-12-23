@@ -181,25 +181,48 @@ sub _lookup_by_database {
 }
 
 sub _lookup_by_file {
-    my ($self) = @_;
-    my @lanes;
+  my ($self) = @_;
+  my @lanes;
 
-    my %lanenames;
-    open( my $fh, $self->search_id )
-      || die "Error: Could not open file '" . $self->search_id . "'\n";
-    foreach my $lane_id (<$fh>) {
-        chomp $lane_id;
-        next if $lane_id eq '';
-        $lanenames{$lane_id} = 1;
-    }
-    close $fh;
+  my %lanenames;
+  open( my $fh, $self->search_id ) || die "Error: Could not open file '" . $self->search_id . "'\n";
+  foreach my $lane_id (<$fh>) {
+      chomp $lane_id;
+      next if $lane_id eq '';
+      $lanenames{$lane_id} = 1;
+  }
+  close $fh;
 
-    my @all_lane_names = keys %lanenames;
-    foreach my $ln (@all_lane_names){
-      my $lane_lookup = $self->_lookup_by_lane($ln);
-      push(@lanes, @{$lane_lookup});
-    }
-    return \@lanes;
+  my @all_lane_names = keys %lanenames;
+  for ( my $i = 0 ; $i < @all_lane_names ; $i++ ) {
+      unless ( $all_lane_names[$i] =~ /\#/ ) {
+          $all_lane_names[$i] .= '%';
+      }
+
+  }
+
+  my $lane_name_search_query = join( '" OR lane.name like "', @all_lane_names );
+  $lane_name_search_query = ' (lane.name like "' . $lane_name_search_query . '") ';
+
+  my $lane_acc_search_query = join( '" OR lane.acc like "', (keys %lanenames) );
+  $lane_acc_search_query = ' (lane.acc like "' . $lane_acc_search_query . '") ';
+
+  my $lane_names =
+    $self->dbh->selectall_arrayref( 'select lane.name from latest_lane as lane where '
+        . '( ' . $lane_name_search_query
+        . ' OR ' . $lane_acc_search_query . ' )'
+        . ' AND lane.processed & '
+        . $self->processed_flag . ' = '
+        . $self->processed_flag
+        . ' order by lane.name asc' );
+  for my $lane_name (@$lane_names) {
+      my $lane = VRTrack::Lane->new_by_name( $self->pathtrack, @$lane_name[0] );
+      if ($lane) {
+          push( @lanes, $lane );
+      }
+  }
+
+  return \@lanes;
 }
 
 sub _build_lanes {

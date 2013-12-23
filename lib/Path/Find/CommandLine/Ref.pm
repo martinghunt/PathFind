@@ -134,7 +134,8 @@ sub run {
         my $references = $self->search_index_file_for_directories_and_references( $index_file, $species );
         if ( keys %{$references} >= 1 ) {
             $found = 1;
-            my $reference_paths;
+            my @default_reference_paths = values %{$references};
+            my $reference_paths = \@default_reference_paths;
             $reference_paths =  $self->find_files_of_given_type( $references, $filetype ) if ( defined $filetype );
             $reference_paths = $self->remove_duplicates( $reference_paths );
             $self->sym_archive( $reference_paths ) if (( defined $symlink || defined $archive) && defined($reference_paths) );
