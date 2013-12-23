@@ -134,10 +134,11 @@ sub run {
         my $references = $self->search_index_file_for_directories_and_references( $index_file, $species );
         if ( keys %{$references} >= 1 ) {
             $found = 1;
-            my $reference_paths =  $self->find_files_of_given_type( $references, $filetype ) if ( defined $filetype );
+            my $reference_paths;
+            $reference_paths =  $self->find_files_of_given_type( $references, $filetype ) if ( defined $filetype );
             $reference_paths = $self->remove_duplicates( $reference_paths );
-            $self->sym_archive( $reference_paths ) if ( defined $symlink || defined $archive );
-            $self->print_references( $reference_paths );
+            $self->sym_archive( $reference_paths ) if (( defined $symlink || defined $archive) && defined($reference_paths) );
+            $self->print_references( $reference_paths ) if(defined($reference_paths));
         }
     }
 
@@ -278,13 +279,21 @@ sub search_index_file_for_directories_and_references {
             }
         }
     }
-
     close(INDEX_FILE);
+    
+    # If the reference is found with an exact match, only return that match.
+    if(defined($search_results{$search_query}))
+    {
+      my %exact_match = ($search_query => $search_results{$search_query});
+      return \%exact_match;
+    }
+
     return \%search_results;
 }
 
 sub remove_duplicates {
     my ( $self, $file_list ) = @_;
+    return unless(defined($file_list));
     my %dedup_file_list;
 
     foreach my $file ( sort @{$file_list} ) {
