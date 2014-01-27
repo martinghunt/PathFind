@@ -44,7 +44,7 @@ use Cwd;
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
 #use File::Temp;
@@ -165,6 +165,7 @@ sub run {
     # Get databases
     my @pathogen_databases = Path::Find->pathogen_databases;
     my $lane_filter;
+    my $found = 0;
 
     # set subdirectories to search for annotations in
     my @sub_directories =
@@ -278,6 +279,7 @@ sub run {
 
         #no need to look in the next database if relevant data has been found
         if ( $lane_filter->found ) {
+            $found = 1;
             if ( defined $stats ) {
                 $stats = "$id.csv" if ( $stats eq '' );
                 $stats =~ s/\s+/_/g;
@@ -291,7 +293,7 @@ sub run {
         }
     }
 
-    unless ( $lane_filter->found ) {
+    unless ( $found ) {
         print "Could not find lanes or files for input data \n";
     }
 }

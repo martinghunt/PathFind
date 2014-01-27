@@ -338,11 +338,13 @@ Given a study, lane or a file containing a list of lanes, this script will outpu
 Using the option -l|symlink will create a symlink to the queried data in a default directory created in the current directory, alternativley an output directory can be specified in which the symlinks will be created.
 Using the option -a|archive will create an archive (.tar.gz) containing the selected assemblies. The -archive option will automatically name the archive file if a name is not supplied.
 
+Note: scaffolds are returned as default. -f contigs will return all unscaffolded contigs.
+
 # find an assembly for a given lane
 assemblyfind -t lane -i 1234_5#6
 
-# find scaffolds for a given lane
-assemblyfind -t lane -i 1234_5#6 -f scaffold
+# find contigs for a given lane
+assemblyfind -t lane -i 1234_5#6 -f contigs
 
 # create a CSV file of assembly statistics for all assemblies in the given study
 assemblyfind -t study -i 123 -s my_assembly_stats.csv

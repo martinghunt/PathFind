@@ -100,15 +100,18 @@ sub _lookup_by_study {
     my ($self) = @_;
     my @lanes;
 
+    my $search_id = $self->search_id;
+    $search_id =~ s/\W+/_/g;
+
     my $lane_names = $self->dbh->selectall_arrayref(
         'select lane.name from latest_project as project
       inner join latest_sample as sample on sample.project_id = project.project_id
       inner join latest_library as library on library.sample_id = sample.sample_id
       inner join latest_lane as lane on lane.library_id = library.library_id
       where (project.ssid = "'
-          . $self->search_id
+          . $search_id
           . '" OR  project.name like "'
-          . $self->search_id
+          . $search_id
           . '") AND lane.processed & '
           . $self->processed_flag . ' = '
           . $self->processed_flag

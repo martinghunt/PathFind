@@ -317,7 +317,7 @@ sub _build_is_mapping_complete {
                 $adapter_perc = sprintf( "%.1f",
                     ( $adapter_reads / $self->mapstats->raw_reads ) * 100 );
             }
-            return $adapter_perc;
+            return $self->double_chomp($adapter_perc);
         }
 
         sub _build_transposon_perc {
@@ -330,7 +330,7 @@ sub _build_is_mapping_complete {
                 $transposon_perc = sprintf( "%.1f",
                     $self->mapstats->percentage_reads_with_transposon );
             }
-            return $transposon_perc;
+            return $self->double_chomp($transposon_perc);
         }
 
         sub _build_mapped_perc {
@@ -342,7 +342,7 @@ sub _build_is_mapping_complete {
                 $reads_mapped_perc =
                   sprintf( "%.1f", ( $reads_mapped / $raw_reads ) * 100 );
             }
-            return $reads_mapped_perc;
+            return $self->double_chomp($reads_mapped_perc);
         }
 
         sub _build_paired_perc {
@@ -354,7 +354,7 @@ sub _build_is_mapping_complete {
                 $reads_paired_perc =
                   sprintf( "%.1f", ( $reads_paired / $raw_reads ) * 100 );
             }
-            return $reads_paired_perc;
+            return $self->double_chomp($reads_paired_perc);
         }
 
         sub _build_mean_insert_size {
@@ -379,7 +379,7 @@ sub _build_is_mapping_complete {
                       if defined $genome_covered;
                 }
             }
-            return $genome_cover_perc;
+            return $self->double_chomp($genome_cover_perc);
         }
 
         sub _build_genome_covered_1x {
@@ -436,7 +436,7 @@ sub _build_is_mapping_complete {
 
             # Format and return
             $depth = sprintf( "%.2f", $depth ) if defined $depth;
-            return $depth;
+            return $self->double_chomp($depth);
         }
 
         sub _build_depth_of_coverage_sd {
@@ -456,7 +456,7 @@ sub _build_is_mapping_complete {
 
             # Format and return
             $depth_sd = sprintf( "%.2f", $depth_sd ) if defined $depth_sd;
-            return $depth_sd;
+            return $self->double_chomp($depth_sd);
         }
 
         sub _build_duplication_rate {
@@ -470,14 +470,14 @@ sub _build_is_mapping_complete {
                 $dupe_rate = sprintf( "%.4f",
                     ( 1 - $rmdup_reads_mapped / $reads_mapped ) );
             }
-            return $dupe_rate;
+            return $self->double_chomp($dupe_rate);
         }
 
         sub _build_error_rate {
             my ($self) = @_;
             return undef unless $self->is_qc_mapstats;
             return $self->is_mapping_complete
-              ? sprintf( "%.3f", $self->mapstats->error_rate )
+              ? $self->double_chomp(sprintf( "%.3f", $self->mapstats->error_rate ))
               : undef;
         }
 
@@ -831,6 +831,13 @@ sub transfer_qc_values {
     }
 
     return 1;
+}
+
+sub double_chomp {
+    #remove leading and trailing whitespace
+    my ($self, $str) = @_;
+    $str =~ s/^\s+|\s+$//g;
+    return $str;
 }
 
 1;
