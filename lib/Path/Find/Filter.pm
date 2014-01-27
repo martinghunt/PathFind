@@ -273,6 +273,7 @@ sub _date_is_later {
 sub _reference_name {
     my ( $self, $mapstat ) = @_;
 
+  return 'NA' if(!defined($mapstat));
 	my $assembly_obj = $mapstat->assembly;
 	
 	if(defined $assembly_obj){
@@ -285,7 +286,7 @@ sub _reference_name {
 
 sub _get_mapper {
     my ( $self, $mapstat ) = @_;
-
+return 'NA' if(!defined($mapstat));
 	my $mapper_obj = $mapstat->mapper;
 	if( defined $mapper_obj ){
     	return $mapper_obj->name;
@@ -297,7 +298,7 @@ sub _get_mapper {
 
 sub _date_changed {
     my ( $self, $mapstat ) = @_;
-
+    return '01-01-1900' if(!defined($mapstat));
     my $msch = $mapstat->changed;
     my ( $date, $time ) = split( /\s+/, $msch );
     my @date_elements = split( '-', $date );
