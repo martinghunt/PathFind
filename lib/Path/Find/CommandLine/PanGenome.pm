@@ -74,7 +74,11 @@ sub BUILD {
     
 
     (
-        $type && $id && $id ne '' && ( $type eq 'study'
+        $type 
+        && $id 
+        && $id ne '' 
+        && !$help
+        && ( $type eq 'study'
             || $type eq 'lane'
             || $type eq 'file'
             || $type eq 'sample'

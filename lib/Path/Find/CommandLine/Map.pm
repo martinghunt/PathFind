@@ -111,7 +111,11 @@ sub BUILD {
     $self->qc($qc)             if ( defined $qc );
 
     (
-        $type && $id && $id ne '' && ( $type eq 'study'
+        $type 
+        && $id 
+        && $id ne '' 
+        && !$help
+        && ( $type eq 'study'
             || $type eq 'lane'
             || $type eq 'sample'
             || $type eq 'file'
@@ -149,7 +153,8 @@ sub run {
       if ( defined $archive && defined $symlink );
 
     # set file type extension regular expressions
-    my %type_extensions = ( bam => '*markdup.bam', );
+    my %type_extensions = ( bam => '*markdup.bam', 
+                            alt_bam => '*raw.sorted.bam');
 
     my $lane_filter;
     my $found = 0;
@@ -189,6 +194,7 @@ sub run {
             root            => $root,
             pathtrack       => $pathtrack,
             type_extensions => \%type_extensions,
+            alt_type        => 'alt_bam',
             qc              => $qc,
             reference       => $ref,
             mapper          => $mapper,

@@ -80,7 +80,7 @@ sub _build__checked_name {
         $self->_set__given_destination($current_cwd);
     }
     $name =~ s/\s+/_/g;
-	print STDERR "$name\n";
+	#print STDERR "$name\n";
     return $name;
 }
 
@@ -163,8 +163,6 @@ sub _create_symlinks {
     my $destination = $self->destination;
     my $name        = $self->_checked_name;
     my $index_files  = $self->index_files;
-
-    print "SYMLINK DIR: $name\n";
 
     #check destination exists and create if not
     $self->_check_dest("$destination/$name");

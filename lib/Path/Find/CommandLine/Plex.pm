@@ -75,6 +75,7 @@ sub BUILD {
 
     (
         $type
+        && !$help
           && ( $type eq 'study'
             || $type eq 'lane' )
           && $id

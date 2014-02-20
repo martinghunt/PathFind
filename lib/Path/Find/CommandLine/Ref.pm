@@ -79,6 +79,7 @@ sub BUILD {
     $self->help($help)         if ( defined $help );
 
     (
+    !$help &&
      $type &&
              ( $type eq 'species' || $type eq 'file' )
           && $id
@@ -313,7 +314,7 @@ Usage: $script_name
      -i|id              <species name|species regex|file name>
      -f|filetype        <fa|gff|embl|annotation>
      -l|symlink         <create a symlink to the data>
-	 -a|archive         <create an archive of the data>
+     -a|archive         <create an archive of the data>
      -h|help            <print this message>
 
 Given a species or a partial name of a species, this script will output the path (on pathogen disk) to the reference. 

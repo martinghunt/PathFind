@@ -1,0 +1,22 @@
+Usage: ./reffind
+     -t|type            <species|file>
+     -i|id              <species name|species regex|file name>
+     -f|filetype        <fa|gff|embl|annotation>
+     -l|symlink         <create a symlink to the data>
+     -a|archive         <create an archive of the data>
+     -h|help            <print this message>
+
+Given a species or a partial name of a species, this script will output the path (on pathogen disk) to the reference. 
+Using the option -filetype (fa, gff, or embl) will 
+return the path to the files of this type for the given data. 
+Using the option -l|symlink will create a symlink to the queried data. 
+Using the option -a|archive will create an archive of the queried data.
+For both -l and -a, a destination may be specified or a default will be created in the current directory.
+
+Examples:
+reffind -t species -i bongori -l bongori_links 
+creates symlinks in a directory called bongori_links
+
+reffind -t species -i bongori -a 
+creates an archive with a default name in the current directory
+

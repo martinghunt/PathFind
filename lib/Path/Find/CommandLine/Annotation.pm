@@ -40,7 +40,8 @@ use warnings;
 no warnings 'uninitialized';
 use Moose;
 
-use Cwd;
+#use Cwd;
+use Cwd qw(abs_path getcwd);
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
@@ -62,19 +63,19 @@ use Path::Find::Stats::Generator;
 use Path::Find::Log;
 use Path::Find::Sort;
 
-has 'args'            => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has 'script_name'     => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'type'            => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'id'              => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'symlink'         => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'help'            => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'filetype'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'output'          => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'gene'            => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'search_products' => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'nucleotides'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'archive'         => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'stats'           => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'args'            => ( is => 'ro', isa => 'ArrayRef',        required => 1 );
+has 'script_name'     => ( is => 'ro', isa => 'Str',             required => 1 );
+has 'type'            => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'id'              => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'symlink'         => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'help'            => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'filetype'        => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'output'          => ( is => 'rw', isa => 'Maybe[Str]',      required => 0 );
+has 'gene'            => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'search_products' => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'nucleotides'     => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'archive'         => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'stats'           => ( is => 'rw', isa => 'Str',             required => 0 );
 
 sub BUILD {
     my ($self) = @_;
@@ -97,6 +98,7 @@ sub BUILD {
         'g|gene=s'          => \$gene,
         'p|search_products' => \$search_products,
         'n|nucleotides'     => \$nucleotides,
+        'o|output=s'        => \$output,
         's|stats:s'         => \$stats
     );
 
@@ -105,7 +107,7 @@ sub BUILD {
     $self->symlink($symlink)                 if ( defined $symlink );
     $self->help($help)                       if ( defined $help );
     $self->filetype($filetype)               if ( defined $filetype );
-    $self->output($output)                   if ( defined $output );
+    $self->output($output)       if ( defined $output );
     $self->gene($gene)                       if ( defined $gene );
     $self->search_products($search_products) if ( defined $search_products );
     $self->nucleotides($nucleotides)         if ( defined $nucleotides );
@@ -116,6 +118,7 @@ sub BUILD {
              $type
           && $id
           && $id ne ''
+          && !$help
 
           && ( $type eq 'study'
             || $type eq 'lane'
@@ -266,6 +269,13 @@ sub run {
                 search_qualifiers => $qualifiers_to_search,
                 amino_acids       => $amino_acids
               );
+
+            # check output location
+            unless( -e $output ){
+                print "Cannot access '$output'. Writing output to default file name\n";
+                $output = undef;
+            }
+
 			$gene_finder->output_base($output) if(defined($output));
             $gene_finder->create_fasta_file;
 
