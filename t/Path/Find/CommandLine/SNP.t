@@ -19,7 +19,7 @@ use_ok('Path::Find::CommandLine::SNP');
 
 my $script_name = 'snpfind';
 
-my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );
+my $destination_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
 my $destination_directory = $destination_directory_obj->dirname();
 
 my (@args, $arg_str, $snp_stdout, $exp_out, $snp_obj);

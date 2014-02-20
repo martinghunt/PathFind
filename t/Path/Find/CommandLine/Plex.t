@@ -21,7 +21,7 @@ use_ok('Path::Find::CommandLine::Plex');
 my $script_name = 'Path::Find::CommandLine::Plex';
 my $cwd = getcwd();
 
-my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );
+my $destination_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
 my $destination_directory = $destination_directory_obj->dirname();
 
 my (@args, $arg_str, $exp_out, $plex_obj);

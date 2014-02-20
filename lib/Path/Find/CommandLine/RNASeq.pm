@@ -112,7 +112,11 @@ sub BUILD {
     $self->qc($qc)             if ( defined $qc );
 
     (
-        $type && $id && $id ne '' && ( $type eq 'study'
+        $type 
+        && $id 
+        && $id ne '' 
+        && !$help
+        && ( $type eq 'study'
             || $type eq 'lane'
             || $type eq 'sample'
             || $type eq 'file'

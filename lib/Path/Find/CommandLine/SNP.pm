@@ -128,6 +128,7 @@ sub BUILD {
              $type
           && $id
           && $id ne ''
+          && !$help
           && ( $type eq 'study'
             || $type eq 'lane'
             || $type eq 'sample'

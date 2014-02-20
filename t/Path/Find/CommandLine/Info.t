@@ -16,7 +16,7 @@ use_ok('Path::Find::CommandLine::Info');
 my $script_name = 'Path::Find::CommandLine::Info';
 my $cwd = getcwd();
 
-my $destination_directory_obj = File::Temp->newdir( CLEANUP => 1 );
+my $destination_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
 my $destination_directory = $destination_directory_obj->dirname();
 
 my (@args, $arg_str, @formatted_out, $exp_out, $info_obj);

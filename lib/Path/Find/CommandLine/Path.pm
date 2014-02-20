@@ -43,7 +43,7 @@ use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
 
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use Getopt::Long qw(GetOptionsFromArray);
 
@@ -100,6 +100,7 @@ sub BUILD {
              $type
           && $id
           && $id ne ''
+          && !$help
           && ( $type eq 'study'
             || $type eq 'lane'
             || $type eq 'file'
@@ -191,6 +192,8 @@ sub run {
         $use_default = 1 if ( !defined $filetype );
         if ( $lane_filter->found && ( defined $symlink || defined $archive ) ) {
             my $name = $self->set_linker_name;
+
+            print "LINK DIR: $name\n\n";
 
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,

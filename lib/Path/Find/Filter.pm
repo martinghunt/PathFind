@@ -39,7 +39,8 @@ has 'pathtrack' => ( is => 'ro', required => 1 );
 has 'hierarchy_template' =>
   ( is => 'rw', builder => '_build_hierarchy_template', required => 0 );
 has 'filetype'        => ( is => 'ro', required => 0 );
-has 'type_extensions' => ( is => 'rw', isa      => 'HashRef', required => 0 );
+has 'type_extensions' => ( is => 'rw', isa => 'HashRef', required => 0 );
+has 'alt_type'        => ( is => 'ro', isa => 'Str',     required => 0 );
 has 'qc'              => ( is => 'ro', required => 0 );
 has 'found' =>
   ( is => 'rw', default => 0, writer => '_set_found', required => 0 );
@@ -98,8 +99,8 @@ sub filter {
 
             foreach my $full_path (@paths) {
                 if ($filetype) {
-                    my $search_path = "$full_path/$type_extn";
-                    next unless my $mfiles = $self->find_files($search_path);
+                    #my $search_path = "$full_path/$type_extn";
+                    next unless my $mfiles = $self->find_files($full_path, $type_extn);
 				    my @matching_files = @{ $mfiles };
 
 				    # exclude pool_1.fastq.gz files
@@ -134,14 +135,23 @@ sub filter {
 }
 
 sub find_files {
-    my ( $self, $full_path ) = @_;
+    my ( $self, $full_path, $type_extn ) = @_;
 
-    my @matches = glob $full_path;
+    my @matches = glob "$full_path/$type_extn";
     if (@matches) {
         return \@matches;
     }
     else {
-        return undef;
+        my $alt_type = $self->alt_type;
+        if( defined $alt_type ){
+            my $alt_extn = my $type_extn = $self->type_extensions->{$alt_type};
+            @matches = glob "$full_path/$alt_extn";
+            return undef unless ( @matches );
+            return \@matches;
+        }
+        else{
+            return undef;
+        }
     }
 }
 
@@ -273,6 +283,7 @@ sub _date_is_later {
 sub _reference_name {
     my ( $self, $mapstat ) = @_;
 
+  return 'NA' if(!defined($mapstat));
 	my $assembly_obj = $mapstat->assembly;
 	
 	if(defined $assembly_obj){
@@ -285,7 +296,7 @@ sub _reference_name {
 
 sub _get_mapper {
     my ( $self, $mapstat ) = @_;
-
+return 'NA' if(!defined($mapstat));
 	my $mapper_obj = $mapstat->mapper;
 	if( defined $mapper_obj ){
     	return $mapper_obj->name;
@@ -297,7 +308,7 @@ sub _get_mapper {
 
 sub _date_changed {
     my ( $self, $mapstat ) = @_;
-
+    return '01-01-1900' if(!defined($mapstat));
     my $msch = $mapstat->changed;
     my ( $date, $time ) = split( /\s+/, $msch );
     my @date_elements = split( '-', $date );

@@ -24,7 +24,7 @@ no warnings 'uninitialized';
 use Moose;
 
 use Data::Dumper;
-use Cwd;
+use Cwd 'abs_path';
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
 
@@ -38,25 +38,31 @@ use Path::Find::Lanes;
 use Path::Find::Filter;
 use Path::Find::Log;
 use Path::Find::Linker;
+use File::Basename;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
 has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'perc_identity' => ( is => 'rw', isa => 'Num',  default  => 98 );
 has '_job_runner' =>
   ( is => 'rw', isa => 'Str', required => 0, default => 'LSF' );
+  
+has '_create_pan_genome_cmd' => ( is => 'ro', isa => 'Str', lazy => 1, builder => '_build__create_pan_genome_cmd' );
+has 'user_gff_files'         => ( is => 'rw', isa => 'ArrayRef', default => sub {[]} );
+
 
 sub BUILD {
     my ($self) = @_;
-    my ( $type, $id, $job_runner, $help );
+    my ( $type, $id, $job_runner,$perc_identity, $help );
 
-    my @args = @{ $self->args };
     GetOptionsFromArray(
-        \@args,
+        $self->args,
         't|type=s'       => \$type,
         'i|id=s'         => \$id,
         'j|job_runner=s' => \$job_runner,
+        'perc_identity=i' => \$perc_identity,
         'h|help'         => \$help
     );
 
@@ -64,15 +70,32 @@ sub BUILD {
     $self->id($id)                  if ( defined $id );
     $self->_job_runner($job_runner) if ( defined $job_runner );
     $self->help($help)              if ( defined $help );
+    $self->perc_identity($perc_identity) if ( defined $perc_identity );
+    
 
     (
-        $type && $id && $id ne '' && ( $type eq 'study'
+        $type 
+        && $id 
+        && $id ne '' 
+        && !$help
+        && ( $type eq 'study'
             || $type eq 'lane'
             || $type eq 'file'
             || $type eq 'sample'
             || $type eq 'species'
             || $type eq 'database' )
     ) or die $self->usage_text;
+
+    for my $filename ( @{ $self->args } ) {
+        if ( !-e $filename  || !($filename =~ /gff$/)) {
+            print "Error: Cant access file $filename";
+            die $self->usage_text;
+        }
+        else
+        {
+          push(@{$self->user_gff_files}, abs_path($filename));
+        }
+    }
 }
 
 sub run {
@@ -82,6 +105,7 @@ sub run {
     my $type       = $self->type;
     my $id         = $self->id;
     my $job_runner = $self->_job_runner;
+    my $perc_identity = $self->perc_identity;
 
     eval {
         Path::Find::Log->new(
@@ -154,7 +178,9 @@ sub run {
             rename_links     => \%link_names
         )->sym_links;
 
-        `cd $output_directory; create_pan_genome --job_runner $job_runner *.gff`;
+        chdir($output_directory);
+        $self->_symlink_user_gff_files($output_directory);
+        system($self->_create_pan_genome_cmd);
 
         chdir($cwd);
         $dbh->disconnect();
@@ -163,9 +189,29 @@ sub run {
         return 1 if ( $lane_filter->found );
     }
 
-    unless ( $lane_filter->found ) {
+    if ( defined($lane_filter) && $lane_filter->found != 1 || ! defined($lane_filter)) {
         print "Could not find lanes or files for input data \n";
     }
+}
+
+sub _symlink_user_gff_files
+{
+  my ( $self, $output_directory) = @_;
+  
+  for my $gff_file_path (@{$self->user_gff_files})
+  {
+     my($filename, $directories, $suffix) = fileparse(abs_path($gff_file_path));
+     my $destination = $filename;
+     system("ln -sf $gff_file_path $destination");
+  }
+}
+
+sub _build__create_pan_genome_cmd
+{
+   my ( $self) = @_;
+   my $job_runner = $self->_job_runner;
+   my $perc_identity = $self->perc_identity;
+   return "create_pan_genome --output_multifasta_files --job_runner $job_runner --perc_identity $perc_identity *.gff";
 }
 
 sub link_rename_hash {

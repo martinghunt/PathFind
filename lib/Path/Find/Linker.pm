@@ -79,8 +79,8 @@ sub _build__checked_name {
         my $current_cwd = getcwd;
         $self->_set__given_destination($current_cwd);
     }
-    $name =~ s/\s+/_/;
-	print STDERR "$name\n";
+    $name =~ s/\s+/_/g;
+	#print STDERR "$name\n";
     return $name;
 }
 
