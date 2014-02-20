@@ -144,6 +144,8 @@ sub run {
     my $date     = $self->date;
     my $mapper   = $self->mapper;
 
+    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+
     eval {
         Path::Find::Log->new(
             logfile => '/nfs/pathnfs05/log/pathfindlog/tradisfind.log',
@@ -187,7 +189,11 @@ sub run {
         }
 
         # filter lanes
-        $filetype = "bam" if ( $verbose || $date || $ref || $mapper );
+        my $verbose_info = 0;
+        if ( $verbose || $date || $ref || $mapper ){
+            $filetype = "bam";
+            $verbose_info = 1;
+        }
         $lane_filter = Path::Find::Filter->new(
             lanes           => \@lanes,
             filetype        => $filetype,
@@ -197,7 +203,7 @@ sub run {
             reference       => $ref,
             mapper          => $mapper,
             date            => $date,
-			verbose         => $verbose
+			verbose         => $verbose_info
         );
         my @matching_lanes = $lane_filter->filter;
 

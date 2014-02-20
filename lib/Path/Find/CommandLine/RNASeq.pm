@@ -137,6 +137,8 @@ sub run {
     my $mapper   = $self->mapper;
     my $qc       = $self->qc;
 
+    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+
     eval {
         Path::Find::Log->new(
             logfile => '/nfs/pathnfs05/log/pathfindlog/rnaseqfind.log',
@@ -182,6 +184,11 @@ sub run {
         @req_stats = ('*corrected.bam') if ( defined $stats );
 
         # filter lanes
+        my $verbose_info = 0;
+        if ( $verbose || $date || $ref || $mapper ){
+            $filetype = "bam";
+            $verbose_info = 1;
+        }
         $lane_filter = Path::Find::Filter->new(
             lanes           => \@lanes,
             filetype        => $filetype,
@@ -192,7 +199,7 @@ sub run {
             reference       => $ref,
             mapper          => $mapper,
             date            => $date,
-            verbose         => $verbose,
+            verbose         => $verbose_info,
             stats           => \@req_stats
         );
         my @matching_lanes = $lane_filter->filter;
@@ -311,7 +318,7 @@ sub usage_text {
 Usage: $script_name
      -t|type      <study|lane|file|sample|species>
      -i|id        <study id|study name|lane name|file of lane names>
-     -f|filetype  <bam>
+     -f|filetype  <bam|coverage|intergenic|spreadsheet>
      -q|qc        <pass|failed|pending>
      -l|symlink   <create a symlink to the data>
      -a|arvhive   <archive the data>
@@ -326,10 +333,10 @@ Usage: $script_name
 Given a study or lane this will give you the location of the RNA Seq results. By default it provides the directory, but by specifiying a 'file_type' you can narrow it down to particular 
 files within the result set. For a single RNA seq experiment you will have:
 
-a BAM file with reads corrected according to the protocol,
-a spreadsheet with RPKM and read counts for each CDS/polypeptide,
-coverage plots for each sequence which can be opened in Artemis,
-optional tab files for each sequence with intergenic regions marked up, which can be opened in Artemis.
+- a BAM file with reads corrected according to the protocol
+- a spreadsheet with RPKM and read counts for each CDS/polypeptide
+- coverage plots for each sequence which can be opened in Artemis
+- tab files for each sequence with intergenic regions marked up, which can be opened in Artemis.
 
 Using the option -l|symlink will create a symlink to the queried data in the given directory (this will be created if it does not already exist). 
 Similarly, using the -a|archive option will create an archive of the results with the given filename. 

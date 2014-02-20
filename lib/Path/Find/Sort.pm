@@ -22,16 +22,22 @@ sub sort_lanes {
     my ($self) = @_;
     my @lanes = @{ $self->lanes };
 
-    my %lane_paths;
+    my %lane_s;
     foreach my $i (0..$#lanes){
-        my $lane_hash = $lanes[$i];
-        my $p = $lane_hash->{path};
-        $lane_paths{$p} = $i;
+	if(ref($lanes[$i]) eq 'HASH'){
+            my $lane_hash = $lanes[$i];
+            my $p = $lane_hash->{path};
+            $lane_s{$p} = $i;
+	}
+	else{
+	    my $lanename = $lanes[$i]->name;
+	    $lane_s{$lanename} = $i;
+	}
     }
 
     my @sorted;
-    foreach my $ln (sort lanesort keys %lane_paths){
-        my $index = $lane_paths{$ln};
+    foreach my $ln (sort lanesort keys %lane_s){
+        my $index = $lane_s{$ln};
         push(@sorted, $lanes[$index]);
     }
 
@@ -46,22 +52,52 @@ sub lanesort {
     my @a = split( /\_|\#/, $lane_a );
     my @b = split( /\_|\#/, $lane_b );
 
+    # check @a and @b are the same length
+    my $len_a = scalar(@a);
+    my $len_b = scalar(@b);
+    unless($len_a == $len_b){
+        if($len_a > $len_b){
+            foreach my $x (1 .. ($len_a-$len_b)){
+                push(@b, '0');
+            }
+        }
+        else{
+            foreach my $x (1 .. ($len_b-$len_a)){
+                push(@a, '0');
+            }
+        }
+    }
+
     for my $i ( 0 .. $#a ) {
         return ( $a cmp $b )
           if ( $a[$i] =~ /\D+/ || $b[$i] =~ /\D+/ );
     }
-
-    $a[0] <=> $b[0] || $a[1] <=> $b[1] || $a[2] <=> $b[2] || $end_a cmp $end_b;
+    
+    if( $#a == 2 && $#b == 2 && defined $end_a && defined $end_b ){
+	return $a[0] <=> $b[0] || $a[1] <=> $b[1] || $a[2] <=> $b[2] || $end_a cmp $end_b;
+    }
+    elsif( $#a == 2 && $#b == 2 && !defined $end_a && !defined $end_b ){
+	return $a[0] <=> $b[0] || $a[1] <=> $b[1] || $a[2] <=> $b[2];
+    }
+    elsif( $#a == 1 && $#b == 1 && defined $end_a && defined $end_b ){
+	return $a[0] <=> $b[0] || $a[1] <=> $b[1] || $end_a cmp $end_b;
+    }
+    else{
+	return $a[0] <=> $b[0] || $a[1] <=> $b[1];
+    }
 }
 
 sub _get_lane_name {
-    my ($path) = @_;
+    my ($lane) = @_;
 
-    my @dirs = split('/', $path);
-
-    my $end = join('/', splice(@dirs, 15));
-
-    return ($dirs[14], $end);
+    if ($lane =~ /\//){
+	my @dirs = split('/', $lane);
+	my $end = join('/', splice(@dirs, 15));
+	return ($dirs[14], $end);
+    }
+    else {
+	return ($lane, undef);
+    }
 }
 
 no Moose;

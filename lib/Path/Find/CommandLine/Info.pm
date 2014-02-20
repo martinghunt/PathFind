@@ -44,6 +44,7 @@ use Text::CSV;
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Log;
+use Path::Find::Sort;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -62,6 +63,7 @@ sub BUILD {
         \@args,
         't|type=s'   => \$type,
         'i|id=s'     => \$id,
+        'o|output=s' => \$output,
         'h|help'     => \$help
     );
 
@@ -91,6 +93,8 @@ sub run {
     my $type   = $self->type;
     my $id     = $self->id;
     my $output = $self->output;
+
+    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
 
     eval {
         Path::Find::Log->new(
@@ -130,12 +134,15 @@ sub run {
             dbh            => $dbh,
             processed_flag => 0
         );
-        my @lanes = @{ $find_lanes->lanes };
+        my @unsorted_lanes = @{ $find_lanes->lanes };
 
-        unless (@lanes) {
+        unless (@unsorted_lanes) {
             $dbh->disconnect();
             next;
         }
+
+	my $sorted = Path::Find::Sort->new(lanes => \@unsorted_lanes)->sort_lanes;
+	my @lanes = @{ $sorted };
 
         # open csv file and print column headers
         if ( $output && @lanes ) {
@@ -205,6 +212,7 @@ sub usage_text {
 Usage: $script_name
      -t|type            <study|lane|file|sample|species>
      -i|id              <study id|study name|lane name|file of lane names>
+     -o|output          <output results to CSV file>
      -h|help            <print this message>
 
 Given a study, lane or a file containing a list of lanes, this script will return the name, 

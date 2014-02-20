@@ -135,6 +135,7 @@ sub run {
     my $filetype = $self->filetype;
     my $archive  = $self->archive;
 
+    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
     my $found = 0;
 
     eval {
