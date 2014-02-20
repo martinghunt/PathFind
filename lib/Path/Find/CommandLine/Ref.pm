@@ -45,6 +45,7 @@ use Cwd 'abs_path';
 use Getopt::Long qw(GetOptionsFromArray);
 use Path::Find::Linker;
 use Path::Find::Log;
+use Path::Find::Exception;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -93,7 +94,7 @@ sub BUILD {
                     || $filetype eq 'annotation' )
             )
           )
-    ) or die $self->usage_text;
+    ) or Path::Find::Exception::InvalidInput->throw(error => $self->usage_text);
 }
 
 sub run {
@@ -308,7 +309,7 @@ sub remove_duplicates {
 sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
-    print <<USAGE;
+    die <<USAGE;
 Usage: $script_name
      -t|type            <species|file>
      -i|id              <species name|species regex|file name>
@@ -332,7 +333,7 @@ reffind -t species -i bongori -a
 creates an archive with a default name in the current directory
 
 USAGE
-    exit;
+    #exit;
 }
 
 __PACKAGE__->meta->make_immutable;

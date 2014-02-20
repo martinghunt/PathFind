@@ -136,6 +136,7 @@ sub BUILD {
                 || $filetype eq 'ffn' )
         )
       ) or die $self->usage_text;
+      
 }
 
 sub run {
@@ -381,7 +382,7 @@ annotationfind -t study -i 123 -a study_123_annotations
 annotationfind -t lane -i 123_1#23 -l symlinks_dir
 
 USAGE
-    exit;
+    #exit;
 }
 
 __PACKAGE__->meta->make_immutable;

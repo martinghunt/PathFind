@@ -1,0 +1,16 @@
+package Path::Find::Exception;
+# ABSTRACT: Exceptions for input data 
+
+=head1 SYNOPSIS
+
+Exceptions for input data 
+
+=cut
+
+
+use Exception::Class (
+    Path::Find::Exception::InvalidInput         => { description => 'Input arguments are invalid' },
+    Path::Find::Exception::InvalidDestination   => { description => 'Cannot access the specified location' }
+);  
+
+1;
