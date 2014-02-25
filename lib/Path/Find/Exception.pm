@@ -10,6 +10,7 @@ Exceptions for input data
 
 use Exception::Class (
     Path::Find::Exception::InvalidInput         => { description => 'Input arguments are invalid' },
+    Path::Find::Exception::FileDoesNotExist     => { description => 'Cannot find file' },
     Path::Find::Exception::InvalidDestination   => { description => 'Cannot access the specified location' }
 );  
 

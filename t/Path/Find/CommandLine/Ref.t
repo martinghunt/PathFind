@@ -8,10 +8,12 @@ use File::Temp;
 no warnings qw{qw};
 
 BEGIN { unshift( @INC, './lib' ) }
+use Path::Find::Exception;
 
 BEGIN {
     use Test::Most;
-	use Test::Output;
+    use Test::Output;
+    use Test::Exception;
 }
 
 use_ok('Path::Find::CommandLine::Ref');
@@ -24,106 +26,76 @@ my $tmp = $temp_directory_obj->dirname();
 
 my (@args, $arg_str, $exp_out, $obj);
 
-my $help_text = read_file("t/data/reffind/help.txt");
+#my $help_text = read_file("t/data/reffind/help.txt");
+
 # test 1
 @args = ( "-f", "fa" );
-$exp_out = $help_text;
 $obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-$arg_str = join(" ", @args);
-
-eval { $obj->run };
-print STDERR "\$\@: $@\n";
-like($@, $exp_out, "dies with help text");
-
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', "correct error thrown";
 
 ## test 2
-#@args = ( "-i", "valid_value", "-f", "gff", "-a", "invalid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 3
-#@args = ( "-i", "valid_value", "-f", "embl", "-l", "valid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 4
-#@args = ( "-i", "invalid_value", "-f", "annotation", "-a", "valid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 5
-#@args = ( "-t", "species", "-f", "fa", "-l", "invalid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 6
-#@args = ( "-t", "species", "-f", "gff" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 7
-#@args = ( "-t", "species", "-f", "embl", "-a", "invalid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 8
-#@args = ( "-t", "species", "-f", "annotation", "-l", "valid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 9
-#@args = ( "-t", "species", "-i", "pseudo", "-f", "fa" );
-#$exp_out = read_file("t/data/reffind/9.txt");
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
+@args = ( "-i", "valid_value", "-f", "gff", "-a", "invalid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 3
+@args = ( "-i", "valid_value", "-f", "embl", "-l", "valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 4
+@args = ( "-i", "invalid_value", "-f", "annotation", "-a", "valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 5
+@args = ( "-t", "species", "-f", "fa", "-l", "invalid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 6
+@args = ( "-t", "species", "-f", "gff" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 7
+@args = ( "-t", "species", "-f", "embl", "-a", "invalid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 8
+@args = ( "-t", "species", "-f", "annotation", "-l", "valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 9
+@args = ( "-t", "species", "-i", "pseudo", "-f", "fa" );
+$exp_out = read_file("t/data/reffind/9.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
 ## test 10
 #@args = ( "-t", "species", "-i", "pseudo", "-f", "fa", "-a", "valid_dest" );
 #$exp_out = read_file("t/data/reffind/10.txt");
 #$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
 #$arg_str = join(" ", @args);
 #stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-## check  archive
-#
-#
-#
+
+# check  archive
+
+
 ## test 11
 #@args = ( "-t", "species", "-i", "pseudo", "-f", "fa", "-a", "invalid_dest" );
 #$exp_out = read_file("t/data/reffind/11.txt");
 #$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
 #$arg_str = join(" ", @args);
 #stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-## check  archive  error message
-#
-#
-#
+
+# check  archive  error message
+
+
+
 ## test 12
 #@args = ( "-t", "species", "-i", "pseudo", "-f", "fa", "-l", "valid_dest" );
 #$exp_out = read_file("t/data/reffind/12.txt");
@@ -299,73 +271,47 @@ like($@, $exp_out, "dies with help text");
 #stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 #
 ## check  symlink dir error message
-#
-#
-#
-## test 29
-#@args = ( "-t", "species", "-i", "invalid_value", "-f", "fa", "-l", "valid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 30
-#@args = ( "-t", "species", "-i", "invalid_value", "-f", "gff", "-a", "valid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 31
-#@args = ( "-t", "species", "-i", "invalid_value", "-f", "embl" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 32
-#@args = ( "-t", "species", "-i", "invalid_value", "-f", "annotation", "-l", "valid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 33
-#@args = ( "-t", "file", "-f", "fa", "-l", "invalid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 34
-#@args = ( "-t", "file", "-f", "gff" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 35
-#@args = ( "-t", "file", "-f", "embl", "-a", "invalid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 36
-#@args = ( "-t", "file", "-f", "annotation", "-l", "valid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
+
+# test 29
+@args = ( "-t", "species", "-i", "invalid_value", "-f", "fa", "-l", "valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 30
+@args = ( "-t", "species", "-i", "invalid_value", "-f", "gff", "-a", "valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 31
+@args = ( "-t", "species", "-i", "invalid_value", "-f", "embl" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 32
+@args = ( "-t", "species", "-i", "invalid_value", "-f", "annotation", "-l", "valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 33
+@args = ( "-t", "file", "-f", "fa", "-l", "invalid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 34
+@args = ( "-t", "file", "-f", "gff" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 35
+@args = ( "-t", "file", "-f", "embl", "-a", "invalid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 36
+@args = ( "-t", "file", "-f", "annotation", "-l", "valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
 ## test 37
 #@args = ( "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "fa" );
 #$exp_out = read_file("t/data/reffind/37.txt");
@@ -571,55 +517,37 @@ like($@, $exp_out, "dies with help text");
 #stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 #
 ## check  symlink dir error message
-#
-#
-#
-## test 57
-#@args = ( "-t", "file", "-i", "invalid_value", "-f", "fa", "-l", "valid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 58
-#@args = ( "-t", "file", "-i", "invalid_value", "-f", "gff", "-a", "valid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 59
-#@args = ( "-t", "file", "-i", "invalid_value", "-f", "embl" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 60
-#@args = ( "-t", "file", "-i", "invalid_value", "-f", "annotation", "-l", "valid_dest" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 61
-#@args = ( "-t", "species", "-i", "pseudo", "-f", "gff", "-l", "valid_dest", "-h" );
-#$exp_out = $help_text;
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-#
-#
-## test 62
-#@args = ( "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "embl", "-l", "valid_dest", "-a", "valid_dest" );
-#$exp_out = "The archive and symlink options cannot be used together";
-#$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+
+
+# test 57
+@args = ( "-t", "file", "-i", "invalid_value", "-f", "fa", "-l", "valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 58
+@args = ( "-t", "file", "-i", "invalid_value", "-f", "gff", "-a", "valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 59
+@args = ( "-t", "file", "-i", "invalid_value", "-f", "embl" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 60
+@args = ( "-t", "file", "-i", "invalid_value", "-f", "annotation", "-l", "valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 61
+@args = ( "-t", "species", "-i", "pseudo", "-f", "gff", "-l", "valid_dest", "-h" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 62
+@args = ( "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "embl", "-l", "valid_dest", "-a", "valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown when symlink and archive used together';
 
 done_testing();

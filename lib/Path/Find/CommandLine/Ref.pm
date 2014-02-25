@@ -77,28 +77,33 @@ sub BUILD {
     $self->filetype($filetype) if ( defined $filetype );
     $self->symlink($symlink)   if ( defined $symlink );
     $self->archive($archive)   if ( defined $archive );
-    $self->help($help)         if ( defined $help );
+    $self->help($help)         if ( defined $help );  
+}
 
-    (
-    !$help &&
-     $type &&
-             ( $type eq 'species' || $type eq 'file' )
-          && $id
-          && (
-            !$filetype
-            || (
-                $filetype
-                && (   $filetype eq 'fa'
-                    || $filetype eq 'gff'
-                    || $filetype eq 'embl'
-                    || $filetype eq 'annotation' )
-            )
-          )
-    ) or Path::Find::Exception::InvalidInput->throw(error => $self->usage_text);
+sub check_inputs {
+    my ($self) = @_;
+    return (
+            !$self->help &&
+             $self->type &&
+                     ( $self->type eq 'species' || $self->type eq 'file' )
+                  && $self->id
+                  && (
+                    !$self->filetype
+                    || (
+                        $self->filetype
+                        && (   $self->filetype eq 'fa'
+                            || $self->filetype eq 'gff'
+                            || $self->filetype eq 'embl'
+                            || $self->filetype eq 'annotation' )
+                    )
+                  )
+            );
 }
 
 sub run {
     my ($self) = @_;
+    
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw(error => $self->usage_text);
 
     # assign variables
     my $type     = $self->type;
@@ -107,7 +112,7 @@ sub run {
     my $symlink  = $self->symlink;
     my $archive  = $self->archive;
 
-    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+    Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
 
     eval {
         Path::Find::Log->new(
@@ -116,7 +121,7 @@ sub run {
         )->commandline();
     };
 
-    die "The archive and symlink options cannot be used together\n"
+    Path::Find::Exception::InvalidInput->throw( error => "The archive and symlink options cannot be used together\n")
       if ( defined $archive && defined $symlink );
 
     my $found = 0;    #assume nothing found
@@ -267,7 +272,7 @@ sub search_index_file_for_directories_and_references {
     my %search_results;
     $search_query =~ s! !|!gi;
 
-    open( INDEX_FILE, $index_file ) or die 'Couldnt find the refs.index file';
+    open( INDEX_FILE, $index_file ) or Path::Find::Exception::FileDoesNotExist->throw( error => "Couldnt find the refs.index file\n");
     while (<INDEX_FILE>) {
         chomp;
         my $line = $_;
@@ -309,7 +314,7 @@ sub remove_duplicates {
 sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
-    die <<USAGE;
+    return <<USAGE;
 Usage: $script_name
      -t|type            <species|file>
      -i|id              <species name|species regex|file name>
@@ -333,7 +338,6 @@ reffind -t species -i bongori -a
 creates an archive with a default name in the current directory
 
 USAGE
-    #exit;
 }
 
 __PACKAGE__->meta->make_immutable;
