@@ -14,22 +14,39 @@ use strict;
 use DBI;
 use VRTrack::VRTrack;
 
-# Database connection details
-my %CONNECT = ('host' => 'mcs6',
-               'port' => 3347,
-               'user' => 'pathpipe_ro',
-               'password' => undef);
+use File::Slurp;
+use YAML::XS;
+use Moose;
 
-# Location of database root directories.
-my $DB_ROOT = '/lustre/scratch108/pathogen/pathpipe/';
-my %DB_SUB  = ('pathogen_virus_track'    => 'viruses',
+use Data::Dumper;
+
+has 'connection'  => ( is => 'ro', isa => 'HashRef',  lazy_build => 1,   required => 0 );
+has 'db_root'     => ( is => 'ro', isa => 'Str',      default => '/lustre/scratch108/pathogen/pathpipe', required => 0 );
+has 'db_sub'      => ( is => 'ro', isa => 'HashRef',  lazy_build => 1,   required => 0 );
+has 'template'    => ( is => 'ro', isa => 'Str',      default => "genus:species-subspecies:TRACKING:projectssid:sample:technology:library:lane", required => 0 );
+has 'environment' => ( is => 'ro', isa => 'Str',      default => 'prod', required => 0 );
+
+sub _build_connection {
+  my $self = shift;
+  my $e = $self->environment;
+
+  print "\$e = $e\n";
+
+  my %connect = %{ Load( scalar read_file("../config/$e.yml") ) };
+  $connect{ 'password' } = undef;
+  print Dumper \%connect;
+  return \%connect;
+}
+
+sub _build_db_sub {
+  my $self = shift;
+  my %dbsub   = ('pathogen_virus_track'    => 'viruses',
                'pathogen_prok_track'     => 'prokaryotes',
                'pathogen_euk_track'      => 'eukaryotes',
                'pathogen_helminth_track' => 'helminths',
                'pathogen_rnd_track'      => 'rnd');
-
-# Hierarchy template for pathogen database directories
-my $TEMPLATE = "genus:species-subspecies:TRACKING:projectssid:sample:technology:library:lane";
+  return \%dbsub;
+}
 
 =begin nd
 
@@ -48,10 +65,16 @@ my $TEMPLATE = "genus:species-subspecies:TRACKING:projectssid:sample:technology:
     Array of database names.
 
 =cut
+sub wtf {
+  my ($self) = @_;
+  print Dumper $self->connection;
+}
+
 
 sub pathogen_databases
 {
-    my ($class) = @_;
+    my ($self) = @_;
+    my %CONNECT = %{ $self->connection };
 
     my @db_list_all = grep(s/^DBI:mysql://, DBI->data_sources("mysql", \%CONNECT));
 
@@ -89,7 +112,9 @@ sub pathogen_databases
 
 sub hierarchy_root_dir
 {
-    my ($class, $database) = @_;
+    my ($self, $database) = @_;
+    my %DB_SUB = %{ $self->db_sub };
+    my $DB_ROOT = $self->db_root;
 
     my $sub_dir = exists $DB_SUB{$database} ? $DB_SUB{$database}:$database;
     my $root_dir = $DB_ROOT.$sub_dir.'/seq-pipelines'; 
@@ -98,7 +123,8 @@ sub hierarchy_root_dir
 
 sub lookup_tracking_name_from_database
 {
-   my ($class, $database) = @_;
+   my ($self, $database) = @_;
+   my %DB_SUB = %{ $self->db_sub };
    exists $DB_SUB{$database} ? $DB_SUB{$database}:$database;
 }
 
@@ -122,8 +148,8 @@ sub lookup_tracking_name_from_database
 
 sub hierarchy_template
 {
-    my ($class) = @_;
-    return $TEMPLATE;
+    my ($self) = @_;
+    return $self->template;
 }
 
 =begin nd
@@ -146,11 +172,11 @@ sub hierarchy_template
 
 sub vrtrack
 {
-    my ($class, $database) = @_;
+    my ($self, $database) = @_;
 
     return undef unless defined Path::Find->hierarchy_root_dir($database);
 
-    my %connect = %CONNECT;
+    my %connect = %{ $self->connect };
     $connect{database} = $database;
     my $vrtrack = VRTrack::VRTrack->new(\%connect);
 
@@ -178,9 +204,11 @@ sub vrtrack
 
 sub dbi
 {
-    my ($class, $database) = @_;
+    my ($self, $database) = @_;
 
     return undef unless defined Path::Find->hierarchy_root_dir($database);
+
+    my %CONNECT = %{ $self->connection };
 
     my $dbi_connect = "DBI:mysql:dbname=".$database.";host=".$CONNECT{host}.";port=".$CONNECT{port};
     my $dbi = DBI->connect($dbi_connect, $CONNECT{user}) or return undef;
@@ -198,4 +226,6 @@ sub get_db_info{
 	return ($vr, $dbh, $root);
 }
 
+__PACKAGE__->meta->make_immutable;
+no Moose;
 1;

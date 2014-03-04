@@ -37,6 +37,8 @@ use Cwd;
 use Data::Dumper;
 use Carp;
 use File::Basename;
+use File::Path qw( remove_tree);
+use Path::Find::Exception;
 
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has '_tmp_dir' => ( is => 'rw', lazy => 1, builder  => '_build__tmp_dir' );
@@ -72,6 +74,7 @@ sub _build__checked_name {
     # if not, set given destination to CWD
     if ( $name =~ /^\// ) {
         my($filename, $directories, $suffix) = fileparse($name);
+        Path::Find::Exception::InvalidDestination->throw( error => "$directories does not exist\n" ) unless( -e $directories );
         $self->_set__given_destination( $directories );
 		$name = $filename;
     }
@@ -136,6 +139,7 @@ sub archive {
     my $er_code = $self->_tar($dirname);
 
 	File::Temp::cleanup();
+    remove_tree($dirname);
 
 	return $er_code;
 }

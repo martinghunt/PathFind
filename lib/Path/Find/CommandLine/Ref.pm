@@ -35,7 +35,7 @@ use warnings;
 no warnings 'uninitialized';
 use Moose;
 
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
 use Data::Dumper;
@@ -151,7 +151,7 @@ sub run {
     }
 
     unless ($found) {
-        print "Could not find references\n";
+        Path::Find::Exception::NoMatches->throw( error => "Could not find references\n" );
     }
     else {
         return 1;

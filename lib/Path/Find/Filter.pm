@@ -94,7 +94,7 @@ sub filter {
 	       ( $date =~ /\d{2}-\d{2}-\d{4}/ ) or die "Date (-d option) '$date' is not in the correct format. Use format: DD-MM-YYYY\n";
 	   }
 
-        if ( !$qc || ( $qc && $qc eq $l->qc_status() ) ) {
+        if ( !$qc || (defined($l->qc_status()) && ( $qc && $qc eq $l->qc_status() )) ) {
             my @paths = $self->_get_full_path($l);
 
             foreach my $full_path (@paths) {

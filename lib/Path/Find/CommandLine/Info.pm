@@ -71,24 +71,29 @@ sub BUILD {
     $self->id($id)         if ( defined $id );
     $self->output($output) if ( defined $output );
     $self->help($help)     if ( defined $help );
+}
 
+sub check_inputs{
+    my ($self) = @_;
     (
-             $type
-          && $id
-          && $id ne ''
-          && !$help
-          && ( $type eq 'study'
-            || $type eq 'lane'
-            || $type eq 'file'
-            || $type eq 'sample'
-            || $type eq 'species'
-            || $type eq 'database' )
-          && ( !defined($output) || ( defined($output) && $output ne '' ) )
-    ) or die $self->usage_text;
+             $self->type
+          && $self->id
+          && $self->id ne ''
+          && !$self->help
+          && ( $self->type eq 'study'
+            || $self->type eq 'lane'
+            || $self->type eq 'file'
+            || $self->type eq 'sample'
+            || $self->type eq 'species'
+            || $self->type eq 'database' )
+          && ( !defined($self->output) || ( defined($self->output) && $self->output ne '' ) )
+    ) or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text );
 }
 
 sub run {
     my ($self) = @_;
+
+    $self->check_inputs;
 
     # assign variables
     my $type   = $self->type;

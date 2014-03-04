@@ -42,31 +42,31 @@ has 'is_qc_mapstats'      => ( is => 'ro', isa => 'Bool',        lazy_build => 1
 has 'is_mapping_complete' => ( is => 'ro', isa => 'Maybe[Bool]', lazy_build => 1 );    # Mapping completed
 
 # Internals
-has '_vrtrack_project'      => ( is => 'ro', isa => 'VRTrack::Project',          lazy_build => 1 );    # Assembly - from mapststs
-has '_vrtrack_sample'       => ( is => 'ro', isa => 'VRTrack::Sample',           lazy_build => 1 );    # Mapper - from mapstats
-has '_vrtrack_assembly'     => ( is => 'ro', isa => 'VRTrack::Assembly',         lazy_build => 1 );    # Assembly - from mapststs
-has '_vrtrack_mapper'       => ( is => 'ro', isa => 'VRTrack::Mapper',           lazy_build => 1 );    # Mapper - from mapstats
+has '_vrtrack_project'      => ( is => 'ro', isa => 'Maybe[VRTrack::Project]',                 lazy_build => 1 );    # Assembly - from mapststs
+has '_vrtrack_sample'       => ( is => 'ro', isa => 'Maybe[VRTrack::Sample]',                  lazy_build => 1 );    # Mapper - from mapstats
+has '_vrtrack_assembly'     => ( is => 'ro', isa => 'Maybe[VRTrack::Assembly]',                lazy_build => 1 );    # Assembly - from mapststs
+has '_vrtrack_mapper'       => ( is => 'ro', isa => 'Maybe[VRTrack::Mapper]',                  lazy_build => 1 );    # Mapper - from mapstats
 has '_bamcheck_obj'         => ( is => 'ro', isa => 'Maybe[VertRes::Parser::bamcheck]', lazy_build => 1 );    # Bamcheck - for assemblies
-has '_basic_assembly_stats' => ( is => 'ro', isa => 'HashRef',                   lazy_build => 1 );
+has '_basic_assembly_stats' => ( is => 'ro', isa => 'HashRef',                          lazy_build => 1 );
 
 # Cells
 # Mapping
 # REQUIRES: VRTrack::Mapstats object
-has 'study_id'             => ( is => 'ro', isa => 'Int',        lazy_build => 1 );    # study ssid
-has 'sample'               => ( is => 'ro', isa => 'Str',        lazy_build => 1 );    # sample name
-has 'lanename'             => ( is => 'ro', isa => 'Str',        lazy_build => 1 );    # lane name
-has 'cycles'               => ( is => 'ro', isa => 'Int',        lazy_build => 1 );    # cycles/readlength
-has 'reads'                => ( is => 'ro', isa => 'Int',        lazy_build => 1 );    # lane yield (reads)
-has 'bases'                => ( is => 'ro', isa => 'Int',        lazy_build => 1 );    # lane yield (bases)
-has 'map_type'             => ( is => 'ro', isa => 'Str',        lazy_build => 1 );    # qc or mapping reported value
-has 'reference'            => ( is => 'ro', isa => 'Str',        lazy_build => 1 );    # reference name
-has 'reference_size'       => ( is => 'ro', isa => 'Int',        lazy_build => 1 );    # reference size
-has 'mapper'               => ( is => 'ro', isa => 'Str',        lazy_build => 1 );    # mapper name
-has 'mapstats_id'          => ( is => 'ro', isa => 'Int',        lazy_build => 1 );    # mapstats id
+has 'study_id'             => ( is => 'ro', isa => 'Maybe[Int]', lazy_build => 1 );    # study ssid
+has 'sample'               => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );    # sample name
+has 'lanename'             => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );    # lane name
+has 'cycles'               => ( is => 'ro', isa => 'Maybe[Int]', lazy_build => 1 );    # cycles/readlength
+has 'reads'                => ( is => 'ro', isa => 'Maybe[Int]', lazy_build => 1 );    # lane yield (reads)
+has 'bases'                => ( is => 'ro', isa => 'Maybe[Int]', lazy_build => 1 );    # lane yield (bases)
+has 'map_type'             => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );    # qc or mapping reported value
+has 'reference'            => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );    # reference name
+has 'reference_size'       => ( is => 'ro', isa => 'Maybe[Int]', lazy_build => 1 );    # reference size
+has 'mapper'               => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );    # mapper name
+has 'mapstats_id'          => ( is => 'ro', isa => 'Maybe[Int]', lazy_build => 1 );    # mapstats id
 has 'adapter_perc'         => ( is => 'rw', isa => 'Maybe[Num]', lazy_build => 1 );    # percent adaptor reads
 has 'transposon_perc'      => ( is => 'rw', isa => 'Maybe[Num]', lazy_build => 1 );    # percent transposon reads
-has 'mapped_perc'          => ( is => 'ro', isa => 'Num',        lazy_build => 1 );    # percent mapped reads
-has 'paired_perc'          => ( is => 'ro', isa => 'Num',        lazy_build => 1 );    # percent paired reads
+has 'mapped_perc'          => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );    # percent mapped reads
+has 'paired_perc'          => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );    # percent paired reads
 has 'mean_insert_size'     => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );    # mean insert size
 has 'genome_covered'       => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );    # genome covered QC
 has 'genome_covered_1x'    => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );    # genome covered Mapping
@@ -129,14 +129,13 @@ has 'cds_n'  => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 # Is mapstats entry from QC or Mapping
 sub _build_is_qc_mapstats {
     my ($self) = @_;
-    return $self->{mapstats}->is_qc();
+    return $self->{mapstats}->is_qc() if defined($self->mapstats);
+    return undef;
 }
 
 sub _build_is_mapping_complete {
     my ($self) = @_;
-    return undef
-      unless
-      defined $self->mapstats->bases_mapped;   # Mapping not complete or failed;
+    return undef unless(defined $self->mapstats);   # Mapping not complete or failed;
     return $self->mapstats->bases_mapped
       ? 1
       : 0;    # Mapping complete and bases found;
@@ -170,16 +169,14 @@ sub _build_is_mapping_complete {
 
     sub _build__vrtrack_assembly {
         my ($self) = @_;
-        my $assembly = $self->mapstats->assembly()
-          or die "debug: build assembly failed\n";
-        return $assembly;
+        return $self->mapstats->assembly() if( defined($self->mapstats) );
+        return undef;
     }
 
     sub _build__vrtrack_mapper {
         my ($self) = @_;
-        my $mapper = $self->mapstats->mapper()
-          or die "debug: build mapper failed\n";
-        return $mapper;
+        return $self->mapstats->mapper() if( defined($self->mapstats) );
+        return undef;
     }
 
     sub _build__bamcheck_obj {
@@ -240,6 +237,17 @@ sub _build_is_mapping_complete {
         return \%assembly_stats;
     }
 
+    sub _build__checked_mapstats{
+        my ($self) = @_;
+
+        if( defined $self->{mapstats} ){
+            return $self->{mapstats};
+        }
+        else{
+            return undef;
+        }
+    }
+
 }
 
 # End Build Internals
@@ -251,7 +259,8 @@ sub _build_is_mapping_complete {
 
         sub _build_study_id {
             my ($self) = @_;
-            return $self->_vrtrack_project->ssid();
+            return $self->_vrtrack_project->ssid() if(defined $self->_vrtrack_project);
+            return 'NA'
         }
 
         sub _build_sample {
@@ -281,27 +290,33 @@ sub _build_is_mapping_complete {
 
         sub _build_map_type {
             my ($self) = @_;
+            my $is_qc = $self->is_qc_mapstats();
+            return 'NA' if( !defined $is_qc );
             return $self->is_qc_mapstats() ? 'QC' : 'Mapping';
         }
 
         sub _build_reference {
             my ($self) = @_;
-            return $self->_vrtrack_assembly->name();
+            return $self->_vrtrack_assembly->name() if( defined $self->_vrtrack_assembly );
+            return undef;
         }
 
         sub _build_reference_size {
             my ($self) = @_;
-            return $self->_vrtrack_assembly->reference_size();
+            return $self->_vrtrack_assembly->reference_size() if( defined $self->_vrtrack_assembly );
+            return undef;
         }
 
         sub _build_mapper {
             my ($self) = @_;
-            return $self->mapstats->mapper->name();
+            return $self->mapstats->mapper->name() if( defined $self->mapstats );
+            return undef;
         }
 
         sub _build_mapstats_id {
             my ($self) = @_;
-            return $self->mapstats->id();
+            return $self->mapstats->id() if( defined $self->mapstats );
+            return undef;
         }
 
         sub _build_adapter_perc {
@@ -359,6 +374,7 @@ sub _build_is_mapping_complete {
 
         sub _build_mean_insert_size {
             my ($self) = @_;
+            return undef unless( defined $self->mapstats );
             return $self->mapstats->mean_insert;
         }
 
@@ -415,6 +431,8 @@ sub _build_is_mapping_complete {
         sub _build_depth_of_coverage {
             my ($self) = @_;
 
+            return undef unless( defined $self->mapstats );
+
             # Get value from mapstats
             my $depth = $self->mapstats->mean_target_coverage;
 
@@ -441,6 +459,8 @@ sub _build_is_mapping_complete {
 
         sub _build_depth_of_coverage_sd {
             my ($self) = @_;
+
+            return undef unless( defined $self->mapstats );
 
             # Get value from mapstats
             my $depth_sd = $self->mapstats->target_coverage_sd;
@@ -836,7 +856,9 @@ sub transfer_qc_values {
 sub double_chomp {
     #remove leading and trailing whitespace
     my ($self, $str) = @_;
-    $str =~ s/^\s+|\s+$//g;
+    if( defined $str && $str =~ m/^\s+|\s+$/g ) {
+        $str =~ s/^\s+|\s+$//g;
+    }
     return $str;
 }
 
