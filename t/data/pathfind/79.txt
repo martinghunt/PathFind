@@ -1,0 +1,2 @@
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium_EX_33/TRACKING/310/EX33/SLX/EX33_1/3996_1
+/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/310/TL124/SLX/TL124_1/3996_2

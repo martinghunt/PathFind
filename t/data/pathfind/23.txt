@@ -1,0 +1,4 @@
+/lustre/scratch108/pathogen/pathpipe/helminths/seq-pipelines/Sanguinicola/cf_inermis/TRACKING/1947/Sin_251285_pool/SLX/Sin_251285_pool_5172085/7981_6/7981_6_1.fastq.gz
+/lustre/scratch108/pathogen/pathpipe/helminths/seq-pipelines/Sanguinicola/cf_inermis/TRACKING/1947/Sin_251285_pool/SLX/Sin_251285_pool_5172085/7981_6/7981_6_2.fastq.gz
+/lustre/scratch108/pathogen/pathpipe/helminths/seq-pipelines/Sanguinicola/cf_inermis/TRACKING/1947/Sin_251285_pool/SLX/Sin_251285_pool_5172085/12128_1/12128_1_1.fastq.gz
+/lustre/scratch108/pathogen/pathpipe/helminths/seq-pipelines/Sanguinicola/cf_inermis/TRACKING/1947/Sin_251285_pool/SLX/Sin_251285_pool_5172085/12128_1/12128_1_2.fastq.gz
