@@ -14,9 +14,11 @@ use strict;
 use DBI;
 use VRTrack::VRTrack;
 
+use Cwd;
 use File::Slurp;
 use YAML::XS;
 use Moose;
+use File::Spec;
 
 use Data::Dumper;
 
@@ -30,17 +32,17 @@ sub _build_connection {
   my $self = shift;
   my $e = $self->environment;
 
-  print "\$e = $e\n";
+  my ($volume, $directory, $file) = File::Spec->splitpath(__FILE__);
+  $directory =~ s/lib\/Path/config/g;
 
-  my %connect = %{ Load( scalar read_file("../config/$e.yml") ) };
+  my %connect = %{ Load( scalar read_file("$directory/$e.yml") ) };
   $connect{ 'password' } = undef;
-  print Dumper \%connect;
   return \%connect;
 }
 
 sub _build_db_sub {
   my $self = shift;
-  my %dbsub   = ('pathogen_virus_track'    => 'viruses',
+  my %dbsub   = ('pathogen_virus_track'  => 'viruses',
                'pathogen_prok_track'     => 'prokaryotes',
                'pathogen_euk_track'      => 'eukaryotes',
                'pathogen_helminth_track' => 'helminths',
@@ -65,11 +67,6 @@ sub _build_db_sub {
     Array of database names.
 
 =cut
-sub wtf {
-  my ($self) = @_;
-  print Dumper $self->connection;
-}
-
 
 sub pathogen_databases
 {
@@ -78,16 +75,31 @@ sub pathogen_databases
 
     my @db_list_all = grep(s/^DBI:mysql://, DBI->data_sources("mysql", \%CONNECT));
 
+    #print "DB LIST ALL:\n";
+    #print Dumper \@db_list_all;
+
     my @db_list = (); # tracking and external databases
-    push @db_list, grep (/^pathogen_.+_track$/,   @db_list_all); # pathogens_..._track
-    push @db_list, grep (/^pathogen_.+_external$/,@db_list_all); # pathogens_..._external
+    if($self->environment eq 'prod'){
+      push @db_list, grep (/^pathogen_.+_track$/,   @db_list_all); # pathogens_..._track
+      push @db_list, grep (/^pathogen_.+_external$/,@db_list_all); # pathogens_..._external
+    }
+    elsif($self->environment eq 'test'){
+      push @db_list, grep (/^pathogen_test_external$/, @db_list_all);
+    }
+
+    #print "DB LIST WANTED:\n";
+    #print Dumper \@db_list;
 
     my @db_list_out = (); # databases with files on disk
     for my $database (@db_list)
     {
-        my $root_dir = Path::Find->hierarchy_root_dir($database);
+        my $root_dir = $self->hierarchy_root_dir($database);
+        #print "root of db:\n";
         push @db_list_out, $database  if defined $root_dir;
     }
+
+    #print "DB LIST OUT:\n";
+    #print Dumper \@db_list_out;
 
     return @db_list_out;
 }
@@ -117,7 +129,7 @@ sub hierarchy_root_dir
     my $DB_ROOT = $self->db_root;
 
     my $sub_dir = exists $DB_SUB{$database} ? $DB_SUB{$database}:$database;
-    my $root_dir = $DB_ROOT.$sub_dir.'/seq-pipelines'; 
+    my $root_dir = "$DB_ROOT/$sub_dir/seq-pipelines";
     return -d $root_dir ? $root_dir : undef;
 }
 
@@ -174,9 +186,9 @@ sub vrtrack
 {
     my ($self, $database) = @_;
 
-    return undef unless defined Path::Find->hierarchy_root_dir($database);
+    return undef unless defined $self->hierarchy_root_dir($database);
 
-    my %connect = %{ $self->connect };
+    my %connect = %{ $self->connection };
     $connect{database} = $database;
     my $vrtrack = VRTrack::VRTrack->new(\%connect);
 
@@ -206,7 +218,7 @@ sub dbi
 {
     my ($self, $database) = @_;
 
-    return undef unless defined Path::Find->hierarchy_root_dir($database);
+    return undef unless defined $self->hierarchy_root_dir($database);
 
     my %CONNECT = %{ $self->connection };
 

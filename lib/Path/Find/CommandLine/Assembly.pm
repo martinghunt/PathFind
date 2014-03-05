@@ -62,6 +62,7 @@ use Path::Find::Linker;
 use Path::Find::Log;
 use Path::Find::Stats::Generator;
 use Path::Find::Sort;
+use Path::Find::Exception;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -72,11 +73,12 @@ has 'stats'       => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',     required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
 
-    my ( $type, $id, $symlink, $stats, $filetype, $archive, $help );
+    my ( $type, $id, $symlink, $stats, $filetype, $archive, $help, $test );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
@@ -88,6 +90,7 @@ sub BUILD {
         'l|symlink:s'  => \$symlink,
         'a|archive:s'  => \$archive,
         's|stats:s'    => \$stats,
+        'test'         => \$test,
     );
 
     $self->type($type)         if ( defined $type );
@@ -97,34 +100,40 @@ sub BUILD {
     $self->filetype($filetype) if ( defined $filetype );
     $self->archive($archive)   if ( defined $archive );
     $self->help($help)         if ( defined $help );
+    $self->_environment('test') if ( defined $test );
+}
 
-    (
-             $type
-          && $id
-          && $id ne ''
-          && !$help
-          && ( $type eq 'study'
-            || $type eq 'lane'
-            || $type eq 'file'
-            || $type eq 'sample'
-            || $type eq 'species'
-            || $type eq 'database' )
+sub check_inputs{
+    my $self = shift;
+    return(
+             $self->type
+          && $self->id
+          && $self->id ne ''
+          && !$self->help
+          && ( $self->type eq 'study'
+            || $self->type eq 'lane'
+            || $self->type eq 'file'
+            || $self->type eq 'sample'
+            || $self->type eq 'species'
+            || $self->type eq 'database' )
           && (
-            !$filetype
+            !$self->filetype
             || (
-                $filetype
-                && (   $filetype eq 'contigs'
-                    || $filetype eq 'scaffold' )
+                $self->filetype
+                && (   $self->filetype eq 'contigs'
+                    || $self->filetype eq 'scaffold' )
             )
           )
-          && ( !defined($archive)
-            || $archive eq ''
-            || ( $archive && !( $stats || $symlink ) ) )
-    ) or die $self->usage_text;
+          && ( !defined($self->archive)
+            || $self->archive eq ''
+            || ( $self->archive && !( $self->stats || $self->symlink ) ) )
+    );
 }
 
 sub run {
     my ($self) = @_;
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text);
+
     my ( $qc, $destination, $tmpdirectory_name, $archive_name,
         $all_stats, $archive_path, $archive_suffix );
 
@@ -136,7 +145,7 @@ sub run {
     my $filetype = $self->filetype;
     my $archive  = $self->archive;
 
-    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+    Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
     my $found = 0;
 
     eval {
@@ -146,8 +155,6 @@ sub run {
         )->commandline();
     };
 
-    # Get databases
-    my @pathogen_databases = Path::Find->pathogen_databases;
 
     # Set assembly subdirectories
     my @sub_directories;
@@ -173,10 +180,13 @@ sub run {
 
     my $lane_filter;
 
+    # Get databases
+    my $find = Path::Find->new( environment => $self->_environment );
+    my @pathogen_databases = $find->pathogen_databases;
     for my $database (@pathogen_databases) {
 
         # Connect to database and get info
-        my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+        my ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
@@ -259,9 +269,7 @@ sub run {
     }
 
     unless ( $found ) {
-
-        print "Could not find lanes or files for input data\n";
-
+        Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data\n");
     }
 }
 

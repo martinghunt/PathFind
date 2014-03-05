@@ -63,7 +63,7 @@ has 'stats'     => ( is => 'ro', isa => 'ArrayRef', required => 0 );
 sub _build_hierarchy_template {
     my ($self) = @_;
 
-    return Path::Find->hierarchy_template;
+    return Path::Find->new()->hierarchy_template;
 }
 
 sub filter {

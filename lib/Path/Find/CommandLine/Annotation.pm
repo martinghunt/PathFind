@@ -62,6 +62,7 @@ use Path::Find::Linker;
 use Path::Find::Stats::Generator;
 use Path::Find::Log;
 use Path::Find::Sort;
+use Path::Find::Exception;
 
 has 'args'            => ( is => 'ro', isa => 'ArrayRef',        required => 1 );
 has 'script_name'     => ( is => 'ro', isa => 'Str',             required => 1 );
@@ -76,6 +77,7 @@ has 'search_products' => ( is => 'rw', isa => 'Str',             required => 0 )
 has 'nucleotides'     => ( is => 'rw', isa => 'Str',             required => 0 );
 has 'archive'         => ( is => 'rw', isa => 'Str',             required => 0 );
 has 'stats'           => ( is => 'rw', isa => 'Str',             required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
@@ -83,7 +85,7 @@ sub BUILD {
     my (
         $type,        $id,      $symlink, $help,
         $filetype,    $output,  $gene,    $search_products,
-        $nucleotides, $archive, $stats
+        $nucleotides, $archive, $stats, $test
     );
 
     my @args = @{ $self->args };
@@ -99,7 +101,8 @@ sub BUILD {
         'p|search_products' => \$search_products,
         'n|nucleotides'     => \$nucleotides,
         'o|output=s'        => \$output,
-        's|stats:s'         => \$stats
+        's|stats:s'         => \$stats,
+        'test'              => \$test,
     );
 
     $self->type($type)                       if ( defined $type );
@@ -107,40 +110,47 @@ sub BUILD {
     $self->symlink($symlink)                 if ( defined $symlink );
     $self->help($help)                       if ( defined $help );
     $self->filetype($filetype)               if ( defined $filetype );
-    $self->output($output)       if ( defined $output );
+    $self->output($output)                   if ( defined $output );
     $self->gene($gene)                       if ( defined $gene );
     $self->search_products($search_products) if ( defined $search_products );
     $self->nucleotides($nucleotides)         if ( defined $nucleotides );
     $self->archive($archive)                 if ( defined $archive );
     $self->stats($stats)                     if ( defined $stats );
+    $self->_environment('test')              if ( defined $test );
+}
 
-    (
-             $type
-          && $id
-          && $id ne ''
-          && !$help
+sub check_inputs{
+    my $self = shift;
+    return (
+             $self->type
+          && $self->id
+          && $self->id ne ''
+          && !$self->help
 
-          && ( $type eq 'study'
-            || $type eq 'lane'
-            || $type eq 'file'
-            || $type eq 'sample'
-            || $type eq 'species'
-            || $type eq 'database' )
+          && ( $self->type eq 'study'
+            || $self->type eq 'lane'
+            || $self->type eq 'file'
+            || $self->type eq 'sample'
+            || $self->type eq 'species'
+            || $self->type eq 'database' )
       )
       && (
-        !$filetype
+        !$self->filetype
         || (
-            $filetype
-            && (   $filetype eq 'gff'
-                || $filetype eq 'faa'
-                || $filetype eq 'ffn' )
+            $self->filetype
+            && (   $self->filetype eq 'gff'
+                || $self->filetype eq 'faa'
+                || $self->filetype eq 'ffn' )
         )
-      ) or die $self->usage_text;
+      );
+}
       
 }
 
 sub run {
     my ($self) = @_;
+
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text);
 
     # assign variables
     my $type            = $self->type;
@@ -154,7 +164,7 @@ sub run {
     my $archive         = $self->archive;
     my $stats           = $self->stats;
 
-    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+    Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
 
     eval {
         Path::Find::Log->new(
@@ -163,11 +173,9 @@ sub run {
         )->commandline();
     };
 
-    die "The archive and symlink options cannot be used together\n"
+    Path::Find::Exception::InvalidInput( error => "The archive and symlink options cannot be used together\n")
       if ( defined $archive && defined $symlink );
 
-    # Get databases
-    my @pathogen_databases = Path::Find->pathogen_databases;
     my $lane_filter;
     my $found = 0;
 
@@ -186,10 +194,12 @@ sub run {
         $filetype = 'gff';
     }
 
+    my $find = Path::Find->new( environment => $self->_environment );
+    my @pathogen_databases = $find->pathogen_databases;
     for my $database (@pathogen_databases) {
 
         # Connect to database and get info
-        my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+        my ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
@@ -305,7 +315,7 @@ sub run {
     }
 
     unless ( $found ) {
-        print "Could not find lanes or files for input data \n";
+        Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
     }
 }
 

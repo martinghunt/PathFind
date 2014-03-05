@@ -46,6 +46,7 @@ use VRTrack::VRTrack;
 use VRTrack::Lane;
 use VertRes::Utils::VRTrackFactory;
 use Path::Find::Log;
+use Path::Find::Exception;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -53,11 +54,12 @@ has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'tag'         => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
 
-    my ( $type, $id, $tag, $help );
+    my ( $type, $id, $tag, $help, $test );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
@@ -66,29 +68,37 @@ sub BUILD {
         'i|id=s'   => \$id,
         'tag=s'    => \$tag,
         'h|help'   => \$help,
+        'test'     => \$test,
     );
 
-    $self->type($type) if ( defined $type );
-    $self->id($id)     if ( defined $id );
-    $self->tag($tag)   if ( defined $tag );
-    $self->help($help) if ( defined $help );
+    $self->type($type)          if ( defined $type );
+    $self->id($id)              if ( defined $id );
+    $self->tag($tag)            if ( defined $tag );
+    $self->help($help)          if ( defined $help );
+    $self->_environment('test') if ( defined $test );
+}
 
-    (
-        $type
-        && !$help
-          && ( $type eq 'study'
-            || $type eq 'lane' )
-          && $id
-    ) or die $self->usage_text;
+sub check_inputs{
+    my $self = shift;
+    return(
+        $self->type
+        && !$self->help
+          && ( $self->type eq 'study'
+            || $self->type eq 'lane' )
+          && $self->id
+    );
 }
 
 sub run {
     my ($self) = @_;
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text);
 
     # assign variables
     my $type = $self->type;
     my $id   = $self->id;
     my $tag  = $self->tag;
+
+    Path::Find::Exception::InvalidInput->throw( error => "-tag cannot be used with -t study" ) if ( $type eq 'study' && defined $tag );
 
     eval {
         Path::Find::Log->new(
@@ -107,9 +117,10 @@ sub run {
 
 # Connection details for the read only account and hierarchy template hard-coded here
 # but should eventually be put into the pathogen profile
+    my $port = defined $test ? 3346:3347;
     my %connection_details = (
         host     => "mcs6",
-        port     => 3347,
+        port     => $port,
         user     => "pathpipe_ro",
         password => ""
     );
@@ -192,7 +203,7 @@ sub run {
               . ";port="
               . $connection_details{port};
             my $dbh = DBI->connect( $dbi_connect, $connection_details{user} )
-              or die "Can't connect to database: $DBI::errstr\n";
+              or Path::Find::Exception::ConnectionFail->throw( error => "Can't connect to database: $DBI::errstr\n");
 
             my $lane_names = $dbh->selectall_arrayref(
                     'select name from latest_lane where name like "'
@@ -228,7 +239,7 @@ sub run {
 
 	return 1 if(scalar %data);
 
-    print "No info found for the details you provided.\n";
+    Path::Find::Exception::NoMatches( error => "No info found for the details you provided.\n");
 
 }
 

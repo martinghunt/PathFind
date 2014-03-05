@@ -45,6 +45,7 @@ use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Log;
 use Path::Find::Sort;
+use Path::Find::Exception;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -52,11 +53,12 @@ has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'output'      => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',     required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
 
-    my ( $type, $id, $output, $help );
+    my ( $type, $id, $output, $help, $test );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
@@ -64,18 +66,20 @@ sub BUILD {
         't|type=s'   => \$type,
         'i|id=s'     => \$id,
         'o|output=s' => \$output,
-        'h|help'     => \$help
+        'h|help'     => \$help,
+        'test'         => \$test,
     );
 
     $self->type($type)     if ( defined $type );
     $self->id($id)         if ( defined $id );
     $self->output($output) if ( defined $output );
     $self->help($help)     if ( defined $help );
+    $self->_environment('test') if ( defined $test );
 }
 
 sub check_inputs{
     my ($self) = @_;
-    (
+    return(
              $self->type
           && $self->id
           && $self->id ne ''
@@ -87,20 +91,20 @@ sub check_inputs{
             || $self->type eq 'species'
             || $self->type eq 'database' )
           && ( !defined($self->output) || ( defined($self->output) && $self->output ne '' ) )
-    ) or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text );
+    );
 }
 
 sub run {
     my ($self) = @_;
 
-    $self->check_inputs;
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text);
 
     # assign variables
     my $type   = $self->type;
     my $id     = $self->id;
     my $output = $self->output;
 
-    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+    Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
 
     eval {
         Path::Find::Log->new(
@@ -113,7 +117,7 @@ sub run {
     my $warehouse_dbh = DBI->connect(
         "DBI:mysql:host=mcs7:port=3379;database=sequencescape_warehouse",
         "warehouse_ro", undef, { 'RaiseError' => 1, 'PrintError' => 0 } )
-      or die "Failed to create connect to warehouse.\n";
+      or Path::Find::Exception::ConnectionFail->throw( error => "Failed to create connect to warehouse.\n");
 
     # CSV output
     my $csv_out;
@@ -121,8 +125,9 @@ sub run {
     $output .= $output && ( $output =~ m/\.csv$/ ) ? '' : '.csv';
 
     # Get pathogen databases
-    my @pathogen_databases = Path::Find->pathogen_databases;
-    my $hierarchy_template = Path::Find->hierarchy_template;
+    my $find = Path::Find->new( environment => $self->_environment );
+    my @pathogen_databases = $find->pathogen_databases;
+    my $hierarchy_template = $find->hierarchy_template;
 
     my ( $pathtrack, $dbh, $root );
     my $found = 0;    #assume nothing found
@@ -131,7 +136,7 @@ sub run {
     for my $database (@pathogen_databases) {
 
         # Connect to database and get info
-        ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+        ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
@@ -156,7 +161,7 @@ sub run {
               Text::CSV->new(
                 { binary => 1, always_quote => 1, eol => "\r\n" } );
             open( $csv_fh, ">$output" )
-              or die "Cannot open output file '$output'\n";
+              or Path::Find::Exception::FileDoesNotExist->throw( error => "Cannot open output file '$output'\n");
             $csv_out->print( $csv_fh,
                 [ 'Lane', 'Sample', 'Supplier Name', 'Public Name', 'Strain' ]
             );
@@ -204,7 +209,7 @@ qq[select supplier_name, public_name, strain from current_samples where internal
     }
 
     unless ($found) {
-        print "Could not find lanes or files for input data \n";
+        Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
     }
 
     $warehouse_dbh->disconnect();
@@ -214,7 +219,7 @@ qq[select supplier_name, public_name, strain from current_samples where internal
 sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
-    print <<USAGE;
+    return <<USAGE;
 Usage: $script_name
      -t|type            <study|lane|file|sample|species>
      -i|id              <study id|study name|lane name|file of lane names>
@@ -225,7 +230,6 @@ Given a study, lane or a file containing a list of lanes, this script will retur
 supplier name, public name and strain of the sample.
 
 USAGE
-    exit;
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -56,23 +56,23 @@ use Path::Find::Stats::Generator;
 use Path::Find::Sort;
 use Path::Find::Exception;
 
-has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'qc'          => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'stats'       => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'symlink'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'output'      => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
-
+has 'args'         => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'script_name'  => ( is => 'ro', isa => 'Str',      required => 1 );
+has 'type'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'id'           => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'qc'           => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'filetype'     => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'archive'      => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'stats'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'symlink'      => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'output'       => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'help'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
 sub BUILD {
     my ($self) = @_;
 
     my ( $type, $id, $qc, $filetype, $archive, $stats, $symlink, $output,
-        $help );
+        $help, $test );
 
     my @args = @{ $self->args };
 	GetOptionsFromArray(
@@ -84,18 +84,20 @@ sub BUILD {
         'a|archive:s'  => \$archive,
         's|stats:s'    => \$stats,
         'q|qc=s'       => \$qc,
+        'test'         => \$test,
         'h|help'       => \$help
     );
 
-    $self->type($type)         if ( defined $type );
-    $self->id($id)             if ( defined $id );
-    $self->qc($qc)             if ( defined $qc );
-    $self->filetype($filetype) if ( defined $filetype );
-    $self->archive($archive)   if ( defined $archive );
-    $self->stats($stats)       if ( defined $stats );
-    $self->symlink($symlink)   if ( defined $symlink );
-    $self->output($output)     if ( defined $output );
-    $self->help($help)         if ( defined $help );
+    $self->type($type)          if ( defined $type );
+    $self->id($id)              if ( defined $id );
+    $self->qc($qc)              if ( defined $qc );
+    $self->filetype($filetype)  if ( defined $filetype );
+    $self->archive($archive)    if ( defined $archive );
+    $self->stats($stats)        if ( defined $stats );
+    $self->symlink($symlink)    if ( defined $symlink );
+    $self->output($output)      if ( defined $output );
+    $self->help($help)          if ( defined $help );
+    $self->_environment('test') if ( defined $test );
 }
     
 sub check_inputs {
@@ -158,10 +160,9 @@ sub run {
     my $found = 0;
 
     # Get databases and loop through
-    my $find = Path::Find->new();
+    my $find = Path::Find->new( environment => $self->_environment );
     my @pathogen_databases = $find->pathogen_databases;
     for my $database (@pathogen_databases) {
-
         # Connect to database and get info
         my ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
@@ -199,8 +200,6 @@ sub run {
         $use_default = 1 if ( !defined $filetype );
         if ( $lane_filter->found && ( defined $symlink || defined $archive ) ) {
             my $name = $self->set_linker_name;
-
-            print "LINK DIR: $name\n\n";
 
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
