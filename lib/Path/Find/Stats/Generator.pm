@@ -277,7 +277,7 @@ sub assemblyfind {
         my $l       = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
         my ( $stats_file, $bamcheck_file ) = @{ $l_h->{stats} };
-        die "Stats file not found at $stats_file" unless ( -e $stats_file );
+        Path::Find::Exception::FileDoesNotExist->throw( error => "Stats file not found at $stats_file") unless ( -e $stats_file );
         my $row = Path::Find::Stats::Row->new(
             lane       => $l,
             mapstats   => $mapstat,

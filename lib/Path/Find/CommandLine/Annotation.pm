@@ -144,8 +144,6 @@ sub check_inputs{
         )
       );
 }
-      
-}
 
 sub run {
     my ($self) = @_;

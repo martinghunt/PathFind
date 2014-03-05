@@ -26,8 +26,11 @@ use VRTrack::Lane;
 use VRTrack::Individual;
 use Path::Find;
 use Data::Dumper;
-
 use Storable;
+
+use lib "../../";
+use Path::Find::Exception;
+
 
 # required
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
@@ -91,7 +94,7 @@ sub filter {
 
 	   # check date format
 	   if(defined $date){
-	       ( $date =~ /\d{2}-\d{2}-\d{4}/ ) or die "Date (-d option) '$date' is not in the correct format. Use format: DD-MM-YYYY\n";
+	       ( $date =~ /\d{2}-\d{2}-\d{4}/ ) or Path::Find::Exception::InvalidInput->throw( error => "Date (-d option) '$date' is not in the correct format. Use format: DD-MM-YYYY\n");
 	   }
 
         if ( !$qc || (defined($l->qc_status()) && ( $qc && $qc eq $l->qc_status() )) ) {

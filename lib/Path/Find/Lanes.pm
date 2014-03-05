@@ -28,6 +28,9 @@ use VRTrack::Lane;
 use VRTrack::Individual;
 use Data::Dumper;
 
+use lib "../../";
+use Path::Find::Exception;
+
 has 'search_type'    => ( is => 'ro', isa => 'Str', required => 1 );
 has 'search_id'      => ( is => 'ro', isa => 'Str', required => 1 );
 has 'processed_flag' => ( is => 'ro', isa => 'Int', required => 1 );
@@ -188,7 +191,7 @@ sub _lookup_by_file {
   my @lanes;
 
   my %lanenames;
-  open( my $fh, $self->search_id ) || die "Error: Could not open file '" . $self->search_id . "'\n";
+  open( my $fh, $self->search_id ) || Path::Find::Exception::FileDoesNotExist->throw( error => "Error: Could not open file '" . $self->search_id . "'\n");
   foreach my $lane_id (<$fh>) {
       chomp $lane_id;
       next if $lane_id eq '';

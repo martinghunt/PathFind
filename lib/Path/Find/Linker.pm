@@ -188,10 +188,10 @@ sub _create_symlinks {
         foreach my $linkf (@files2link) {
             my ( $source, $dest ) = @{$linkf};
             my $cmd = "ln -sf $source $dest";
-            system($cmd) == 0 or die "Could not create symlink for $lane in $destination/$name: error code $?\n";
+            system($cmd) == 0 or Path::Find::Exception::SymlinkFail->throw( error => "Could not create symlink for $lane in $destination/$name: error code $?\n");
             if( defined $index_files && -e "$source.$index_files" ){
                 $cmd = "ln -sf $source.$index_files $dest.$index_files";
-                system($cmd) == 0 or die "Could not create symlink for $lane in $destination/$name: error code $?\n";
+                system($cmd) == 0 or Path::Find::Exception::SymlinkFail->throw( error => "Could not create symlink for $lane in $destination/$name: error code $?\n");
             }
         }
     }
@@ -203,7 +203,7 @@ sub _check_dest {
 
     if ( !-e $destination ) {
         system("mkdir $destination") == 0
-          or croak "Could not create $destination: error code $? , $!\n";
+          or Path::Find::Exception::InvalidDestination->( error => "Could not create $destination: error code $? , $!\n");
     }
     return 1;
 }

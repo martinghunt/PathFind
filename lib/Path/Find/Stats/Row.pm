@@ -29,6 +29,7 @@ package Path::Find::Stats::Row;
 use Moose;
 use VRTrack::VRTrack;    # Includes Lane, Mapstats, Etc.
 use VertRes::Parser::bamcheck;
+use Path::Find::Exception;
 
 has 'vrtrack'    => ( is => 'ro', isa => 'VRTrack::VRTrack',         required => 1 );    # database
 has 'lane'       => ( is => 'ro', isa => 'VRTrack::Lane',            required => 1 );    # lane
@@ -194,7 +195,7 @@ sub _build_is_mapping_complete {
         return if ( !-e $path_to_file );
         my %assembly_stats;
 
-        open( INPUT, $path_to_file ) or die "Couldnt open file $path_to_file\n";
+        open( INPUT, $path_to_file ) or Path::Find::Exception->throw( error => "Couldnt open file $path_to_file\n");
         while (<INPUT>) {
             my $line = $_;
             if ( $line =~
