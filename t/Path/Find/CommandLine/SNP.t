@@ -1,6 +1,5 @@
 #!/usr/bin/env perl
 use Moose;
-use Carp;
 use Data::Dumper;
 use File::Slurp;
 use File::Path qw( remove_tree);
@@ -13,161 +12,388 @@ BEGIN { unshift( @INC, './lib' ) }
 BEGIN {
     use Test::Most;
 	use Test::Output;
+	use Test::Exception;
 }
 
-use_ok('Path::Find::CommandLine::SNP');
+use_ok('Path::Find::CommandLine::Snp');
 
 my $script_name = 'snpfind';
+my $cwd = getcwd();
 
-my $destination_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
-my $destination_directory = $destination_directory_obj->dirname();
+my $temp_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
+my $tmp = $temp_directory_obj->dirname();
 
-my (@args, $arg_str, $snp_stdout, $exp_out, $snp_obj);
+my (@args, $arg_str, $exp_out, $obj);
 
-# test basic output
-@args = ("-t", "lane", "-id", "10593_1#41");
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5573209/SLX/7995746/10593_1#41\n";
-
-$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
-isa_ok $snp_obj, 'Path::Find::CommandLine::SNP';
+# test 1
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/1.txt');
 $arg_str = join(" ", @args);
-stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test file type & file parse
-@args = qw(-t file -i t/data/snp_lanes.txt -f vcf);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/522/A16329/SLX/A16329_153823/4821_3#1/443255.pe.markdup.snp/mpileup.unfilt.vcf.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Vibrio/cholerae/TRACKING/352/A363_Vc/SLX/A363_Vc_5274327/8036_3#15/174114.pe.markdup.snp/mpileup.unfilt.vcf.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5539185/SLX/7734077/10316_1#85/559303.pe.markdup.snp/mpileup.unfilt.vcf.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5539185/SLX/7734077/10316_1#85/606177.pe.markdup.snp/mpileup.unfilt.vcf.gz\n";
 
-$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
+# test 2
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/2.txt');
 $arg_str = join(" ", @args);
-stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test symlink
-@args = ("-t", "study", "-i", "2005", "-f", "vcf", "-l", "$destination_directory/symlink_test");
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lactobacillus/casei/TRACKING/2005/Lc_vit_exp/SLX/Lc_vit_exp_3980720/7114_6#1/116135.pe.markdup.snp/mpileup.unfilt.vcf.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lactobacillus/casei/TRACKING/2005/Lc_vit_sta/SLX/Lc_vit_sta_3980721/7114_6#2/116138.pe.markdup.snp/mpileup.unfilt.vcf.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lactobacillus/casei/TRACKING/2005/Lc_viv_cae/SLX/Lc_viv_cae_3980722/7114_6#3/116141.pe.markdup.snp/mpileup.unfilt.vcf.gz\n";
 
-$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
+# test 3
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 4
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/4.txt');
 $arg_str = join(" ", @args);
-stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
-system("ls $destination_directory/symlink_test");
-ok( -e "$destination_directory/symlink_test/7114_6#1.116135.mpileup.unfilt.vcf.gz", 'symlinked file exists');
-ok( -e "$destination_directory/symlink_test/7114_6#1.116135.mpileup.unfilt.vcf.gz.tbi", 'symlinked index exists');
-ok( -e "$destination_directory/symlink_test/7114_6#2.116138.mpileup.unfilt.vcf.gz", 'symlinked file exists');
-ok( -e "$destination_directory/symlink_test/7114_6#2.116138.mpileup.unfilt.vcf.gz.tbi", 'symlinked index exists');
-ok( -e "$destination_directory/symlink_test/7114_6#3.116141.mpileup.unfilt.vcf.gz", 'symlinked file exists');
-ok( -e "$destination_directory/symlink_test/7114_6#3.116141.mpileup.unfilt.vcf.gz.tbi", 'symlinked index exists');
-remove_tree('symlink_test');
 
-# test archive
-@args = ("-t", "study", "-i", "2005", "-a", "$destination_directory/archive_test");
-$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
+# test 5
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-d', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/5.txt');
 $arg_str = join(" ", @args);
-stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
-system("cd $destination_directory; tar xvfz archive_test.tar.gz");
-ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
-ok( -e "$destination_directory/archive_test/7114_6#1.116135.mpileup.unfilt.vcf.gz", 'archived file exists');
-ok( -e "$destination_directory/archive_test/7114_6#1.116135.mpileup.unfilt.vcf.gz.tbi", 'archived index file exists');
-ok( -e "$destination_directory/archive_test/7114_6#2.116138.mpileup.unfilt.vcf.gz", 'archived file exists');
-ok( -e "$destination_directory/archive_test/7114_6#2.116138.mpileup.unfilt.vcf.gz.tbi", 'archived index file exists');
-ok( -e "$destination_directory/archive_test/7114_6#3.116141.mpileup.unfilt.vcf.gz", 'archived file exists');
-ok( -e "$destination_directory/archive_test/7114_6#3.116141.mpileup.unfilt.vcf.gz.tbi", 'archived index file exists');
-remove_tree("$destination_directory/archive_test");
-unlink("$destination_directory/archive_test.tar.gz");
 
-File::Temp::cleanup();
+# test 6
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-d', 'valid_value', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
 
-# test verbose output
-@args = qw(-t file -i t/data/snp_verbose_lanes.txt -v);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Vibrio/cholerae/TRACKING/352/F15KTH7/SLX/F15KTH7_3152222/6714_5#15/665855.pe.markdup.snp/mpileup.unfilt.vcf.gz\tVibrio_cholerae_O1_biovar_eltor_str_N16961_v1\tsmalt\t18-10-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Vibrio/cholerae/TRACKING/352/F15KTH7/SLX/F15KTH7_3152222/6714_5#15/670240.pe.markdup.snp/mpileup.unfilt.vcf.gz\tVibrio_cholerae_O1_biovar_eltor_str_N16961_v2\tsmalt\t22-10-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Vibrio/cholerae/TRACKING/352/F15KTH7/SLX/F15KTH7_3152222/6714_5#15/690687.pe.markdup.snp/mpileup.unfilt.vcf.gz\tVibrio_cholerae_O1_biovar_eltor_str_N16961_v2\tsmalt\t28-11-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/HKU16_3/SLX/HKU16_3_4002741/7138_8#3/454622.pe.markdup.snp/mpileup.unfilt.vcf.gz\tStreptococcus_pyogenes_BC2_HKU16_v0.1\tbwa\t12-04-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/HKU30_1/SLX/HKU30_1_4002742/7138_8#4/454625.pe.markdup.snp/mpileup.unfilt.vcf.gz\tStreptococcus_pyogenes_BC2_HKU16_v0.1\tbwa\t12-04-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Wolbachia/endosymbiont_of_Drosophila_simulans/TRACKING/651/wAu_070612/SLX/wAu_070612_5552870/8163_8#94/652831.pe.markdup.snp/mpileup.unfilt.vcf.gz\tSalmonella_enterica_subsp_enterica_serovar_Paratyphi_A_str_AKU_12601_v1\tsmalt\t01-10-2013\n";
+# test 7
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
-$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
+# test 8
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-d', 'invalid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 9
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/9.txt');
 $arg_str = join(" ", @args);
-stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test d mapper filter
-@args = qw(-t file -i t/data/snp_verbose_lanes.txt -v -m bwa);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/HKU16_3/SLX/HKU16_3_4002741/7138_8#3/454622.pe.markdup.snp/mpileup.unfilt.vcf.gz\tStreptococcus_pyogenes_BC2_HKU16_v0.1\tbwa\t12-04-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/HKU30_1/SLX/HKU30_1_4002742/7138_8#4/454625.pe.markdup.snp/mpileup.unfilt.vcf.gz\tStreptococcus_pyogenes_BC2_HKU16_v0.1\tbwa\t12-04-2013\n";
 
-$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
+# test 10
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/10.txt');
 $arg_str = join(" ", @args);
-stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test date filter
-@args = qw(-t file -i t/data/snp_verbose_lanes.txt -v -d 01-08-2013);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Vibrio/cholerae/TRACKING/352/F15KTH7/SLX/F15KTH7_3152222/6714_5#15/665855.pe.markdup.snp/mpileup.unfilt.vcf.gz\tVibrio_cholerae_O1_biovar_eltor_str_N16961_v1\tsmalt\t18-10-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Vibrio/cholerae/TRACKING/352/F15KTH7/SLX/F15KTH7_3152222/6714_5#15/670240.pe.markdup.snp/mpileup.unfilt.vcf.gz\tVibrio_cholerae_O1_biovar_eltor_str_N16961_v2\tsmalt\t22-10-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Vibrio/cholerae/TRACKING/352/F15KTH7/SLX/F15KTH7_3152222/6714_5#15/690687.pe.markdup.snp/mpileup.unfilt.vcf.gz\tVibrio_cholerae_O1_biovar_eltor_str_N16961_v2\tsmalt\t28-11-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Wolbachia/endosymbiont_of_Drosophila_simulans/TRACKING/651/wAu_070612/SLX/wAu_070612_5552870/8163_8#94/652831.pe.markdup.snp/mpileup.unfilt.vcf.gz\tSalmonella_enterica_subsp_enterica_serovar_Paratyphi_A_str_AKU_12601_v1\tsmalt\t01-10-2013\n";
 
-$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
+# test 11
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'valid_value', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 12
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'valid_value', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/12.txt');
 $arg_str = join(" ", @args);
-stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test reference filter
-@args = qw(-t file -i t/data/snp_verbose_lanes.txt -v -r Streptococcus_pyogenes_BC2_HKU16_v0.1);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/HKU16_3/SLX/HKU16_3_4002741/7138_8#3/454622.pe.markdup.snp/mpileup.unfilt.vcf.gz\tStreptococcus_pyogenes_BC2_HKU16_v0.1\tbwa\t12-04-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/HKU30_1/SLX/HKU30_1_4002742/7138_8#4/454625.pe.markdup.snp/mpileup.unfilt.vcf.gz\tStreptococcus_pyogenes_BC2_HKU16_v0.1\tbwa\t12-04-2013\n";
 
-$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
+# test 13
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'valid_value', '-d', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/13.txt');
 $arg_str = join(" ", @args);
-stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test reference filter without -v option
-@args = qw(-t file -i t/data/verbose_test.lanes -r Streptococcus_pneumoniae_str_110.58_v0.4);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/2245/2245STDY5609344/SLX/8529277/11511_8#88/703681.pe.markdup.snp/mpileup.unfilt.vcf.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/2245/2245STDY5609347/SLX/8529194/11511_8#89/703774.pe.markdup.snp/mpileup.unfilt.vcf.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/2245/2245STDY5609348/SLX/8529206/11511_8#90/704062.pe.markdup.snp/mpileup.unfilt.vcf.gz\n";
 
-$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
+# test 14
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'valid_value', '-d', 'valid_value', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 15
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'valid_value', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 16
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'valid_value', '-d', 'invalid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 17
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 18
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'invalid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 19
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'invalid_value', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 20
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'invalid_value', '-d', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 21
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/21.txt');
 $arg_str = join(" ", @args);
-stdout_is { $snp_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test pseudogenome creation
-@args = ('-t', 'lane', '-i', '10464_1#1', '-r', 'Salmonella_enterica_subsp_enterica_serovar_Typhimurium_str_LT2_v1', '-p');
-$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
-$snp_obj->run;
-ok( -e '10464_1_1_Salmonella_enterica_subsp_enterica_serovar_Typhimurium_str_LT2_v1_concatenated.aln', 'pseudogenome created' );
+
+# test 22
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/22.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 23
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 24
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/24.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 25
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-d', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/25.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 26
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-d', 'valid_value', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 27
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 28
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-d', 'invalid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 29
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-r', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/29.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 30
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-r', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/30.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 31
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-r', 'valid_value', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 32
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-r', 'valid_value', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/32.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 33
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-r', 'valid_value', '-d', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/33.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 34
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-r', 'valid_value', '-d', 'valid_value', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 35
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-r', 'valid_value', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 36
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-r', 'valid_value', '-d', 'invalid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 37
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-r', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 38
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-r', 'invalid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 39
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-r', 'invalid_value', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 40
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-r', 'invalid_value', '-d', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 41
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-s', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/41.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 42
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-s', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/42.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 43
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-s', '-r', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/43.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 44
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'invalid_value', '-p' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 45
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'valid_value', '-p' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 46
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-d', 'valid_value', '-p' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 47
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-m', 'valid_value', '-p' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 48
+$id = "valid_value";
+$ref = "valid_value";
+@args = ( '--test', '-t', 'file', '-i', $id, '-f', 'pseudogenome', '-v', '-r', $ref, '-p' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/48.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check pseudogenome
+
 is(
-	read_file('10464_1_1_Salmonella_enterica_subsp_enterica_serovar_Typhimurium_str_LT2_v1_concatenated.aln'),
-	read_file('t/data/pseudogenome_exp.aln'),
-	'pseudogenome is correct'
+    read_file('t/data/snpfind/48.fa'),
+    read_file("$tmp/test.48.fa"),
+    'pseudogenome correct'
 );
-unlink('10464_1_1_Salmonella_enterica_subsp_enterica_serovar_Typhimurium_str_LT2_v1_concatenated.aln');
 
-# # test pseudogenome with ambiguous reference
-# @args = ('-t', 'lane', '-i', '10464_1#1', '-r', 'Dublin', '-p' );
-# $snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
-# my $exp_err = "Creating pseudogenome in 10464_1_1_Dublin_concatenated.aln
-# Ambiguous reference. Did you mean:
-# Salmonella_enterica_subsp_enterica_serovar_Dublin_str_BA207_v0.1
-# Salmonella_enterica_subsp_enterica_serovar_Dublin_str_SC50_v0.1
-# Could not find reference: Dublin. Pseudogenome creation aborted.\n";
-# stderr_is { $snp_obj->run } $exp_err, "Correct message for ambiguous reference";
+# test 49
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'valid_value', '-d', 'valid_value', '-p' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/49.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test pseudogenome without reference
-@args = ('-t', 'lane', '-i', '10464_1#1', '-p', 'none' );
-$snp_obj = Path::Find::CommandLine::SNP->new(args => \@args, script_name => $script_name);
-$snp_obj->run;
-ok( -e '10464_1_1_concatenated.aln', 'pseudogenome created');
+# check pseudogenome
 is(
-	read_file('10464_1_1_concatenated.aln'),
-	read_file('t/data/pseudogenome_no_ref.aln'),
-	'pseudogenome without reference seq correct'
+    read_file('t/data/snpfind/49.fa'),
+    read_file("$tmp/test.49.fa"),
+    'pseudogenome correct'
 );
-unlink('10464_1_1_concatenated.aln');
 
+# test 50
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'valid_value', '-m', 'valid_value', '-p' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/50.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check pseudogenome
+is(
+    read_file('t/data/snpfind/50.fa'),
+    read_file("$tmp/test.50.fa"),
+    'pseudogenome correct'
+);
+
+# test 51
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'valid_value', '-d', 'valid_value', '-m', 'valid_value', '-p' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/51.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check pseudogenome
+is(
+    read_file('t/data/snpfind/51.fa'),
+    read_file("$tmp/test.51.fa"),
+    'pseudogenome correct'
+);
+
+# test 52
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-r', 'valid_value', '-p', '"none"' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+$exp_out = read_file('t/data/snpfind/52.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check pseudogenome
+is(
+    read_file('t/data/snpfind/52.fa'),
+    read_file("$tmp/test.52.fa"),
+    'pseudogenome correct'
+);
+
+# test 53
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'pseudogenome', '-v', '-r', 'valid_value', '-p', '-h' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Snp->new(args => \@args, script_name => 'snpfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+remove_tree($tmp);
 done_testing();

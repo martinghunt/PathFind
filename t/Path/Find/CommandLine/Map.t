@@ -7,16 +7,12 @@ use Cwd;
 use File::Temp;
 no warnings qw{qw};
 
-sub run_object {
-	my $ro = shift;
-	$ro->run;
-}
-
 BEGIN { unshift( @INC, './lib' ) }
 
 BEGIN {
     use Test::Most;
 	use Test::Output;
+	use Test::Exception;
 }
 
 use_ok('Path::Find::CommandLine::Map');
@@ -24,124 +20,282 @@ use_ok('Path::Find::CommandLine::Map');
 my $script_name = 'mapfind';
 my $cwd = getcwd();
 
-my $destination_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
-my $destination_directory = $destination_directory_obj->dirname();
+my $temp_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
+my $tmp = $temp_directory_obj->dirname();
 
-my (@args, $arg_str, $exp_out, $map_obj);
+my (@args, $arg_str, $exp_out, $obj);
 
-# test basic output
-@args = qw(-t lane -id 10018_1#18);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Actinobacillus/pleuropneumoniae/TRACKING/607/APP_N5_OP1/SLX/APP_N5_OP1_7492543/10018_1#18/544264.se.markdup.bam\n";
-
-$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
+# test 1
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/1.txt');
 $arg_str = join(" ", @args);
-stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test die on non-existent file
-@args = qw(-t file -i i_dont_exist.txt);
-$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
-dies_ok { $map_obj->run } 'Dies with non-existent input file';
 
-# test file type & file parse
-@args = qw(-t file -i t/data/map_lanes.txt -f bam);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/2195/692_NTS/SLX/692_NTS_5140354/7969_2#8/488578.pe.markdup.bam
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica/TRACKING/697/CAN0185/SLX/CAN0185_5140165/7978_7#14/392948.pe.markdup.bam
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica/TRACKING/697/CAN0185/SLX/CAN0185_5140165/7978_7#14/490636.pe.markdup.bam
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Klebsiella/pneumoniae/TRACKING/2512/2512STDY5462705/SLX/6898003/9776_6#32/474610.pe.markdup.bam
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Klebsiella/pneumoniae/TRACKING/2512/2512STDY5462705/SLX/6898003/9776_6#32/582798.pe.markdup.bam\n";
-
-$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
+# test 2
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/2.txt');
 $arg_str = join(" ", @args);
-stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test symlink
-@args = ("-t", "study", "-i", "2005", "-l", "$destination_directory/symlink_test");
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lactobacillus/casei/TRACKING/2005/Lc_vit_exp/SLX/Lc_vit_exp_3980720/7114_6#1/116135.pe.markdup.bam
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lactobacillus/casei/TRACKING/2005/Lc_vit_sta/SLX/Lc_vit_sta_3980721/7114_6#2/116138.pe.markdup.bam
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Lactobacillus/casei/TRACKING/2005/Lc_viv_cae/SLX/Lc_viv_cae_3980722/7114_6#3/116141.pe.markdup.bam\n";
 
-$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
+# test 3
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 4
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/4.txt');
 $arg_str = join(" ", @args);
-stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
-ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
-ok( -e "$destination_directory/symlink_test/7114_6#1.116135.pe.markdup.bam", 'symlinked file exists');
-ok( -e "$destination_directory/symlink_test/7114_6#1.116135.pe.markdup.bam.bai", 'symlinked index exists');
-ok( -e "$destination_directory/symlink_test/7114_6#2.116138.pe.markdup.bam", 'symlinked file exists');
-ok( -e "$destination_directory/symlink_test/7114_6#2.116138.pe.markdup.bam.bai", 'symlinked index exists');
-ok( -e "$destination_directory/symlink_test/7114_6#3.116141.pe.markdup.bam", 'symlinked file exists');
-ok( -e "$destination_directory/symlink_test/7114_6#3.116141.pe.markdup.bam.bai", 'symlinked index exists');
-remove_tree("$destination_directory/symlink_test");
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test archive
-@args = ("-t", "study", "-i", "2510", "-a", "$destination_directory/archive_test");
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2510/2510STDY5462330/SLX/6742020/9472_4#78/659132.pe.markdup.bam
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2510/2510STDY5462330/SLX/6742020/9472_4#78/665968.pe.markdup.bam\n";
 
-$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
+# test 5
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-d', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/5.txt');
 $arg_str = join(" ", @args);
-stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
-system("cd $destination_directory; tar xvfz archive_test.tar.gz");
-ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
-ok( -e "$destination_directory/archive_test/9472_4#78.659132.pe.markdup.bam", 'archived file exists');
-ok( -e "$destination_directory/archive_test/9472_4#78.659132.pe.markdup.bam.bai", 'archived index exists');
-ok( -e "$destination_directory/archive_test/9472_4#78.665968.pe.markdup.bam", 'archived file exists');
-ok( -e "$destination_directory/archive_test/9472_4#78.665968.pe.markdup.bam.bai", 'archived index exists');
-remove_tree("$destination_directory/archive_test");
-unlink("$destination_directory/archive_test.tar.gz");
 
-# test verbose output
-@args = qw(-t file -i t/data/map_verbose_lanes.txt -v);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Campylobacter/jejuni/TRACKING/2310/57_33_cj/SLX/57_33_cj_5765944/8489_8#89/405022.pe.markdup.bam\tCampylobacter_jejuni_subsp_jejuni_M1_v1\tsmalt\t04-12-2012
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Klebsiella/pneumoniae/TRACKING/2585/202M1D0/SLX/202M1D0_7080284/9659_1#2/454750.pe.markdup.bam\tKlebsiella_pneumoniae_subsp_pneumoniae_Ecl8_v1.1\tbwa\t16-04-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490471/SLX/7346728/9953_5#58/531892.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t09-07-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490471/SLX/7346728/9953_5#58/608787.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Paratyphi_A_str_AKU_12601_plasmid_v1\tsmalt\t31-08-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490472/SLX/7346740/9953_5#59/531895.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_str_CT18_v1\tsmalt\t09-07-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490472/SLX/7346740/9953_5#59/611376.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Paratyphi_A_str_AKU_12601_plasmid_v1\tsmalt\t31-08-2013\n";
+# test 6
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-d', 'valid_value', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
 
-$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
+# test 7
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 8
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-d', 'invalid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 9
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-r', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/9.txt');
 $arg_str = join(" ", @args);
-stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test mapper filter
-@args = qw(-t file -i t/data/map_verbose_lanes.txt -v -m bwa);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Klebsiella/pneumoniae/TRACKING/2585/202M1D0/SLX/202M1D0_7080284/9659_1#2/454750.pe.markdup.bam\tKlebsiella_pneumoniae_subsp_pneumoniae_Ecl8_v1.1\tbwa\t16-04-2013\n";
 
-$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
+# test 10
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-r', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/10.txt');
 $arg_str = join(" ", @args);
-stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test date filter
-@args = qw(-t file -i t/data/map_verbose_lanes.txt -v -d 01-08-2013);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490471/SLX/7346728/9953_5#58/608787.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Paratyphi_A_str_AKU_12601_plasmid_v1\tsmalt\t31-08-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2332/2332STDY5490472/SLX/7346740/9953_5#59/611376.pe.markdup.bam\tSalmonella_enterica_subsp_enterica_serovar_Paratyphi_A_str_AKU_12601_plasmid_v1\tsmalt\t31-08-2013\n";
 
-$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
+# test 11
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-r', 'valid_value', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 12
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-r', 'valid_value', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/12.txt');
 $arg_str = join(" ", @args);
-stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test date filter with incorrect date
-@args = qw(-t file -i t/data/map_verbose_lanes.txt -v -d notadate);
-$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
-dies_ok { $map_obj->run } 'Dies with incorrect date format';
 
-# test reference filter
-@args = qw(-t file -i t/data/map_verbose_lanes.txt -v -r Salmonella_enterica_subsp_enterica_serovar_Paratyphi_A_str_AKU_12601_plasmid_v1);
-
-$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
+# test 13
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-r', 'valid_value', '-d', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/13.txt');
 $arg_str = join(" ", @args);
-stdout_is { $map_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test stats file
-@args = ("-t", "file", "-i", "t/data/map_lanes.txt", "-s", "$destination_directory/mapfind_test.stats");
-$map_obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => $script_name);
-$map_obj->run;
-ok( -e "$destination_directory/mapfind_test.stats", 'stats file exists');
-is(
-	read_file("$destination_directory/mapfind_test.stats"),
-	read_file("t/data/mapfind_stats.exp"),
-	'stats are correct'
-);
 
+# test 14
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-r', 'valid_value', '-d', 'valid_value', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 15
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-r', 'valid_value', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 16
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-r', 'valid_value', '-d', 'invalid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 17
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-r', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 18
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-r', 'invalid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 19
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-r', 'invalid_value', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 20
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-r', 'invalid_value', '-d', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 21
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/21.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 22
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/22.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 23
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 24
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/24.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 25
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-d', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/25.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 26
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-d', 'valid_value', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 27
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 28
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-d', 'invalid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 29
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-r', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/29.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 30
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-r', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/30.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 31
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-r', 'valid_value', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 32
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-r', 'valid_value', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/32.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 33
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-r', 'valid_value', '-d', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/33.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 34
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-r', 'valid_value', '-d', 'valid_value', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 35
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-r', 'valid_value', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 36
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-r', 'valid_value', '-d', 'invalid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 37
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-r', 'invalid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 38
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-r', 'invalid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 39
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-r', 'invalid_value', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 40
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-v', '-r', 'invalid_value', '-d', 'valid_value', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 41
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-s', '-d', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/41.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 42
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-s', '-m', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/42.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 43
+@args = ( '--test', '-t', 'file', '-i', 'valid_value', '-f', 'bam', '-s', '-r', 'valid_value' );
+$obj = Path::Find::CommandLine::Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/43.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+remove_tree($tmp);
 done_testing();
