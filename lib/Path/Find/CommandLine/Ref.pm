@@ -55,6 +55,7 @@ has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'symlink'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',     required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
@@ -70,14 +71,16 @@ sub BUILD {
         'l|symlink:s'  => \$symlink,
         'a|archive:s'  => \$archive,
         'h|help'       => \$help,
+        'test'         => \$test,
     );
 
-    $self->type($type)         if ( defined $type );
-    $self->id($id)             if ( defined $id );
-    $self->filetype($filetype) if ( defined $filetype );
-    $self->symlink($symlink)   if ( defined $symlink );
-    $self->archive($archive)   if ( defined $archive );
-    $self->help($help)         if ( defined $help );  
+    $self->type($type)          if ( defined $type );
+    $self->id($id)              if ( defined $id );
+    $self->filetype($filetype)  if ( defined $filetype );
+    $self->symlink($symlink)    if ( defined $symlink );
+    $self->archive($archive)    if ( defined $archive );
+    $self->help($help)          if ( defined $help );
+    $self->_environment('test') if ( defined $test );
 }
 
 sub check_inputs {
@@ -126,9 +129,15 @@ sub run {
 
     my $found = 0;    #assume nothing found
 
-    my $root       = '/lustre/scratch108/pathogen/pathpipe/refs/';
-    my $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/refs.index';
-
+    my ($root, $index_file);
+    if( $self->_environment eq 'prod' ){
+        $root       = '/lustre/scratch108/pathogen/pathpipe/refs/';
+        $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/refs.index';
+    }
+    elsif( $self->_environment eq 'test' ){
+        $root       = '/lustre/scratch108/pathogen/pathpipe/pathogen_test_pathfind/refs/';
+        $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/pathogen_test_pathfind/refs/refs.index';
+    }
     my @species_to_find;
     if ( $type eq 'species' ) {
         push( @species_to_find, $id );
