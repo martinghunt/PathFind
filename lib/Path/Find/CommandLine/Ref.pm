@@ -136,7 +136,7 @@ sub run {
     }
     elsif( $self->_environment eq 'test' ){
         $root       = '/lustre/scratch108/pathogen/pathpipe/pathogen_test_pathfind/refs/';
-        $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/pathogen_test_pathfind/refs/refs.index';
+        $index_file = '/lustre/scratch108/pathogen/pathpipe/pathogen_test_pathfind/refs/refs.index';
     }
     my @species_to_find;
     if ( $type eq 'species' ) {
