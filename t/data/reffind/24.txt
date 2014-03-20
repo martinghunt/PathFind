@@ -1,6 +1,1 @@
-/lustre/scratch108/pathogen/pathpipe/refs/Burkholderia/pseudomallei_K96243/annotation/Burkholderia_pseudomallei_K96243_v1.gff
-/lustre/scratch108/pathogen/pathpipe/refs/Pseudomonas/aeruginosa_LESB58/annotation/Pseudomonas_aeruginosa_LESB58_v1.gff
-/lustre/scratch108/pathogen/pathpipe/refs/Pseudomonas/aeruginosa_PAK/annotation/Pseudomonas_aeruginosa_PAK_v0.1.gff
-/lustre/scratch108/pathogen/pathpipe/refs/Pseudomonas/aeruginosa_PAO1/annotation/Pseudomonas_aeruginosa_PAO1_v2.gff
-/lustre/scratch108/pathogen/pathpipe/refs/Pseudomonas/aeruginosa_UCBPP-PA14/annotation/Pseudomonas_aeruginosa_UCBPP-PA14_v1.gff
-/lustre/scratch108/pathogen/pathpipe/refs/Pseudomonas/fluorescens_SBW25/annotation/Pseudomonas_fluorescens_SBW25_v4.gff
+/lustre/scratch108/pathogen/pathpipe/pathogen_test_pathfind/refs/Clostridium/difficile_630/annotation/Clostridium_difficile_630_v1.6.gff

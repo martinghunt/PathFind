@@ -84,7 +84,7 @@ sub pathogen_databases
       push @db_list, grep (/^pathogen_.+_external$/,@db_list_all); # pathogens_..._external
     }
     elsif($self->environment eq 'test'){
-      push @db_list, grep (/^pathogen_test_external$/, @db_list_all);
+      push @db_list, grep (/^pathogen_test_pathfind$/, @db_list_all);
     }
 
     #print "DB LIST WANTED:\n";
@@ -94,7 +94,6 @@ sub pathogen_databases
     for my $database (@db_list)
     {
         my $root_dir = $self->hierarchy_root_dir($database);
-        #print "root of db:\n";
         push @db_list_out, $database  if defined $root_dir;
     }
 
@@ -130,6 +129,7 @@ sub hierarchy_root_dir
 
     my $sub_dir = exists $DB_SUB{$database} ? $DB_SUB{$database}:$database;
     my $root_dir = "$DB_ROOT/$sub_dir/seq-pipelines";
+  
     return -d $root_dir ? $root_dir : undef;
 }
 

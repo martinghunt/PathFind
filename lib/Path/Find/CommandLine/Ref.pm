@@ -60,7 +60,7 @@ has '_environment' => ( is => 'rw', isa => 'Str',     required => 0, default => 
 sub BUILD {
     my ($self) = @_;
 
-    my ( $type, $id, $filetype, $symlink, $archive, $help );
+    my ( $type, $id, $filetype, $symlink, $archive, $help, $test );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
@@ -117,9 +117,10 @@ sub run {
 
     Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
 
+    my $logfile = $self->_environment eq 'test' ? '/nfs/pathnfs05/log/pathfindlog/test/reffind.log' : '/nfs/pathnfs05/log/pathfindlog/reffind.log';
     eval {
         Path::Find::Log->new(
-            logfile => '/nfs/pathnfs05/log/pathfindlog/reffind.log',
+            logfile => $logfile,
             args    => $self->args
         )->commandline();
     };
@@ -146,6 +147,7 @@ sub run {
         @species_to_find = $self->parse_species_from_file( $self->id );
     }
 
+    my @refpaths_full;
     foreach my $species (@species_to_find) {
         my $references = $self->search_index_file_for_directories_and_references( $index_file, $species );
         if ( keys %{$references} >= 1 ) {
@@ -154,16 +156,17 @@ sub run {
             my $reference_paths = \@default_reference_paths;
             $reference_paths =  $self->find_files_of_given_type( $references, $filetype ) if ( defined $filetype );
             $reference_paths = $self->remove_duplicates( $reference_paths );
-            $self->sym_archive( $reference_paths ) if (( defined $symlink || defined $archive) && defined($reference_paths) );
-            $self->print_references( $reference_paths ) if(defined($reference_paths));
+            push( @refpaths_full, @{ $reference_paths } );
         }
     }
 
-    unless ($found) {
-        Path::Find::Exception::NoMatches->throw( error => "Could not find references\n" );
-    }
-    else {
+    if($found){
+        $self->print_references( \@refpaths_full );
+        $self->sym_archive( \@refpaths_full ) if ( defined $symlink || defined $archive );
         return 1;
+    }
+    else{
+        Path::Find::Exception::NoMatches->throw( error => "Could not find references\n" );
     }
 }
 

@@ -148,9 +148,10 @@ sub run {
     Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
     my $found = 0;
 
+    my $logfile = $self->_environment eq 'test' ? '/nfs/pathnfs05/log/pathfindlog/test/assemblyfind.log' : '/nfs/pathnfs05/log/pathfindlog/assemblyfind.log';
     eval {
         Path::Find::Log->new(
-            logfile => '/nfs/pathnfs05/log/pathfindlog/assemblyfind.log',
+            logfile => $logfile,
             args    => $self->args
         )->commandline();
     };

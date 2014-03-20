@@ -47,6 +47,7 @@ use VRTrack::Lane;
 use VertRes::Utils::VRTrackFactory;
 use Path::Find::Log;
 use Path::Find::Exception;
+use Path::Find;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -100,33 +101,44 @@ sub run {
 
     Path::Find::Exception::InvalidInput->throw( error => "-tag cannot be used with -t study" ) if ( $type eq 'study' && defined $tag );
 
+    my $logfile = $self->_environment eq 'test' ? '/nfs/pathnfs05/log/pathfindlog/test/plexfind.log' : '/nfs/pathnfs05/log/pathfindlog/plexfind.log';
     eval {
         Path::Find::Log->new(
-            logfile => '/nfs/pathnfs05/log/pathfindlog/plexfind.log',
+            logfile => $logfile,
             args    => $self->args
         )->commandline();
     };
 
-    my %databases = (
-        'viruses'     => 'pathogen_virus_track',
-        'prokaryotes' => 'pathogen_prok_track',
-        'eukaryotes'  => 'pathogen_euk_track',
-        'helminths'   => 'pathogen_helminth_track',
-        'rnd'         => 'pathogen_rnd_track'
-    );
+    my %databases;
+    if($self->_environment eq 'prod'){ 
+        %databases = (
+            'viruses'     => 'pathogen_virus_track',
+            'prokaryotes' => 'pathogen_prok_track',
+            'eukaryotes'  => 'pathogen_euk_track',
+            'helminths'   => 'pathogen_helminth_track',
+            'rnd'         => 'pathogen_rnd_track'
+        );
+    }
+    elsif($self->_environment eq 'test'){
+        %databases = ('pathogen_test_pathfind' => 'pathogen_test_pathfind');
+    }
 
 # Connection details for the read only account and hierarchy template hard-coded here
 # but should eventually be put into the pathogen profile
-    my $port = defined $test ? 3346:3347;
-    my %connection_details = (
-        host     => "mcs6",
-        port     => $port,
-        user     => "pathpipe_ro",
-        password => ""
-    );
+    my $find = Path::Find->new( environment => $self->_environment );
 
-    my $hierarchy_template =
-"genus:species-subspecies:TRACKING:projectssid:sample:technology:library:lane";
+    #my $port = defined $test ? 3346:3347;
+    #my %connection_details = (
+    #    host     => "mcs6",
+    #    port     => $port,
+    #    user     => "pathpipe_ro",
+    #    password => ""
+    #);
+
+    #my $hierarchy_template = "genus:species-subspecies:TRACKING:projectssid:sample:technology:library:lane";
+
+    my %connection_details = %{ $find->connection };
+    my $hierarchy_template = $find->template;
 
     my $track;
     my $study_obj;
@@ -239,7 +251,7 @@ sub run {
 
 	return 1 if(scalar %data);
 
-    Path::Find::Exception::NoMatches( error => "No info found for the details you provided.\n");
+    Path::Find::Exception::NoMatches->throw( error => "No info found for the details you provided.\n");
 
 }
 

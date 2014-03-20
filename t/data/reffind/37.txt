@@ -1,10 +1,5 @@
-/lustre/scratch108/pathogen/pathpipe/refs/Shigella/boydii_CDC_3083-94/Shigella_boydii_CDC_3083-94_v1.fa
-/lustre/scratch108/pathogen/pathpipe/refs/Shigella/boydii_Sb227/Shigella_boydii_Sb227_v1.fa
-/lustre/scratch108/pathogen/pathpipe/refs/Shigella/sonnei_53G/Shigella_sonnei_53G_v1.fa
-/lustre/scratch108/pathogen/pathpipe/refs/Shigella/sonnei_Ss046/Shigella_sonnei_Ss046_v1.fa
-/lustre/scratch108/pathogen/pathpipe/refs/Burkholderia/pseudomallei_K96243/Burkholderia_pseudomallei_K96243_v1.fa
-/lustre/scratch108/pathogen/pathpipe/refs/Pseudomonas/aeruginosa_LESB58/Pseudomonas_aeruginosa_LESB58_v1.fa
-/lustre/scratch108/pathogen/pathpipe/refs/Pseudomonas/aeruginosa_PAK/Pseudomonas_aeruginosa_PAK_v0.1.fa
-/lustre/scratch108/pathogen/pathpipe/refs/Pseudomonas/aeruginosa_PAO1/Pseudomonas_aeruginosa_PAO1_v2.fa
-/lustre/scratch108/pathogen/pathpipe/refs/Pseudomonas/aeruginosa_UCBPP-PA14/Pseudomonas_aeruginosa_UCBPP-PA14_v1.fa
-/lustre/scratch108/pathogen/pathpipe/refs/Pseudomonas/fluorescens_SBW25/Pseudomonas_fluorescens_SBW25_v4.fa
+/lustre/scratch108/pathogen/pathpipe/pathogen_test_pathfind/refs/Escherichia/coli_ETEC_H10407/Escherichia_coli_ETEC_H10407_v1.fa
+/lustre/scratch108/pathogen/pathpipe/pathogen_test_pathfind/refs/Escherichia/coli_ETEC_H10407/Escherichia_coli_ETEC_H10407_v2.fa
+/lustre/scratch108/pathogen/pathpipe/pathogen_test_pathfind/refs/Klebsiella/pneumoniae_Ec18/Klebsiella_pneumoniae_Ec18_v0.1.fa
+/lustre/scratch108/pathogen/pathpipe/pathogen_test_pathfind/refs/Leishmania/mexicana/Leishmania_mexicana_27July2011.fa
+/lustre/scratch108/pathogen/pathpipe/pathogen_test_pathfind/refs/Clostridium/difficile_630/Clostridium_difficile_630_v1.6.fa
