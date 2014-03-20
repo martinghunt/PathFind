@@ -334,7 +334,7 @@ sub link_rename_hash {
 sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
-    print <<USAGE;
+    return <<USAGE;
 Usage: $script_name
      -t|type            <study|lane|file|sample|species>
      -i|id              <study id|study name|lane name|file of lane names>
@@ -369,7 +369,6 @@ assemblyfind -t study -i 123 -a study_123_assemblies.tgz
 
 
 USAGE
-    exit;
 }
 
 __PACKAGE__->meta->make_immutable;
