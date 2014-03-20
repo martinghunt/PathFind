@@ -335,5 +335,5 @@ throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thro
 $obj = Path::Find::CommandLine::Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
-remove_tree(%tmp);
+remove_tree($tmp);
 done_testing();
