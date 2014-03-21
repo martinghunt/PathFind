@@ -1,4 +1,0 @@
-#!/usr/bin/env perl
-system("touch pan_genome_results");
-
-1;
