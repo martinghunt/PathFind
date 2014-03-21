@@ -1,0 +1,52 @@
+---
+abstract: 'Simple wrapper module for VRTrack and DBI. Used for connecting to pathogen tracking databases.'
+author:
+  - 'Carla Cummins <cc21@sanger.ac.uk>'
+build_requires:
+  Env::Path: '0'
+  Test::Exception: '0'
+  Test::Most: '0'
+  Test::Output: '0'
+configure_requires:
+  ExtUtils::MakeMaker: '6.30'
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 5.006, CPAN::Meta::Converter version 2.132830'
+license: open_source
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: '1.4'
+name: PathFind
+requires:
+  Bio::AutomatedAnnotation::ParseGenesFromGFFs: '0'
+  Bio::MLST::Databases: '0'
+  Carp: '0'
+  Cwd: '0'
+  DBI: '0'
+  Data::Dumper: '0'
+  Exception::Class: '0'
+  File::Basename: '0'
+  File::Copy: '0'
+  File::Path: '0'
+  File::Slurp: '0'
+  File::Spec: '0'
+  File::Temp: '0'
+  File::chdir: '0'
+  Getopt::Long: '0'
+  Moose: '0'
+  Pathogens::Reports::Mapping::Report: '0'
+  Storable: '0'
+  Text::CSV: '0'
+  VRTrack::Individual: '0'
+  VRTrack::Lane: '0'
+  VRTrack::VRTrack: '0'
+  VertRes::Parser::bamcheck: '0'
+  VertRes::Utils::VRTrackFactory: '0'
+  WWW::Mechanize: '0'
+  YAML::XS: '0'
+  lib: '0'
+  strict: '0'
+  warnings: '0'
+resources:
+  homepage: http://www.sanger.ac.uk/
+  repository: https://github.com/sanger-pathogens/PathFind.git
+version: '1.140790'
