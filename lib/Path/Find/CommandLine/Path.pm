@@ -119,7 +119,7 @@ sub check_inputs {
                 && ( $self->qc eq 'passed' || $self->qc eq 'failed' || $self->qc eq 'pending' ) )
           )
           && ( !$self->filetype
-            || ( $self->filetype && ( $self->filetype eq 'bam' || $self->filetype eq 'fastq' ) ) )
+            || ( $self->filetype && ( $self->filetype eq 'fastq' ) ) )
     );
 }
 
@@ -279,7 +279,7 @@ Usage: $script_name
 		-t|type		<study|lane|file|sample|species>
 		-i|id		<study id|study name|lane name|file of lane names>
 		-h|help		<this help message>
-		-f|filetype	<fastq|bam>
+		-f|filetype	<fastq>
 		-l|symlink	<create sym links to the data and define output directory>
 		-a|archive	<name for archive containing the data>
 		-s|stats	<output statistics>

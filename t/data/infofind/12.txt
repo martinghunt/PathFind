@@ -1,0 +1,5 @@
+Lane            Sample                    Supplier Name             Public Name               Strain              
+5477_6#1        test1_1                   NA                                                  TB 10010_03         
+5477_6#2        test1_2                   NA                                                  TB 10786_02         
+5477_6#3        test1_3                   NA                                                  TB 10162_04         
+5477_6#4        test1_4                   NA                                                  TB 11051_03         

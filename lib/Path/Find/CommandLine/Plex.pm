@@ -309,7 +309,7 @@ sub get_sample {
 sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
-    print <<USAGE;
+    return <<USAGE;
 Usage: $script_name
      -t|type  <study|lane>
      -i|id    <study id|study name|lane id>
@@ -320,7 +320,6 @@ Given a study name or study id this script will return a list of multiplex lanes
 along with their corresponding tag number. Given a lane id the script will return the list of samples in the specified multiplex lane and their corresponding tag number.
 
 USAGE
-    exit;
 }
 
 __PACKAGE__->meta->make_immutable;

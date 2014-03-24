@@ -1,4 +1,0 @@
-Study ID	Sample	Lane Name	Cycles	Reads	Bases	Map Type	Reference	Reference Size	Mapper	Mapstats ID	Mapped %	Paired %	Mean Insert Size	Depth of Coverage	Depth of Coverage sd	Genome Covered (% >= 1X)	Genome Covered (% >= 5X)	Genome Covered (% >= 10X)	Genome Covered (% >= 50X)	Genome Covered (% >= 100X)
-697	CAN0185	7978_7#14	100	6568166	656816600	Mapping	Salmonella_enterica_subsp_enterica_serovar_Typhimurium_str_LT2_v1	4951371	smalt	490636	96.5	94.8	248	128.01	46.34	90.7	90.6	90.5	90.1	89.3
-2512	2512STDY5462705	9776_6#32	100	4212724	421272400	Mapping	Klebsiella_pneumoniae_subsp_pneumoniae_MGH_78578_v1	5315120	smalt	582798	88.8	86.6	239	70.38	30.12	92.7	92.6	92.5	85.4	11.9
-2195	692_NTS	7969_2#8	100	3405108	340510800	Mapping	Salmonella_enterica_subsp_enterica_serovar_Typhimurium_str_LT2_v1	4951371	smalt	488578	90.9	89.3	280	62.49	17.14	96.3	96.3	96.3	90.5	0.7

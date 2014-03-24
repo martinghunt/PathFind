@@ -1,0 +1,5 @@
+Study ID	Sample	Lane Name	Cycles	Reads	Bases	Map Type	Reference	Reference Size	Mapper	Mapstats ID	Mapped %	Paired %	Mean Insert Size	Depth of Coverage	Depth of Coverage sd	Adapter %	Transposon %	Genome Covered	Duplication Rate	Error Rate	NPG QC	Manual QC
+3	test1_3	5477_6#3	76	9656422	733888072	QC	Streptococcus_pneumoniae_A1_v0.2	2210702	bwa	7	86.0	85.0	311.8	285.53	146.23	0.0	NA	89.00	0.0018	0.012	-	failed
+3	test1_2	5477_6#2	76	7108898	540276248	QC	Streptococcus_pneumoniae_A1_v0.2	2210702	bwa	4	87.8	86.8	293.4	214.60	113.10	0.0	NA	93.38	0.0019	0.011	-	pending
+3	test1_4	5477_6#4	76	7803096	593035296	QC	Streptococcus_pneumoniae_A1_v0.2	2210702	bwa	10	85.5	84.4	310.8	229.20	112.25	0.1	NA	89.18	0.0020	0.012	-	pending
+3	test1_1	5477_6#1	76	7067462	537127112	QC	Streptococcus_pneumoniae_A1_v0.2	2210702	bwa	1	89.1	88.2	292.3	216.55	96.15	0.0	NA	92.45	0.0019	0.011	-	passed

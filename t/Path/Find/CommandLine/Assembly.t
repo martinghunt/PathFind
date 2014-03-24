@@ -27,7 +27,7 @@ my (@args, $arg_str, $exp_out, $obj);
 
 # test 1
 @args = ( '--test', '-t', 'species', '-f', 'contigs' );
-$obj = Path::Find::CommandLine::Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 2
