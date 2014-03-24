@@ -172,7 +172,7 @@ sub run {
         )->commandline();
     };
 
-    Path::Find::Exception::InvalidInput( error => "The archive and symlink options cannot be used together\n")
+    Path::Find::Exception::InvalidInput->throw( error => "The archive and symlink options cannot be used together\n")
       if ( defined $archive && defined $symlink );
 
     my $lane_filter;

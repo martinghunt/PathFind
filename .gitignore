@@ -2,3 +2,4 @@ bin/test.pl
 pathfindlog
 bin/data
 t/Path/Find/CommandLine/add_test.py
+.build/

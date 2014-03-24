@@ -156,6 +156,8 @@ sub run {
         )->commandline();
     };
 
+    Path::Find::Exception::InvalidInput->throw( error => "The archive and symlink options cannot be used together\n")
+      if ( defined $archive && defined $symlink );
 
     # Set assembly subdirectories
     my @sub_directories;
