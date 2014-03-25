@@ -75,8 +75,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check symlinks
-ok( -e "$tmp/valid_dest", 'symlink dir exists' );
-ok( check_links("$tmp/valid_dest", $exp_out), 'correct files symlinked' );
+ok( -e "assemblyfind_Shigella_flexneri", 'symlink dir exists' );
+ok( check_links("assemblyfind_Shigella_flexneri", $exp_out, 1), 'correct files symlinked' );
 
 
 # test 7
@@ -88,7 +88,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check symlinks
 ok( -e "$tmp/valid_dest", 'symlink dir exists' );
-ok( check_links('$tmp/valid_dest', $exp_out), 'correct files symlinked' );
+ok( check_links("$tmp/valid_dest", $exp_out), 'correct files symlinked' );
 
 
 # test 8
@@ -106,8 +106,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check archive
-ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
-ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+ok(-e "assemblyfind_Shigella_flexneri.tar.gz", 'archive exists');
+ok(check_links('assemblyfind_Shigella_flexneri.tar.gz', $exp_out, 1), 'correct files present');
 
 
 # test 10
@@ -130,8 +130,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check symlinks
-ok( -e "$tmp/valid_dest", 'symlink dir exists' );
-ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+ok( -e "assemblyfind_Shigella_flexneri", 'symlink dir exists' );
+ok( check_links('assemblyfind_Shigella_flexneri', $exp_out, 1), 'correct files symlinked' );
 
 
 # test 12
@@ -161,8 +161,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check archive
-ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
-ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+ok(-e "assemblyfind_assembly_lanes.txt.tar.gz", 'archive exists');
+ok(check_links('assemblyfind_assembly_lanes.txt.tar.gz', $exp_out, 1), 'correct files present');
 
 
 # test 15
@@ -209,15 +209,15 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test 19
-@args = ( '--test', '-t', 'file', '-i', 't/data/assemblyfind/assembly_lanes.txt', '-f', 'scaffold', '-a' );
+@args = ( '--test', '-t', 'file', '-i', 't/data/assemblyfind/assembly_lanes2.txt', '-f', 'scaffold', '-a' );
 $obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
 $exp_out = read_file('t/data/assemblyfind/19.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check archive
-ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
-ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+ok(-e "assemblyfind_assembly_lanes2.txt.tar.gz", 'archive exists');
+ok(check_links('assemblyfind_assembly_lanes2.txt.tar.gz', $exp_out, 1), 'correct files present');
 
 
 # test 20
@@ -616,32 +616,74 @@ ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
 $obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
+# test 59
+@args = ( '--test', '-t', 'lane', '-i', '6578_4#2', '-f', 'scaffold', '-s', "$tmp/test.59.stats");
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/59.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+is(
+	read_file("t/data/assemblyfind/59.stats"),
+	read_file("$tmp/test.59.stats"),
+	'stats file correct'
+);
+
 remove_tree($tmp);
 done_testing();
 
 sub check_links {
 	my ($n, $fl, $cwd) = @_;
 
+	my $tar = $n =~ /\.tar\.gz/ ? 1 : 0;
 	my $owd = getcwd();
 	chdir($tmp) unless($cwd);
 
 	my $dir = $n;
-	if($n =~ /\.tar\.gz/){
+	if($tar){
 		system("tar xvfz $n");
 		$dir =~ s/\.tar\.gz//;
 	}
 
+	my @exp_files = exp_files($fl);
 	my $result = 1;
+	foreach my $f (@exp_files){
+		$result = 0 unless( -e "$dir/$f" );
+	}
+	chdir($owd) unless($cwd);
+
+	# remove stuff
+	unlink($n) if( $tar );
+	remove_tree( $dir );
+
+	return $result;
+}
+
+sub exp_files {
+	my $fl = shift;
+	
+	my $default_type = "*.fa";
+	my @ef;
+
 	foreach my $f (split( "\n", $fl )){
 		my @d = split("/", $f);
 		my $e = $d[$#d];
-		$e=~s/\./_velvet\./;
-		my $g = $d[$#d-2];
-		$g .= ".";
-		my $h = $g.$e;
-		print "$h\n";
-		$result = 0 unless( -e "$dir/$h" );
+		$e=~s/contigs/contigs_velvet/;
+		my $h=$d[$#d-2];
+		$h.= ".";
+		$h.= $e;
+		if( $h =~ /\./ ){
+			push(@ef, $h);
+		}
+		else{
+			my @all = glob("$f/$default_type");
+			foreach my $a ( @all ){
+				my @dirs = split('/', $a);
+				my $fn = pop @dirs;
+				push( @ef, $fn );
+			}
+		}
 	}
-	chdir($owd) unless($cwd);
-	return $result;
+	return @ef;
 }
+
