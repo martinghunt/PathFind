@@ -195,8 +195,6 @@ sub _match_mapstat {
     $path =~ /(\d+)\.[ps]e/;
     my $ms_id = $1;
 
-    print "$path\n" if(!defined $ms_id);
-
     my @mapstats = @{ $lane->mappings_excluding_qc };
     foreach my $ms ( @mapstats ){
         return $ms if($ms_id eq $ms->id);

@@ -20,7 +20,6 @@ where \@ARGV contains the following parameters:
 -l|symlink   <create a symlink to the data>
 -a|arvhive   <archive the data>
 -f|filetype  <coverage|intergenic|bam|spreadsheet>
--s|stats     <output stats to file>
 -v|verbose   <extended details>
 -r|reference <select only results mapped to given reference>
 -d|date      <select only results produced after given date>
@@ -65,7 +64,6 @@ has 'symlink'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'verbose'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'stats'       => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'ref'         => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'date'        => ( is => 'rw', isa => 'Str',      required => 0 );
@@ -77,7 +75,7 @@ sub BUILD {
 
     my (
         $type,  $id,       $symlink, $archive, $help, $verbose,
-        $stats, $filetype, $ref,     $date,    $mapper, $test
+        $filetype, $ref,     $date,    $mapper, $test
     );
 
     my @args = @{ $self->args };
@@ -89,7 +87,6 @@ sub BUILD {
         'f|filetype=s'  => \$filetype,
         'l|symlink:s'   => \$symlink,
         'a|archive:s'   => \$archive,
-        's|stats:s'     => \$stats,
         'v|verbose'     => \$verbose,
         'r|reference=s' => \$ref,
         'd|date=s'      => \$date,
@@ -103,7 +100,6 @@ sub BUILD {
     $self->archive($archive)   if ( defined $archive );
     $self->help($help)         if ( defined $help );
     $self->verbose($verbose)   if ( defined $verbose );
-    $self->stats($stats)       if ( defined $stats );
     $self->filetype($filetype) if ( defined $filetype );
     $self->ref($ref)           if ( defined $ref );
     $self->date($date)         if ( defined $date );
@@ -147,7 +143,6 @@ sub run {
     my $symlink  = $self->symlink;
     my $archive  = $self->archive;
     my $verbose  = $self->verbose;
-    my $stats    = $self->stats;
     my $filetype = $self->filetype;
     my $ref      = $self->ref;
     my $date     = $self->date;
@@ -202,7 +197,7 @@ sub run {
         # filter lanes
         my $verbose_info = 0;
         if ( $verbose || $date || $ref || $mapper ){
-            $filetype = "bam";
+            #$filetype = "bam";
             $verbose_info = 1;
         }
         $lane_filter = Path::Find::Filter->new(
@@ -310,7 +305,6 @@ Usage: $script_name
   -l|symlink   <create a symlink to the data>
   -a|arvhive   <archive the data>
   -f|filetype  <coverage|intergenic|bam|spreadsheet>
-  -s|stats     <output stats to file>
   -v|verbose   <extended details>
   -r|reference <select only results mapped to given reference>
   -d|date      <select only results produced after given date>
