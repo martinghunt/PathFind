@@ -223,8 +223,6 @@ sub run {
         );
         my @matching_lanes = $lane_filter->filter;
 
-        print Dumper \@matching_lanes;
-
         my $sorted_ml = Path::Find::Sort->new(lanes => \@matching_lanes)->sort_lanes;
         @matching_lanes = @{ $sorted_ml };
 
