@@ -274,12 +274,11 @@ $obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'trad
 throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
 
 # test 41
-@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'bam', '-s', '-d', '20-03-2014' );
-$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
-$exp_out = read_file('t/data/tradisfind/41.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
+#@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'bam', '-s', '-d', '20-03-2014' );
+#$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+#$exp_out = read_file('t/data/tradisfind/41.txt');
+#$arg_str = join(" ", @args);
+#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test 42
 @args = ( '--test', '-t', 'lane', '-i', '5477_6#1' );
