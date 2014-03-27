@@ -44,6 +44,7 @@ use lib "../lib";
 
 use Getopt::Long qw(GetOptionsFromArray);
 use WWW::Mechanize;
+use Data::Dumper;
 
 use Path::Find;
 use Path::Find::Lanes;
@@ -70,6 +71,7 @@ sub BUILD {
     my ( $type, $id, $help, $external, $submitted, $outfile, $test );
 
     my @args = @{ $self->args };
+
     GetOptionsFromArray(
         \@args,
         't|type=s'    => \$type,
@@ -78,8 +80,8 @@ sub BUILD {
         'f|fastq'     => \$external,
         's|submitted' => \$submitted,
         'o|outfile=s' => \$outfile,
-        'test'         => \$test,
-    );
+        'test'        => \$test,
+    ) or Path::Find::Exception::InvalidInput->throw( error => "");
 
     $self->type($type)           if ( defined $type );
     $self->id($id)               if ( defined $id );
@@ -87,7 +89,7 @@ sub BUILD {
     $self->external($external)   if ( defined $external );
     $self->submitted($submitted) if ( defined $submitted );
     $self->outfile($outfile)     if ( defined $outfile );
-    $self->_environment('test') if ( defined $test );
+    $self->_environment('test')  if ( defined $test );
 }
 
 sub check_inputs{
@@ -185,6 +187,9 @@ sub run {
 sub print_ftp_url {
     my ( $self, $url_type, $acc, $outfile ) = @_;
     
+    # check outfile location
+    system("touch $outfile") == 0 or Path::Find::Exception::FileDoesNotExist->throw("Cannot write to $outfile\n");
+
     open( OUT, ">> $outfile" );
     my $url;
     if ( $url_type eq "sub" ) {
@@ -195,14 +200,17 @@ sub print_ftp_url {
         $url = 'http://www.ebi.ac.uk/ena/data/view/reports/sra/fastq_files/';
     }
     $url .= $acc;
+    print "$url\n";
     my $mech = WWW::Mechanize->new;
     $mech->get($url);
     my $down = $mech->content( format => 'text' );
     my @lines = split( /\n/, $down );
+    print Dumper \@lines;
     foreach my $x ( 1 .. $#lines ) {
         my @fields = split( /\t/, $lines[$x] );
         print OUT "$fields[18]\n";
     }
+    close OUT;
 }
 
 sub get_sample_from_lane {

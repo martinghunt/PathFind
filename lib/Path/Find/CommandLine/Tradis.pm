@@ -266,7 +266,7 @@ sub run {
     }
 
     unless ($found) {
-        Path::Find::Exception::NoMatches->( error => "Could not find lanes or files for input data \n");
+        Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
     }
 }
 
