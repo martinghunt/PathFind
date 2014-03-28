@@ -103,7 +103,7 @@ sub BUILD {
         'o|output=s'        => \$output,
         's|stats:s'         => \$stats,
         'test'              => \$test,
-    );
+	) or Path::Find::Exception::InvalidInput->throw( error => "Hello");
 
     $self->type($type)                       if ( defined $type );
     $self->id($id)                           if ( defined $id );
@@ -281,8 +281,8 @@ sub run {
               );
 
             # check output location
-            unless( -e $output ){
-                print "Cannot access '$output'. Writing output to default file name\n";
+            unless( defined $output ){
+                print "Writing output to default file name\n";
                 $output = undef;
             }
 
