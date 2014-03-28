@@ -103,7 +103,7 @@ sub BUILD {
         'o|output=s'        => \$output,
         's|stats:s'         => \$stats,
         'test'              => \$test,
-	) or Path::Find::Exception::InvalidInput->throw( error => "Hello");
+	) or return;
 
     $self->type($type)                       if ( defined $type );
     $self->id($id)                           if ( defined $id );

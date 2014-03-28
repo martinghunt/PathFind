@@ -199,9 +199,9 @@ $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'a
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 22
-#@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-g');
-#$obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-#throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-g');
+$obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 23
 @args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-g', 'yfgF_1' );
