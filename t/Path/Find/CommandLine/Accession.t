@@ -36,7 +36,7 @@ $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'a
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 3
-@args = ( '--test', '-i', 'valid_value', '-f', '-s', '-o', "$tmp/test.##.out" );
+@args = ( '--test', '-i', 'valid_value', '-f', '-s', '-o', "$tmp/test.3.out" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
@@ -87,7 +87,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check FTP file
 is(
 	read_file('t/data/accessionfind/10.out'),
-	read_file("annotationfind.out"),
+	read_file("accessionfind.out"),
 	'FTP file correct'
 );
 unlink('accessionfind.out');
@@ -121,7 +121,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check FTP file
 is(
 	read_file('t/data/accessionfind/13.out'),
-	read_file("annotationfind.out"),
+	read_file("accessionfind.out"),
 	'FTP file correct'
 );
 unlink('accessionfind.out');
@@ -155,7 +155,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check FTP file
 is(
 	read_file('t/data/accessionfind/16.out'),
-	read_file("annotationfind.out"),
+	read_file("accessionfind.out"),
 	'FTP file correct'
 );
 unlink('accessionfind.out');
@@ -231,7 +231,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check FTP file
 is(
 	read_file('t/data/accessionfind/26.out'),
-	read_file("annotationfind.out"),
+	read_file("accessionfind.out"),
 	'FTP file correct'
 );
 unlink('accessionfind.out');
@@ -265,7 +265,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check FTP file
 is(
 	read_file('t/data/accessionfind/29.out'),
-	read_file("annotationfind.out"),
+	read_file("accessionfind.out"),
 	'FTP file correct'
 );
 unlink('accessionfind.out');
@@ -299,7 +299,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check FTP file
 is(
 	read_file('t/data/accessionfind/32.out'),
-	read_file("annotationfind.out"),
+	read_file("accessionfind.out"),
 	'FTP file correct'
 );
 unlink('accessionfind.out');
@@ -377,7 +377,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check FTP file
 is(
 	read_file('t/data/accessionfind/42.out'),
-	read_file("annotationfind.out"),          
+	read_file("accessionfind.out"),          
 	'FTP file correct'
 );
 unlink('accessionfind.out');
@@ -411,7 +411,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check FTP file
 is(
 	read_file('t/data/accessionfind/45.out'),
-	read_file("annotationfind.out"),
+	read_file("accessionfind.out"),
 	'FTP file correct'
 );
 unlink('accessionfind.out');
@@ -445,7 +445,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check FTP file
 is(
 	read_file('t/data/accessionfind/48.out'),
-	read_file("annotationfind.out"),
+	read_file("accessionfind.out"),
 	'FTP file correct'
 );
 unlink('accessionfind.out');
@@ -521,26 +521,29 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check FTP file
 is(
     read_file('t/data/accessionfind/58.out'),
-    read_file("annotationfind.out"),
+    read_file("accessionfind.out"),
     'FTP file correct'
-    );
+);
 unlink('accessionfind.out');
 
 # test 59
-@args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-s', '-o', "$tmp/test.##.out" );
+@args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-s', '-o', "$tmp/test.59.out" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 $exp_out = read_file('t/data/accessionfind/59.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check FTP file
+is(
+    read_file('t/data/accessionfind/59.out'),
+    read_file("$tmp/test.59.out"),
+    'FTP file correct'
+);
 
 # test 60
 @args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-s', '-o', "not/really/a/file.txt" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
-$exp_out = read_file('t/data/accessionfind/60.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
 
 # test 61
 @args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-f' );
@@ -549,22 +552,32 @@ $exp_out = read_file('t/data/accessionfind/61.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check FTP file
+is(
+    read_file('t/data/accessionfind/61.out'),
+    read_file("accessionfind.out"),
+    'FTP file correct'
+);
+unlink('accessionfind.out');
 
 # test 62
-@args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-f', '-o', "$tmp/test.##.out" );
+@args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-f', '-o', "$tmp/test.62.out" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 $exp_out = read_file('t/data/accessionfind/62.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check FTP file
+is(
+    read_file('t/data/accessionfind/62.out'),
+    read_file("$tmp/test.62.out"),
+    'FTP file correct'
+);
 
 # test 63
 @args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-f', '-o', "not/really/a/file.txt" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
-$exp_out = read_file('t/data/accessionfind/63.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
 
 # test 64
 @args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-f', '-s' );
@@ -573,22 +586,32 @@ $exp_out = read_file('t/data/accessionfind/64.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check FTP file
+is(
+    read_file('t/data/accessionfind/64.out'),
+    read_file("accessionfind.out"),
+    'FTP file correct'
+);
+unlink('accessionfind.out');
 
 # test 65
-@args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-f', '-s', '-o', "$tmp/test.##.out" );
+@args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-f', '-s', '-o', "$tmp/test.65.out" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 $exp_out = read_file('t/data/accessionfind/65.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check FTP file
+is(
+    read_file('t/data/accessionfind/65.out'),
+    read_file("$tmp/test.65.out"),
+    'FTP file correct'
+);
 
 # test 66
 @args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-f', '-s', '-o', "not/really/a/file.txt" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
-$exp_out = read_file('t/data/accessionfind/66.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
 
 # test 67
 @args = ( '--test', '-t', 'sample', '-i', 'invalid_value' );
@@ -606,28 +629,26 @@ $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'a
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 70
-@args = ( '--test', '-t', 'species', '-f', '-s', '-o', "$tmp/test.##.out" );
+@args = ( '--test', '-t', 'species', '-f', '-s', '-o', "$tmp/test.70.out" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 71
-@args = ( '--test', '-t', 'species', '-i', 'valid_value' );
+@args = ( '--test', '-t', 'species', '-i', 'shigella' );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 $exp_out = read_file('t/data/accessionfind/71.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-
 # test 72
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-o', "$tmp/test.##.out" );
+@args = ( '--test', '-t', 'species', '-i', 'shigella', '-o', "$tmp/test.72.out" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 $exp_out = read_file('t/data/accessionfind/72.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-
 # test 73
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-o', "not/really/a/file.txt" );
+@args = ( '--test', '-t', 'species', '-i', 'shigella', '-o', "not/really/a/file.txt" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 $exp_out = read_file('t/data/accessionfind/73.txt');
 $arg_str = join(" ", @args);
@@ -635,76 +656,106 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 
 # test 74
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-s' );
+@args = ( '--test', '-t', 'species', '-i', 'shigella', '-s' );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 $exp_out = read_file('t/data/accessionfind/74.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check FTP file
+is(
+	read_file('t/data/accessionfind/74.out'),
+	read_file("accessionfind.out"),
+	'FTP file correct'
+);
+unlink('accessionfind.out');
 
 # test 75
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-s', '-o', "$tmp/test.##.out" );
+@args = ( '--test', '-t', 'species', '-i', 'shigella', '-s', '-o', "$tmp/test.75.out" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 $exp_out = read_file('t/data/accessionfind/75.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check FTP file
+is(
+	read_file('t/data/accessionfind/75.out'),
+	read_file("$tmp/test.75.out"),
+	'FTP file correct'
+);
 
 # test 76
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-s', '-o', "not/really/a/file.txt" );
+@args = ( '--test', '-t', 'species', '-i', 'shigella', '-s', '-o', "not/really/a/file.txt" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
-$exp_out = read_file('t/data/accessionfind/76.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
 
 # test 77
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f' );
+@args = ( '--test', '-t', 'species', '-i', 'shigella', '-f' );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 $exp_out = read_file('t/data/accessionfind/77.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check FTP file
+is(
+	read_file('t/data/accessionfind/77.out'),
+	read_file("accessionfind.out"),
+	'FTP file correct'
+);
+unlink('accessionfind.out');
 
 # test 78
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', '-o', "$tmp/test.##.out" );
+@args = ( '--test', '-t', 'species', '-i', 'shigella', '-f', '-o', "$tmp/test.78.out" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 $exp_out = read_file('t/data/accessionfind/78.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check FTP file
+is(
+	read_file('t/data/accessionfind/78.out'),
+	read_file("$tmp/test.78.out"),
+	'FTP file correct'
+);
 
 # test 79
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', '-o', "not/really/a/file.txt" );
+@args = ( '--test', '-t', 'species', '-i', 'shigella', '-f', '-o', "not/really/a/file.txt" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
-$exp_out = read_file('t/data/accessionfind/79.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
 
 # test 80
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', '-s' );
+@args = ( '--test', '-t', 'species', '-i', 'shigella', '-f', '-s' );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 $exp_out = read_file('t/data/accessionfind/80.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check FTP file
+is(
+	read_file('t/data/accessionfind/80.out'),
+	read_file("accessionfind.out"),
+	'FTP file correct'
+);
+unlink('accessionfind.out');
 
 # test 81
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', '-s', '-o', "$tmp/test.##.out" );
+@args = ( '--test', '-t', 'species', '-i', 'shigella', '-f', '-s', '-o', "$tmp/test.81.out" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 $exp_out = read_file('t/data/accessionfind/81.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check FTP file
+is(
+	read_file('t/data/accessionfind/81.out'),
+	read_file("$tmp/test.81.out"),
+	'FTP file correct'
+);
 
 # test 82
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', '-s', '-o', "not/really/a/file.txt" );
+@args = ( '--test', '-t', 'species', '-i', 'shigella', '-f', '-s', '-o', "not/really/a/file.txt" );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
-$exp_out = read_file('t/data/accessionfind/82.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
 
 # test 83
 @args = ( '--test', '-t', 'species', '-i', 'invalid_value' );
@@ -717,7 +768,7 @@ $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'a
 throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
 
 # test 85
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-h' );
+@args = ( '--test', '-t', 'species', '-i', 'shigella', '-h' );
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 

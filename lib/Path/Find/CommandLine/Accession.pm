@@ -39,7 +39,7 @@ use Moose;
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
 use Getopt::Long qw(GetOptionsFromArray);
@@ -200,12 +200,12 @@ sub print_ftp_url {
         $url = 'http://www.ebi.ac.uk/ena/data/view/reports/sra/fastq_files/';
     }
     $url .= $acc;
-    print "$url\n";
+    #print "$url\n";
     my $mech = WWW::Mechanize->new;
     $mech->get($url);
     my $down = $mech->content( format => 'text' );
     my @lines = split( /\n/, $down );
-    print Dumper \@lines;
+    #print Dumper \@lines;
     foreach my $x ( 1 .. $#lines ) {
         my @fields = split( /\t/, $lines[$x] );
         print OUT "$fields[18]\n";
