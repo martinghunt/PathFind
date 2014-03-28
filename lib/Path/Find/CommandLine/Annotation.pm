@@ -98,7 +98,7 @@ sub BUILD {
         'l|symlink:s'       => \$symlink,
         'a|archive:s'       => \$archive,
         'g|gene=s'          => \$gene,
-        'p|search_products' => \$search_products,
+        'p|search_products=s' => \$search_products,
         'n|nucleotides'     => \$nucleotides,
         'o|output=s'        => \$output,
         's|stats:s'         => \$stats,
