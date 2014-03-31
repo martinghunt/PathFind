@@ -83,7 +83,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 
 # test 8
-@args = ( '--test', '-t', 'file', '-i', 't/data/annotationfind/annotation_lanes.txt', '-f', 'ffn', '-p', '-o', 'valid_value' );
+@args = ( '--test', '-t', 'file', '-i', 't/data/annotationfind/annotation_lanes.txt', '-f', 'ffn', '-o', 'valid_value' );
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/8.txt');
 $arg_str = join(" ", @args);
@@ -243,234 +243,170 @@ compare_ok("valid_out.yfgF_1.fa", "t/data/annotationfind/annotation_aa.txt", "fi
 
 
 # test 27
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'contigs', '-g', 'invalid_value', '-p' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-p' );
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/27.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 28
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'contigs', '-g', 'invalid_value', '-p', '-o', 'valid_value' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-p', 'cytochrome C' );
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/28.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 29
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-g', 'yfgF_1', '-p', 'cytochrome C');
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/29.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check file
+ok( -e "output.yfgF_1.fa", 'output file exists' );
+compare_ok("output.yfgF_1.fa", "t/data/annotationfind/annotation_aa.txt", "files are identical");
 
 # test 30
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-o', 'valid_value' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-g', 'yfgF_1', '-p', 'cytochrome C', -n);
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/30.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check file
+ok( -e "output.yfgF_1.fa", 'output file exists' );
+compare_ok("output.yfgF_1.fa", "t/data/annotationfind/annotation_nuc.txt", "files are identical");
 
 # test 31
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-o', 'invalid_value' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-o', 'valid', '-n',  '-g', 'yfgF_1', '-p', 'cytochrome C');
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/31.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check file
+ok( -e "output.yfgF_1.fa", 'output file exists' );
+compare_ok("valid.yfgF_1.fa", "t/data/annotationfind/annotation_nuc.txt", "files are identical");
 
 # test 32
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-n' );
+@args = ('--test', '-t', 'species', '-i', 'Shigella flexneri', '-g', 'yfgF_1', '-a' );
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/32.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 33
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-n', '-o', 'valid_value' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-g', 'yfgF_1', '-a' );
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/33.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 34
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-n', '-o', 'invalid_value' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'faa','-g', 'yfgF_1' );
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/34.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 35
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-p' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'ffn','-g', 'yfgF_1' );
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/35.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 36
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-p', '-o', 'valid_value' );
+@args = ( '--test', '-t' );
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/36.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 37
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-p', '-o', 'invalid_value' );
+@args = ( '--test', '-t', 'species', '-i' );
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/37.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 38
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-p', '-n' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f');
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/38.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 39
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-p', '-n', '-o', 'valid_value' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-s');
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/39.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check file
+ok( -e "Shigella_flexneri.csv", 'output file exists' );
+compare_ok("Shigella_flexneri.csv", "t/data/annotationfind/annotation_stats_species.exp", "files are identical");
+
 # test 40
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-p', '-n', '-o', 'invalid_value' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-s', 'statsfile');
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/40.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check file
+ok( -e "statsfile", 'output file exists' );
+compare_ok("statsfile", "t/data/annotationfind/annotation_stats_species.exp", "files are identical");
+
 # test 41
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'valid_value' );
+@args = ( '--test', '-t', 'file', '-i', 't/data/annotationfind/annotation_lanes.txt', '-s');
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/41.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check file
+ok( -e "t_data_annotationfind_annotation_lanes.txt.csv", 'output file exists' );
+compare_ok("t_data_annotationfind_annotation_lanes.txt.csv", "t/data/annotationfind/annotation_stats_file.exp", "files are identical");
 
 # test 42
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'valid_value', '-o', 'valid_value' );
+@args = ( '--test', '-t', 'file', '-i', 't/data/annotationfind/annotation_lanes.txt', '-s', 'filestatsfile.csv');
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/42.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check file
+ok( -e "filestatsfile.csv", 'output file exists' );
+compare_ok("filestatsfile.csv", "t/data/annotationfind/annotation_stats_file.exp", "files are identical");
 
 # test 43
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'valid_value', '-o', 'invalid_value' );
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-s');
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/43.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check file
+ok( -e "5477_6#2.csv", 'output file exists' );
+compare_ok("5477_6#2.csv", "t/data/annotationfind/annotation_stats_lane.exp", "files are identical");
 
 # test 44
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'valid_value', '-n' );
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-s', 'lanestatsfile.csv');
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/44.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check file
+ok( -e "lanestatsfile.csv", 'output file exists' );
+compare_ok("lanestatsfile.csv", "t/data/annotationfind/annotation_stats_lane.exp", "files are identical");
 
 # test 45
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'valid_value', '-n', '-o', 'valid_value' );
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-s');
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/45.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check file
+ok( -e "5477_6#2.csv", 'output file exists' );
+compare_ok("Test_Study_2.csv", "t/data/annotationfind/annotation_stats_study.exp", "files are identical");
 
 # test 46
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'valid_value', '-n', '-o', 'invalid_value' );
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-s', 'studystatsfile.csv');
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/46.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-
-# test 47
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'valid_value', '-p' );
-$obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/47.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
-
-# test 48
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'valid_value', '-p', '-o', 'valid_value' );
-$obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/48.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
-
-# test 49
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'valid_value', '-p', '-n' );
-$obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/49.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
-
-# test 50
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'valid_value', '-p', '-n', '-o', 'valid_value' );
-$obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/50.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
-# test 51
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'invalid_value' );
-$obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/51.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
-
-# test 52
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'invalid_value', '-o', 'valid_value' );
-$obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/52.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
-
-# test 53
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'invalid_value', '-n' );
-$obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/53.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
-
-# test 54
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'invalid_value', '-n', '-o', 'valid_value' );
-$obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/54.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
-
-# test 55
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'invalid_value', '-p' );
-$obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/55.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
-# test 56
-@args = ( '--test', '-t', 'species', '-i', 'valid_value', '-f', 'scaffold', '-g', 'invalid_value', '-p', '-o', 'valid_value' );
-$obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-$exp_out = read_file('t/data/annotationfind/56.txt');
-$arg_str = join(" ", @args);
-stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
+# check file
+ok( -e "studystatsfile.csv", 'output file exists' );
+compare_ok("studystatsfile.csv", "t/data/annotationfind/annotation_stats_study.exp", "files are identical");
 
 remove_tree($tmp);
 done_testing();
