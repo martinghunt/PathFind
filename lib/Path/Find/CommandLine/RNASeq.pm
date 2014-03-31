@@ -44,7 +44,7 @@ use Moose;
 use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use Getopt::Long qw(GetOptionsFromArray);
 
@@ -200,7 +200,7 @@ sub run {
         # filter lanes
         my $verbose_info = 0;
         if ( $verbose || $date || $ref || $mapper ){
-            $filetype = "bam";
+            $filetype = "bam" unless(defined $filetype);
             $verbose_info = 1;
         }
         $lane_filter = Path::Find::Filter->new(

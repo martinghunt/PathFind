@@ -1,0 +1,4 @@
+Study ID	Sample	Lane Name	Cycles	Reads	Bases	Map Type	Reference	Reference Size	Mapper	Mapstats ID	Mapped %	Paired %	Mean Insert Size	Depth of Coverage	Depth of Coverage sd	Genome Covered (% >= 1X)	Genome Covered (% >= 5X)	Genome Covered (% >= 10X)	Genome Covered (% >= 50X)	Genome Covered (% >= 100X)
+3	test1_3	5477_6#3	76	9656422	733888072	Mapping	Streptococcus_pneumoniae_INV200_v1	2093317	smalt	22	96.1	94.0	315	336.27	94.69	98.2	98.1	98.0	97.9	97.7
+3	test1_1	5477_6#1	76	7067462	537127112	Mapping	Streptococcus_pneumoniae_INV200_v1	2093317	smalt	25	90.4	86.6	296	231.68	95.82	92.9	92.7	92.6	92.1	91.6
+3	test1_4	5477_6#4	76	7803096	593035296	Mapping	Streptococcus_pneumoniae_INV200_v1	2093317	smalt	28	95.9	93.7	315	271.07	72.90	98.2	98.1	98.1	97.9	97.7
