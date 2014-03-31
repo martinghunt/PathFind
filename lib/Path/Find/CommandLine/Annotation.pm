@@ -98,7 +98,7 @@ sub BUILD {
         'l|symlink:s'       => \$symlink,
         'a|archive:s'       => \$archive,
         'g|gene=s'          => \$gene,
-        'p|search_products' => \$search_products,
+        'p|search_products=s' => \$search_products,
         'n|nucleotides'     => \$nucleotides,
         'o|output=s'        => \$output,
         's|stats:s'         => \$stats,
@@ -174,6 +174,18 @@ sub run {
 
     Path::Find::Exception::InvalidInput->throw( error => "The archive and symlink options cannot be used together\n")
       if ( defined $archive && defined $symlink );
+
+ Path::Find::Exception::InvalidInput->throw( error => "The search products option can only be used in combination with the gene option\n")
+      if ( defined $search_products && !defined $gene );
+
+ Path::Find::Exception::InvalidInput->throw( error => "The gene and symlink options cannot be used together\n")
+      if ( defined $gene && defined $symlink );
+
+ Path::Find::Exception::InvalidInput->throw( error => "The gene and archive options cannot be used together\n")
+      if ( defined $gene && defined $archive );
+
+Path::Find::Exception::InvalidInput->throw( error => "The gene option can only return GFF\n")
+      if ( defined $gene && defined $filetype && ($filetype eq'faa' || $filetype eq 'ffn'));
 
     my $lane_filter;
     my $found = 0;
@@ -303,6 +315,7 @@ sub run {
             if ( defined $stats ) {
                 $stats = "$id.csv" if ( $stats eq '' );
                 $stats =~ s/\s+/_/g;
+		$stats =~ s/\//_/g;
                 Path::Find::Stats::Generator->new(
                     lane_hashes => \@matching_lanes,
                     output      => $stats,
