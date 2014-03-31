@@ -260,6 +260,7 @@ sub run {
             if ( defined $stats ) {
                 $stats = "$id.assembly_stats.csv" if ( $stats eq '' );
                 $stats =~ s/\s+/_/g;
+                $stats =~ s/\//_/g;
                 Path::Find::Stats::Generator->new(
                     lane_hashes => \@matching_lanes,
                     output      => $stats,
