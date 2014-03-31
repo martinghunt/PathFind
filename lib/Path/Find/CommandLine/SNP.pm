@@ -301,7 +301,7 @@ sub create_pseudogenome {
     my @matching_lanes = @{$mlanes};
     my $ref            = $self->pseudogenome eq 'none' ? $self->pseudogenome : $self->ref;
 
-    print "Using reference: $ref\n";
+    print STDERR "Using reference: $ref\n";
 
     my $pg_filename = $self->pseudogenome_filename();
     print STDERR "Creating pseudogenome in $pg_filename\n";
@@ -429,7 +429,7 @@ sub set_linker_name {
 sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
-    print <<USAGE;
+    return <<USAGE;
 Usage: $script_name
      -t|type      <study|lane|file|sample|species>
      -i|id        <study id|study name|lane name|file of lane names>
@@ -438,7 +438,6 @@ Usage: $script_name
      -l|symlink   <create a symlink to the data>
      -a|arvhive   <archive the data>
      -v|verbose   <display reference, mapper and date>
-     -s|stats     <output file for summary of mapping results in CSV format>
      -r|reference <filter results based on reference>
      -m|mapper    <filter results based on mapper>
      -d|date      <show only results produced after a given date>
@@ -457,7 +456,6 @@ snpfind -t file -i my_lanes.txt -p none
 snpfind -t file -i my_lanes.txt -p -r Salmonella_enterica_subsp_enterica_serovar_Typhi_Ty2_v1
 
 USAGE
-    exit;
 }
 
 __PACKAGE__->meta->make_immutable;
