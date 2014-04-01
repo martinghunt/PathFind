@@ -45,7 +45,7 @@ use Cwd qw(abs_path getcwd);
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-#use lib "/software/pathogen/internal/prod/lib";
+use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
 #use File::Temp;
@@ -380,7 +380,7 @@ Usage: $script_name
   -t|type            <study|lane|file|sample|species>
   -i|id              <study id|study name|lane name|file of lane names>
   -l|symlink         <create a symlink to the data>
-  -f|filetype        <gff|faa|ffn>
+  -f|filetype        <gff|faa|ffn|gbk>
   -g|gene            <name of gene>
   -p|search_products <when searching for genes also search products>
   -o|output          <name of output fasta file of genes>
