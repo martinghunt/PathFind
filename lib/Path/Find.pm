@@ -32,7 +32,7 @@ sub _build_connection {
   my $self = shift;
   my $e = $self->environment;
 
-  my $config_dir = "/software/pathogen/projects/PathFind/config"
+  my $config_dir = "/software/pathogen/projects/PathFind/config";
 
   #my ($volume, $directory, $file) = File::Spec->splitpath(__FILE__);
   #$directory =~ s/lib\/Path/config/g;
