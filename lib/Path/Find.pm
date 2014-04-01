@@ -32,10 +32,12 @@ sub _build_connection {
   my $self = shift;
   my $e = $self->environment;
 
-  my ($volume, $directory, $file) = File::Spec->splitpath(__FILE__);
-  $directory =~ s/lib\/Path/config/g;
+  my $config_dir = "/software/pathogen/projects/PathFind/config"
 
-  my %connect = %{ Load( scalar read_file("$directory/$e.yml") ) };
+  #my ($volume, $directory, $file) = File::Spec->splitpath(__FILE__);
+  #$directory =~ s/lib\/Path/config/g;
+
+  my %connect = %{ Load( scalar read_file("$config_dir/$e.yml") ) };
   $connect{ 'password' } = undef;
   return \%connect;
 }
