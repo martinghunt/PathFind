@@ -12,6 +12,7 @@ BEGIN { unshift( @INC, './lib' ) }
 BEGIN {
     use Test::Most;
 	use Test::Output;
+	use Test::Exception;
 }
 
 use_ok('Path::Find::CommandLine::RNASeq');
@@ -19,113 +20,317 @@ use_ok('Path::Find::CommandLine::RNASeq');
 my $script_name = 'rnaseqfind';
 my $cwd = getcwd();
 
-my $destination_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
-my $destination_directory = $destination_directory_obj->dirname();
+my $temp_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
+my $tmp = $temp_directory_obj->dirname();
 
-my (@args, $arg_str, $exp_out, $rnaseq_obj);
+my (@args, $arg_str, $exp_out, $obj);
 
-# test basic output
-@args = qw(-t lane -i 10131_4#34);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Actinobacillus/pleuropneumoniae/TRACKING/607/APP_T1_OP2/SLX/APP_T1_OP2_7492558/10131_4#34\n";
-
-$rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => $script_name);
+# test 1
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'bam' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/1.txt');
 $arg_str = join(" ", @args);
-stdout_is { $rnaseq_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test file type & file parse
-@args = qw(-t file -i t/data/rnaseq_lanes.txt -f bam);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Haemophilus/parasuis/TRACKING/607/BDs_2hr/SLX/BDs_2hr_6229107/8896_1#9/544579.se.markdup.bam.corrected.bam
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Actinobacillus/pleuropneumoniae/TRACKING/607/APP_N2_OP2/SLX/APP_N2_OP2_7492531/10018_1#9/544432.se.markdup.bam.corrected.bam
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Haemophilus/parasuis/TRACKING/607/2B_in/SLX/2B_in_7822066/10421_1#60/589890.se.markdup.bam.corrected.bam\n";
 
-$rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => $script_name);
+# test 2
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'coverage', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/2.txt');
 $arg_str = join(" ", @args);
-stdout_is { $rnaseq_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test symlink
-@args = ("-t", "study", "-i", "576", "-f", "intergenic", "-l", "$destination_directory/symlink_test");
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Input/SLX/O157_Input_236583/4799_1/539628.se.markdup.bam.corrected.bam.intergenic.AE005174.tab.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Output/SLX/O157_Output_236584/4799_2/539631.se.markdup.bam.corrected.bam.intergenic.AE005174.tab.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Output/SLX/O157_Output_236584/5246_6/526341.se.markdup.bam.corrected.bam.intergenic.AE005174.tab.gz
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Output/SLX/O157_Output_236584/5359_6/522285.se.markdup.bam.corrected.bam.intergenic.AE005174.tab.gz\n";
 
-$rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => $script_name);
+# test 3
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 4
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'spreadsheet', '-d', '19-03-2014' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/4.txt');
 $arg_str = join(" ", @args);
-stdout_is { $rnaseq_obj->run } $exp_out, "Correct results for '$arg_str'";
-ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
-ok( -e "$destination_directory/symlink_test/539628.se.markdup.bam.corrected.bam.intergenic.AE005174.tab.gz", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/539631.se.markdup.bam.corrected.bam.intergenic.AE005174.tab.gz", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/526341.se.markdup.bam.corrected.bam.intergenic.AE005174.tab.gz", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/522285.se.markdup.bam.corrected.bam.intergenic.AE005174.tab.gz", 'symlink exists');
-remove_tree('symlink_test');
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test archive
-@args = ("-t", "study", "-i", "576", "-a", "$destination_directory/archive_test");
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Input/SLX/O157_Input_236583/4799_1
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Output/SLX/O157_Output_236584/4799_2
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Output/SLX/O157_Output_236584/5246_6
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Escherichia/coli/TRACKING/576/O157_Output/SLX/O157_Output_236584/5359_6\n";
 
-$rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => $script_name);
+# test 5
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'bam', '-d', '19-03-2014', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/5.txt');
 $arg_str = join(" ", @args);
-stdout_is { $rnaseq_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
-system("cd $destination_directory; tar xvfz archive_test.tar.gz");
-ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
-ok( -e "$destination_directory/archive_test/539628.se.markdup.bam.corrected.bam", 'archived file exists');
-ok( -e "$destination_directory/archive_test/539631.se.markdup.bam.corrected.bam", 'archived file exists');
-ok( -e "$destination_directory/archive_test/526341.se.markdup.bam.corrected.bam", 'archived file exists');
-ok( -e "$destination_directory/archive_test/522285.se.markdup.bam.corrected.bam", 'archived file exists');
-remove_tree('archive_test');
-unlink("$destination_directory/archive_test.tar.gz");
 
-# test verbose output
-@args = qw(-t file -i t/data/rnaseq_verbose_lanes.txt -v);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/Pig2Tn917B1/SLX/Pig2Tn917B1_427001/5155_1#8/542358.se.markdup.bam.corrected.bam\tStreptococcus_suis_P1_7_v1\tsmalt\t13-07-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/Pig2Tn917A2/SLX/Pig2Tn917A2_427002/5155_1#9/549978.se.markdup.bam.corrected.bam\tStreptococcus_suis_P1_7_v1\tsmalt\t17-07-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Shigella/flexneri/TRACKING/1934/NOe_fnr_3/SLX/NOe_fnr_3_3547523/6887_4#18/404421.pe.raw.sorted.bam.corrected.bam\tShigella_flexneri_5a_str_M90T_v0.3\tbwa\t03-12-2012
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Shigella/flexneri/TRACKING/1934/NOe_fnr_3/SLX/NOe_fnr_3_3547523/6887_4#18/404547.pe.raw.sorted.bam.corrected.bam\tShigella_flexneri_5a_str_M90T_v0.2\tbwa\t03-12-2012
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/NS488_1/SLX/NS488_1_4002745/7138_8#7/454643.pe.markdup.bam.corrected.bam\tStreptococcus_pyogenes_BC2_HKU16_v0.1\tbwa\t12-04-2013\n";
+# test 6
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'coverage', '-d', '19-03-2014', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
 
-$rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => $script_name);
+# test 7
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 8
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'spreadsheet', '-d', 'invalid_value', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 9
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'bam', '-r', 'Shigella_flexneri_2a_str_301_v2' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/9.txt');
 $arg_str = join(" ", @args);
-stdout_is { $rnaseq_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test mapper filter
-@args = qw(-t file -i t/data/rnaseq_verbose_lanes.txt -v -m smalt);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/Pig2Tn917B1/SLX/Pig2Tn917B1_427001/5155_1#8/542358.se.markdup.bam.corrected.bam\tStreptococcus_suis_P1_7_v1\tsmalt\t13-07-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/Pig2Tn917A2/SLX/Pig2Tn917A2_427002/5155_1#9/549978.se.markdup.bam.corrected.bam\tStreptococcus_suis_P1_7_v1\tsmalt\t17-07-2013\n";
 
-$rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => $script_name);
+# test 10
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'coverage', '-r', 'Shigella_flexneri_2a_str_301_v2', '-m', 'bwa' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/10.txt');
 $arg_str = join(" ", @args);
-stdout_is { $rnaseq_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test date filter
-@args = qw(-t file -i t/data/rnaseq_verbose_lanes.txt -v -d 01-06-2013);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/Pig2Tn917B1/SLX/Pig2Tn917B1_427001/5155_1#8/542358.se.markdup.bam.corrected.bam\tStreptococcus_suis_P1_7_v1\tsmalt\t13-07-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/Pig2Tn917A2/SLX/Pig2Tn917A2_427002/5155_1#9/549978.se.markdup.bam.corrected.bam\tStreptococcus_suis_P1_7_v1\tsmalt\t17-07-2013\n";
 
-$rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => $script_name);
+# test 11
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-r', 'Shigella_flexneri_2a_str_301_v2', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 12
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'spreadsheet', '-r', 'Shigella_flexneri_2a_str_301_v2', '-d', '19-03-2014' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/12.txt');
 $arg_str = join(" ", @args);
-stdout_is { $rnaseq_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test reference filter
-@args = qw(-t file -i t/data/rnaseq_verbose_lanes.txt -v -r Streptococcus_suis_P1_7_v1);
 
-$rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => $script_name);
+# test 13
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'bam', '-r', 'Shigella_flexneri_2a_str_301_v2', '-d', '19-03-2014', '-m', 'bwa' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/13.txt');
 $arg_str = join(" ", @args);
-stdout_is { $rnaseq_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test stats file
-@args = ("-t", "file", "-i", "t/data/rnaseq_lanes.txt", "-s", "$destination_directory/rnaseqfind_test.stats");
-$rnaseq_obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => $script_name);
-$rnaseq_obj->run;
-ok( -e "$destination_directory/rnaseqfind_test.stats", 'stats file exists');
+
+# test 14
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'coverage', '-r', 'Shigella_flexneri_2a_str_301_v2', '-d', '19-03-2014', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 15
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-r', 'Shigella_flexneri_2a_str_301_v2', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 16
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'spreadsheet', '-r', 'Shigella_flexneri_2a_str_301_v2', '-d', 'invalid_value', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 17
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'bam', '-r', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 18
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'coverage', '-r', 'invalid_value', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 19
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-r', 'invalid_value', '-d', '19-03-2014' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 20
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'spreadsheet', '-r', 'invalid_value', '-d', '19-03-2014', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 21
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'bam', '-v' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/21.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 22
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'coverage', '-v', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/22.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 23
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-v', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 24
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'spreadsheet', '-v', '-d', '19-03-2014' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/24.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 25
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'bam', '-v', '-d', '19-03-2014', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/25.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 26
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'coverage', '-v', '-d', '19-03-2014', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 27
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-v', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 28
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'spreadsheet', '-v', '-d', 'invalid_value', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 29
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'bam', '-v', '-r', 'Shigella_flexneri_2a_str_301_v2' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/29.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 30
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'coverage', '-v', '-r', 'Shigella_flexneri_2a_str_301_v2', '-m', 'bwa' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/30.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 31
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-v', '-r', 'Shigella_flexneri_2a_str_301_v2', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 32
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'spreadsheet', '-v', '-r', 'Shigella_flexneri_2a_str_301_v2', '-d', '19-03-2014' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/32.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 33
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'bam', '-v', '-r', 'Shigella_flexneri_2a_str_301_v2', '-d', '19-03-2014', '-m', 'bwa' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/33.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 34
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'coverage', '-v', '-r', 'Shigella_flexneri_2a_str_301_v2', '-d', '19-03-2014', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 35
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-v', '-r', 'Shigella_flexneri_2a_str_301_v2', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 36
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'spreadsheet', '-v', '-r', 'Shigella_flexneri_2a_str_301_v2', '-d', 'invalid_value', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 37
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'bam', '-v', '-r', 'invalid_value' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 38
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'coverage', '-v', '-r', 'invalid_value', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 39
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-v', '-r', 'invalid_value', '-d', '19-03-2014' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 40
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'spreadsheet', '-v', '-r', 'invalid_value', '-d', '19-03-2014', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 41
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'bam', '-s', "$tmp/test.41.stats", '-d', '19-03-2014' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/41.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check  stats file
 is(
-	read_file("$destination_directory/rnaseqfind_test.stats"),
-	read_file("t/data/rnaseqfind_stats.exp"),
-	'stats are correct'
+	read_file('t/data/rnaseqfind/41.stats'),
+	read_file("$tmp/test.41.stats"),
+	'stats file correct'
 );
 
+# test 42
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'coverage', '-s', "$tmp/test.42.stats", '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/42.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 43
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-s', "$tmp/test.43.stats", '-r', 'Shigella_flexneri_2a_str_301_v2' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/43.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 44
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'bam', '-s', "$tmp/test.44.stats", '-qc', 'passed', '-d', '19-03-2014' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/44.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 45
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'coverage', '-s', "$tmp/test.45.stats", '-qc', 'failed', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/45.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 46
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-s', "$tmp/test.46.stats", '-qc', 'pending', '-r', 'Shigella_flexneri_2a_str_301_v2' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/46.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 47
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-s', "$tmp/test.47.stats", '-qc', 'pending', '-r', 'Shigella_flexneri_2a_str_301_v2', '-h' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+remove_tree($tmp);
 done_testing();

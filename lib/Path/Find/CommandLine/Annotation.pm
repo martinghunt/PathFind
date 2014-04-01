@@ -40,7 +40,8 @@ use warnings;
 no warnings 'uninitialized';
 use Moose;
 
-use Cwd;
+#use Cwd;
+use Cwd qw(abs_path getcwd);
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
@@ -61,20 +62,22 @@ use Path::Find::Linker;
 use Path::Find::Stats::Generator;
 use Path::Find::Log;
 use Path::Find::Sort;
+use Path::Find::Exception;
 
-has 'args'            => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has 'script_name'     => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'type'            => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'id'              => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'symlink'         => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'help'            => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'filetype'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'output'          => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'gene'            => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'search_products' => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'nucleotides'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'archive'         => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'stats'           => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'args'            => ( is => 'ro', isa => 'ArrayRef',        required => 1 );
+has 'script_name'     => ( is => 'ro', isa => 'Str',             required => 1 );
+has 'type'            => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'id'              => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'symlink'         => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'help'            => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'filetype'        => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'output'          => ( is => 'rw', isa => 'Maybe[Str]',      required => 0 );
+has 'gene'            => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'search_products' => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'nucleotides'     => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'archive'         => ( is => 'rw', isa => 'Str',             required => 0 );
+has 'stats'           => ( is => 'rw', isa => 'Str',             required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
@@ -82,7 +85,7 @@ sub BUILD {
     my (
         $type,        $id,      $symlink, $help,
         $filetype,    $output,  $gene,    $search_products,
-        $nucleotides, $archive, $stats
+        $nucleotides, $archive, $stats, $test
     );
 
     my @args = @{ $self->args };
@@ -95,10 +98,12 @@ sub BUILD {
         'l|symlink:s'       => \$symlink,
         'a|archive:s'       => \$archive,
         'g|gene=s'          => \$gene,
-        'p|search_products' => \$search_products,
+        'p|search_products=s' => \$search_products,
         'n|nucleotides'     => \$nucleotides,
-        's|stats:s'         => \$stats
-    );
+        'o|output=s'        => \$output,
+        's|stats:s'         => \$stats,
+        'test'              => \$test,
+	) or return;
 
     $self->type($type)                       if ( defined $type );
     $self->id($id)                           if ( defined $id );
@@ -111,32 +116,40 @@ sub BUILD {
     $self->nucleotides($nucleotides)         if ( defined $nucleotides );
     $self->archive($archive)                 if ( defined $archive );
     $self->stats($stats)                     if ( defined $stats );
+    $self->_environment('test')              if ( defined $test );
+}
 
-    (
-             $type
-          && $id
-          && $id ne ''
+sub check_inputs{
+    my $self = shift;
+    return (
+             $self->type
+          && $self->id
+          && $self->id ne ''
+          && !$self->help
 
-          && ( $type eq 'study'
-            || $type eq 'lane'
-            || $type eq 'file'
-            || $type eq 'sample'
-            || $type eq 'species'
-            || $type eq 'database' )
+          && ( $self->type eq 'study'
+            || $self->type eq 'lane'
+            || $self->type eq 'file'
+            || $self->type eq 'sample'
+            || $self->type eq 'species'
+            || $self->type eq 'database' )
       )
       && (
-        !$filetype
+        !$self->filetype
         || (
-            $filetype
-            && (   $filetype eq 'gff'
-                || $filetype eq 'faa'
-                || $filetype eq 'ffn' )
+            $self->filetype
+            && (   $self->filetype eq 'gff'
+                || $self->filetype eq 'faa'
+                || $self->filetype eq 'gbk'
+                || $self->filetype eq 'ffn' )
         )
-      ) or die $self->usage_text;
+      );
 }
 
 sub run {
     my ($self) = @_;
+
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text);
 
     # assign variables
     my $type            = $self->type;
@@ -150,21 +163,33 @@ sub run {
     my $archive         = $self->archive;
     my $stats           = $self->stats;
 
-    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+    Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
 
+    my $logfile = $self->_environment eq 'test' ? '/nfs/pathnfs05/log/pathfindlog/test/annotationfind.log' : '/nfs/pathnfs05/log/pathfindlog/annotationfind.log';
     eval {
         Path::Find::Log->new(
-            logfile => '/nfs/pathnfs05/log/pathfindlog/annotationfind.log',
+            logfile => $logfile,
             args    => $self->args
         )->commandline();
     };
 
-    die "The archive and symlink options cannot be used together\n"
+    Path::Find::Exception::InvalidInput->throw( error => "The archive and symlink options cannot be used together\n")
       if ( defined $archive && defined $symlink );
 
-    # Get databases
-    my @pathogen_databases = Path::Find->pathogen_databases;
+ Path::Find::Exception::InvalidInput->throw( error => "The search products option can only be used in combination with the gene option\n")
+      if ( defined $search_products && !defined $gene );
+
+ Path::Find::Exception::InvalidInput->throw( error => "The gene and symlink options cannot be used together\n")
+      if ( defined $gene && defined $symlink );
+
+ Path::Find::Exception::InvalidInput->throw( error => "The gene and archive options cannot be used together\n")
+      if ( defined $gene && defined $archive );
+
+Path::Find::Exception::InvalidInput->throw( error => "The gene option can only return GFF\n")
+      if ( defined $gene && defined $filetype && ($filetype eq'faa' || $filetype eq 'ffn'));
+
     my $lane_filter;
+    my $found = 0;
 
     # set subdirectories to search for annotations in
     my @sub_directories =
@@ -174,17 +199,20 @@ sub run {
     my %type_extensions = (
         gff => '*.gff',
         faa => '*.faa',
-        ffn => '*.ffn'
+        ffn => '*.ffn',
+        gbk => '*.gbk'
     );
 
     if ($gene || !defined $filetype) {
         $filetype = 'gff';
     }
 
+    my $find = Path::Find->new( environment => $self->_environment );
+    my @pathogen_databases = $find->pathogen_databases;
     for my $database (@pathogen_databases) {
 
         # Connect to database and get info
-        my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+        my ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
@@ -265,7 +293,14 @@ sub run {
                 search_qualifiers => $qualifiers_to_search,
                 amino_acids       => $amino_acids
               );
-			$gene_finder->output_base($output) if(defined($output));
+
+            # check output location
+            unless( defined $output ){
+                print "Writing output to default file name\n";
+                $output = undef;
+            }
+
+	    $gene_finder->output_base($output) if(defined($output));
             $gene_finder->create_fasta_file;
 
             print "Samples containing gene:\t"
@@ -278,8 +313,19 @@ sub run {
 
         #no need to look in the next database if relevant data has been found
         if ( $lane_filter->found ) {
+            $found = 1;
             if ( defined $stats ) {
-                $stats = "$id.csv" if ( $stats eq '' );
+                if ( $stats eq '' ){
+                    my $s;
+                    if( $id =~ /\// ){
+                        my @dirs = split('/', $id);
+                        $s = pop(@dirs);
+                    }
+                    else{
+                        $s = $id;
+                    }
+                    $stats = "$s.annotation_stats.csv";
+                }
                 $stats =~ s/\s+/_/g;
                 Path::Find::Stats::Generator->new(
                     lane_hashes => \@matching_lanes,
@@ -291,8 +337,8 @@ sub run {
         }
     }
 
-    unless ( $lane_filter->found ) {
-        print "Could not find lanes or files for input data \n";
+    unless ( $found ) {
+        Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
     }
 }
 
@@ -329,12 +375,12 @@ sub set_linker_name {
 sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
-    print <<USAGE;
+    return <<USAGE;
 Usage: $script_name
   -t|type            <study|lane|file|sample|species>
   -i|id              <study id|study name|lane name|file of lane names>
   -l|symlink         <create a symlink to the data>
-  -f|filetype        <gff|faa|ffn>
+  -f|filetype        <gff|faa|ffn|gbk>
   -g|gene            <name of gene>
   -p|search_products <when searching for genes also search products>
   -o|output          <name of output fasta file of genes>
@@ -369,7 +415,7 @@ annotationfind -t study -i 123 -a study_123_annotations
 annotationfind -t lane -i 123_1#23 -l symlinks_dir
 
 USAGE
-    exit;
+    #exit;
 }
 
 __PACKAGE__->meta->make_immutable;

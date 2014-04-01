@@ -49,7 +49,7 @@ use File::Temp;
 use File::Copy qw(move);
 use Getopt::Long qw(GetOptionsFromArray);
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
-#use lib "/software/pathogen/internal/prod/lib";
+use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use File::Basename;
 
@@ -60,6 +60,7 @@ use Path::Find::Linker;
 use Path::Find::Stats::Generator;
 use Path::Find::Log;
 use Path::Find::Sort;
+use Path::Find::Exception;
 
 has 'args'         => ( is => 'ro', isa => 'ArrayRef',   required => 1 );
 has 'script_name'  => ( is => 'ro', isa => 'Str',        required => 1 );
@@ -77,6 +78,7 @@ has 'mapper'       => ( is => 'rw', isa => 'Str',        required => 0 );
 has 'pseudogenome' => ( is => 'rw', isa => 'Str',        required => 0 );
 has 'qc'           => ( is => 'rw', isa => 'Str',        required => 0 );
 has '_ref_path'    => ( is => 'rw', isa => 'Maybe[Str]', required => 0, lazy_build => 1 );
+has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
 
 sub _build__ref_path {
     my ($self) = @_;
@@ -89,7 +91,7 @@ sub BUILD {
     my (
         $type,    $id,           $symlink,  $archive, $help,
         $verbose, $stats,        $filetype, $ref,     $date,
-        $mapper,  $pseudogenome, $qc
+        $mapper,  $pseudogenome, $qc, $test
     );
 
     my @args = @{ $self->args };
@@ -107,7 +109,8 @@ sub BUILD {
         'd|date=s'      => \$date,
         'm|mapper=s'    => \$mapper,
         'p|pseudo:s'    => \$pseudogenome,
-        'q|qc=s'        => \$qc
+        'q|qc=s'        => \$qc,
+        'test'         => \$test,
     );
 
     $self->type($type)                 if ( defined $type );
@@ -123,23 +126,29 @@ sub BUILD {
     $self->mapper($mapper)             if ( defined $mapper );
     $self->pseudogenome($pseudogenome) if ( defined $pseudogenome );
     $self->qc($qc)                     if ( defined $qc );
+    $self->_environment('test')        if ( defined $test );
+}
 
-    (
-             $type
-          && $id
-          && $id ne ''
-          && ( $type eq 'study'
-            || $type eq 'lane'
-            || $type eq 'sample'
-            || $type eq 'file'
-            || $type eq 'species'
-            || $type eq 'database' )
-          && ( !$filetype || $filetype eq 'vcf' || $filetype eq 'pseudogenome' )
-    ) or die $self->usage_text;
+sub check_inputs{
+    my $self = shift;
+    return(
+             $self->type
+          && $self->id
+          && $self->id ne ''
+          && !$self->help
+          && ( $self->type eq 'study'
+            || $self->type eq 'lane'
+            || $self->type eq 'sample'
+            || $self->type eq 'file'
+            || $self->type eq 'species'
+            || $self->type eq 'database' )
+          && ( !$self->filetype || $self->filetype eq 'vcf' || $self->filetype eq 'pseudogenome' )
+    );
 }
 
 sub run {
     my ($self) = @_;
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text);
 
     # assign variables
     my $type         = $self->type;
@@ -155,19 +164,20 @@ sub run {
     my $pseudogenome = $self->pseudogenome;
     my $qc           = $self->qc;
 
-    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+    Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
 
+    my $logfile = $self->_environment eq 'test' ? '/nfs/pathnfs05/log/pathfindlog/test/snpfind.log' : '/nfs/pathnfs05/log/pathfindlog/snpfind.log';
     eval {
         Path::Find::Log->new(
-            logfile => '/nfs/pathnfs05/log/pathfindlog/snpfind.log',
+            logfile => $logfile,
             args    => $self->args
         )->commandline();
     };
 
-    die "The archive and symlink options cannot be used together\n"
+    Path::Find::Exception::InvalidInput->throw( error => "The archive and symlink options cannot be used together\n")
       if ( defined $archive && defined $symlink );
 
-    die "Please specify a reference to base the pseudogenome on\n"
+    Path::Find::Exception::InvalidInput->throw( error => "Please specify a reference to base the pseudogenome on\n")
       if ( defined $pseudogenome && $pseudogenome ne 'none' && !defined $ref );
 
 
@@ -181,11 +191,12 @@ sub run {
     my $found = 0;
 
     # Get databases and loop through them
-    my @pathogen_databases = Path::Find->pathogen_databases;
+    my $find = Path::Find->new( environment => $self->_environment );
+    my @pathogen_databases = $find->pathogen_databases;
     for my $database (@pathogen_databases) {
 
         # Connect to database and get info
-        my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+        my ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
@@ -202,6 +213,8 @@ sub run {
         }
 
         # filter lanes
+        $filetype = 'vcf' if(!defined $filetype);
+
         if ( defined $pseudogenome ) {
             $filetype = "pseudogenome";
         }
@@ -281,9 +294,7 @@ sub run {
     }
 
     unless ($found) {
-
-        print "Could not find lanes or files for input data \n";
-
+        Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
     }
 }
 
@@ -292,7 +303,7 @@ sub create_pseudogenome {
     my @matching_lanes = @{$mlanes};
     my $ref            = $self->pseudogenome eq 'none' ? $self->pseudogenome : $self->ref;
 
-    print "Using reference: $ref\n";
+    print STDERR "Using reference: $ref\n";
 
     my $pg_filename = $self->pseudogenome_filename();
     print STDERR "Creating pseudogenome in $pg_filename\n";
@@ -420,7 +431,7 @@ sub set_linker_name {
 sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
-    print <<USAGE;
+    return <<USAGE;
 Usage: $script_name
      -t|type      <study|lane|file|sample|species>
      -i|id        <study id|study name|lane name|file of lane names>
@@ -429,7 +440,6 @@ Usage: $script_name
      -l|symlink   <create a symlink to the data>
      -a|arvhive   <archive the data>
      -v|verbose   <display reference, mapper and date>
-     -s|stats     <output file for summary of mapping results in CSV format>
      -r|reference <filter results based on reference>
      -m|mapper    <filter results based on mapper>
      -d|date      <show only results produced after a given date>
@@ -448,7 +458,6 @@ snpfind -t file -i my_lanes.txt -p none
 snpfind -t file -i my_lanes.txt -p -r Salmonella_enterica_subsp_enterica_serovar_Typhi_Ty2_v1
 
 USAGE
-    exit;
 }
 
 __PACKAGE__->meta->make_immutable;

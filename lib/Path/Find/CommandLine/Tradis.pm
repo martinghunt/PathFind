@@ -20,7 +20,6 @@ where \@ARGV contains the following parameters:
 -l|symlink   <create a symlink to the data>
 -a|arvhive   <archive the data>
 -f|filetype  <coverage|intergenic|bam|spreadsheet>
--s|stats     <output stats to file>
 -v|verbose   <extended details>
 -r|reference <select only results mapped to given reference>
 -d|date      <select only results produced after given date>
@@ -55,6 +54,7 @@ use Path::Find::Filter;
 use Path::Find::Linker;
 use Path::Find::Log;
 use Path::Find::Sort;
+use Path::Find::Exception;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -64,18 +64,18 @@ has 'symlink'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'verbose'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'stats'       => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'ref'         => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'date'        => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'mapper'      => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
 
     my (
         $type,  $id,       $symlink, $archive, $help, $verbose,
-        $stats, $filetype, $ref,     $date,    $mapper
+        $filetype, $ref,     $date,    $mapper, $test
     );
 
     my @args = @{ $self->args };
@@ -87,11 +87,11 @@ sub BUILD {
         'f|filetype=s'  => \$filetype,
         'l|symlink:s'   => \$symlink,
         'a|archive:s'   => \$archive,
-        's|stats:s'     => \$stats,
         'v|verbose'     => \$verbose,
         'r|reference=s' => \$ref,
         'd|date=s'      => \$date,
         'm|mapper=s'    => \$mapper,
+        'test'          => \$test,
     );
 
     $self->type($type)         if ( defined $type );
@@ -100,37 +100,42 @@ sub BUILD {
     $self->archive($archive)   if ( defined $archive );
     $self->help($help)         if ( defined $help );
     $self->verbose($verbose)   if ( defined $verbose );
-    $self->stats($stats)       if ( defined $stats );
     $self->filetype($filetype) if ( defined $filetype );
     $self->ref($ref)           if ( defined $ref );
     $self->date($date)         if ( defined $date );
     $self->mapper($mapper)     if ( defined $mapper );
+    $self->_environment('test') if ( defined $test );
+}
 
-    (
-             $type
-          && $id
-          && $id ne ''
-          && ( $type eq 'study'
-            || $type eq 'lane'
-            || $type eq 'sample'
-            || $type eq 'file'
-            || $type eq 'species'
-            || $type eq 'database' )
+sub check_inputs{
+    my $self = shift;
+    return(
+             $self->type
+          && $self->id
+          && $self->id ne ''
+          && !$self->help
+          && ( $self->type eq 'study'
+            || $self->type eq 'lane'
+            || $self->type eq 'sample'
+            || $self->type eq 'file'
+            || $self->type eq 'species'
+            || $self->type eq 'database' )
           && (
-            !$filetype
+            !$self->filetype
             || (
-                $filetype
-                && (   $filetype eq 'bam'
-                    || $filetype eq 'spreadsheet'
-                    || $filetype eq 'intergenic'
-                    || $filetype eq 'coverage' )
+                $self->filetype
+                && (   $self->filetype eq 'bam'
+                    || $self->filetype eq 'spreadsheet'
+                    || $self->filetype eq 'intergenic'
+                    || $self->filetype eq 'coverage' )
             )
           )
-    ) or die $self->usage_text;
+    );
 }
 
 sub run {
     my ($self) = @_;
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text);
 
     # assign variables
     my $type     = $self->type;
@@ -138,22 +143,22 @@ sub run {
     my $symlink  = $self->symlink;
     my $archive  = $self->archive;
     my $verbose  = $self->verbose;
-    my $stats    = $self->stats;
     my $filetype = $self->filetype;
     my $ref      = $self->ref;
     my $date     = $self->date;
     my $mapper   = $self->mapper;
 
-    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+    Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
 
+    my $logfile = $self->_environment eq 'test' ? '/nfs/pathnfs05/log/pathfindlog/test/tradisfind.log' : '/nfs/pathnfs05/log/pathfindlog/tradisfind.log';
     eval {
         Path::Find::Log->new(
-            logfile => '/nfs/pathnfs05/log/pathfindlog/tradisfind.log',
+            logfile => $logfile,
             args    => $self->args
         )->commandline();
     };
 
-    die "The archive and symlink options cannot be used together\n"
+    Path::Find::Exception::InvalidInput->throw( error => "The archive and symlink options cannot be used together\n")
       if ( defined $archive && defined $symlink );
 
     # set file type extension regular expressions
@@ -168,11 +173,12 @@ sub run {
     my $found = 0;
 
     # Get databases and loop through them
-    my @pathogen_databases = Path::Find->pathogen_databases;
+    my $find = Path::Find->new( environment => $self->_environment );
+    my @pathogen_databases = $find->pathogen_databases;
     for my $database (@pathogen_databases) {
 
         # Connect to database and get info
-        my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+        my ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
@@ -191,7 +197,7 @@ sub run {
         # filter lanes
         my $verbose_info = 0;
         if ( $verbose || $date || $ref || $mapper ){
-            $filetype = "bam";
+            #$filetype = "bam";
             $verbose_info = 1;
         }
         $lane_filter = Path::Find::Filter->new(
@@ -255,9 +261,7 @@ sub run {
     }
 
     unless ($found) {
-
-        print "Could not find lanes or files for input data \n";
-
+        Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
     }
 }
 
@@ -301,7 +305,6 @@ Usage: $script_name
   -l|symlink   <create a symlink to the data>
   -a|arvhive   <archive the data>
   -f|filetype  <coverage|intergenic|bam|spreadsheet>
-  -s|stats     <output stats to file>
   -v|verbose   <extended details>
   -r|reference <select only results mapped to given reference>
   -d|date      <select only results produced after given date>

@@ -5,7 +5,6 @@ use File::Slurp;
 use Data::Dumper;
 
 BEGIN { unshift( @INC, './lib' ) }
-BEGIN { unshift(@INC, '/software/pathogen/internal/pathdev/vr-codebase/modules') }
 
 use VRTrack::Lane;
 use Path::Find;
@@ -16,7 +15,7 @@ BEGIN {
 
 use_ok('Path::Find::Lanes');
 
-my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info('pathogen_prok_track');
+my ( $pathtrack, $dbh, $root ) = Path::Find->new->get_db_info('pathogen_prok_track');
 my ( $lanes, $lanes_obj );
 
 # test lanes by study
@@ -43,7 +42,7 @@ is_deeply $lanes, \@expected_lanes1, 'correct lanes recovered';
 ok(
     $lanes_obj = Path::Find::Lanes->new(
         search_type    => 'file',
-        search_id      => 't/data/test_lanes.txt',
+        search_id      => 't/data/Lanes/test_lanes.txt',
         pathtrack      => $pathtrack,
         dbh            => $dbh,
         processed_flag => 1
@@ -54,7 +53,7 @@ isa_ok $lanes_obj, 'Path::Find::Lanes';
 
 $lanes = $lanes_obj->lanes;
 
-open( FILE, "<", "t/data/test_lanes.txt" );
+open( FILE, "<", "t/data/Lanes/test_lanes.txt" );
 my @test_lanes2 = <FILE>;
 chomp @test_lanes2;
 my @expected_lanes2 = generate_lane_objects( $pathtrack, \@test_lanes2 );

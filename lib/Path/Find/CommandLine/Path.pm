@@ -42,7 +42,6 @@ use Data::Dumper;
 use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-
 use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use Getopt::Long qw(GetOptionsFromArray);
@@ -54,24 +53,25 @@ use Path::Find::Log;
 use Path::Find::Linker;
 use Path::Find::Stats::Generator;
 use Path::Find::Sort;
+use Path::Find::Exception;
 
-has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'qc'          => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'stats'       => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'symlink'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'output'      => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
-
+has 'args'         => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'script_name'  => ( is => 'ro', isa => 'Str',      required => 1 );
+has 'type'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'id'           => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'qc'           => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'filetype'     => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'archive'      => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'stats'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'symlink'      => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'output'       => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'help'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
 sub BUILD {
     my ($self) = @_;
 
     my ( $type, $id, $qc, $filetype, $archive, $stats, $symlink, $output,
-        $help );
+        $help, $test );
 
     my @args = @{ $self->args };
 	GetOptionsFromArray(
@@ -83,41 +83,49 @@ sub BUILD {
         'a|archive:s'  => \$archive,
         's|stats:s'    => \$stats,
         'q|qc=s'       => \$qc,
+        'test'         => \$test,
         'h|help'       => \$help
     );
 
-    $self->type($type)         if ( defined $type );
-    $self->id($id)             if ( defined $id );
-    $self->qc($qc)             if ( defined $qc );
-    $self->filetype($filetype) if ( defined $filetype );
-    $self->archive($archive)   if ( defined $archive );
-    $self->stats($stats)       if ( defined $stats );
-    $self->symlink($symlink)   if ( defined $symlink );
-    $self->output($output)     if ( defined $output );
-    $self->help($help)         if ( defined $help );
-
-    (
-             $type
-          && $id
-          && $id ne ''
-          && ( $type eq 'study'
-            || $type eq 'lane'
-            || $type eq 'file'
-            || $type eq 'sample'
-            || $type eq 'species'
-            || $type eq 'database' )
+    $self->type($type)          if ( defined $type );
+    $self->id($id)              if ( defined $id );
+    $self->qc($qc)              if ( defined $qc );
+    $self->filetype($filetype)  if ( defined $filetype );
+    $self->archive($archive)    if ( defined $archive );
+    $self->stats($stats)        if ( defined $stats );
+    $self->symlink($symlink)    if ( defined $symlink );
+    $self->output($output)      if ( defined $output );
+    $self->help($help)          if ( defined $help );
+    $self->_environment('test') if ( defined $test );
+}
+    
+sub check_inputs {
+    my ($self) = @_;
+    return (
+             $self->type
+          && $self->id
+          && $self->id ne ''
+          && !$self->help
+          && ( $self->type eq 'study'
+            || $self->type eq 'lane'
+            || $self->type eq 'file'
+            || $self->type eq 'sample'
+            || $self->type eq 'species'
+            || $self->type eq 'database' )
           && (
-            !$qc
-            || ( $qc
-                && ( $qc eq 'passed' || $qc eq 'failed' || $qc eq 'pending' ) )
+            !$self->qc
+            || ( $self->qc
+                && ( $self->qc eq 'passed' || $self->qc eq 'failed' || $self->qc eq 'pending' ) )
           )
-          && ( !$filetype
-            || ( $filetype && ( $filetype eq 'bam' || $filetype eq 'fastq' ) ) )
-    ) or die $self->usage_text;
+          && ( !$self->filetype
+            || ( $self->filetype && ( $self->filetype eq 'fastq' ) ) )
+    );
 }
 
 sub run {
     my ($self) = @_;
+
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text);
 
     # assign variables
     my $type     = $self->type;
@@ -129,16 +137,17 @@ sub run {
     my $symlink  = $self->symlink;
     my $output   = $self->output;
 
-    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+    Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
 
+    my $logfile = $self->_environment eq 'test' ? '/nfs/pathnfs05/log/pathfindlog/test/pathfind.log' : '/nfs/pathnfs05/log/pathfindlog/pathfind.log';
     eval {
         Path::Find::Log->new(
-            logfile => '/nfs/pathnfs05/log/pathfindlog/pathfind.log',
+            logfile => $logfile,
             args    => $self->args
         )->commandline();
     };
 
-    die "The archive and symlink options cannot be used together\n"
+    Path::Find::Exception::InvalidInput->throw( error => "The archive and symlink options cannot be used together\n")
       if ( defined $archive && defined $symlink );
 
     # set file type extension regular expressions
@@ -151,11 +160,11 @@ sub run {
     my $found = 0;
 
     # Get databases and loop through
-    my @pathogen_databases = Path::Find->pathogen_databases;
+    my $find = Path::Find->new( environment => $self->_environment );
+    my @pathogen_databases = $find->pathogen_databases;
     for my $database (@pathogen_databases) {
-
         # Connect to database and get info
-        my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+        my ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
         # find matching lanes
         my $find_lanes = Path::Find::Lanes->new(
@@ -227,7 +236,7 @@ sub run {
         }
     }
     unless ( $found ) {
-        print "Could not find lanes or files for input data \n";
+        Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
     }
 }
 
@@ -264,12 +273,12 @@ sub set_linker_name {
 sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
-    print <<USAGE;
+    return <<USAGE;
 Usage: $script_name
 		-t|type		<study|lane|file|sample|species>
 		-i|id		<study id|study name|lane name|file of lane names>
 		-h|help		<this help message>
-		-f|filetype	<fastq|bam>
+		-f|filetype	<fastq>
 		-l|symlink	<create sym links to the data and define output directory>
 		-a|archive	<name for archive containing the data>
 		-s|stats	<output statistics>
@@ -281,7 +290,6 @@ Usage: $script_name
 	Using the option -symlink will create a symlink to the queried data in the current directory, alternativley an output directory can be specified in which the symlinks will be created.
 	Similarly, the archive option will create and archive (.tar.gz) of the data under a default file name unless one is specified.
 USAGE
-    exit;
 }
 
 __PACKAGE__->meta->make_immutable;

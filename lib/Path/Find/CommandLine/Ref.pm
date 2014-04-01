@@ -45,6 +45,7 @@ use Cwd 'abs_path';
 use Getopt::Long qw(GetOptionsFromArray);
 use Path::Find::Linker;
 use Path::Find::Log;
+use Path::Find::Exception;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -54,11 +55,12 @@ has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'symlink'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',     required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
 
-    my ( $type, $id, $filetype, $symlink, $archive, $help );
+    my ( $type, $id, $filetype, $symlink, $archive, $help, $test );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
@@ -69,34 +71,42 @@ sub BUILD {
         'l|symlink:s'  => \$symlink,
         'a|archive:s'  => \$archive,
         'h|help'       => \$help,
+        'test'         => \$test,
     );
 
-    $self->type($type)         if ( defined $type );
-    $self->id($id)             if ( defined $id );
-    $self->filetype($filetype) if ( defined $filetype );
-    $self->symlink($symlink)   if ( defined $symlink );
-    $self->archive($archive)   if ( defined $archive );
-    $self->help($help)         if ( defined $help );
+    $self->type($type)          if ( defined $type );
+    $self->id($id)              if ( defined $id );
+    $self->filetype($filetype)  if ( defined $filetype );
+    $self->symlink($symlink)    if ( defined $symlink );
+    $self->archive($archive)    if ( defined $archive );
+    $self->help($help)          if ( defined $help );
+    $self->_environment('test') if ( defined $test );
+}
 
-    (
-     $type &&
-             ( $type eq 'species' || $type eq 'file' )
-          && $id
-          && (
-            !$filetype
-            || (
-                $filetype
-                && (   $filetype eq 'fa'
-                    || $filetype eq 'gff'
-                    || $filetype eq 'embl'
-                    || $filetype eq 'annotation' )
-            )
-          )
-    ) or die $self->usage_text;
+sub check_inputs {
+    my ($self) = @_;
+    return (
+            !$self->help &&
+             $self->type &&
+                     ( $self->type eq 'species' || $self->type eq 'file' )
+                  && $self->id
+                  && (
+                    !$self->filetype
+                    || (
+                        $self->filetype
+                        && (   $self->filetype eq 'fa'
+                            || $self->filetype eq 'gff'
+                            || $self->filetype eq 'embl'
+                            || $self->filetype eq 'annotation' )
+                    )
+                  )
+            );
 }
 
 sub run {
     my ($self) = @_;
+    
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw(error => $self->usage_text);
 
     # assign variables
     my $type     = $self->type;
@@ -105,23 +115,30 @@ sub run {
     my $symlink  = $self->symlink;
     my $archive  = $self->archive;
 
-    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+    Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
 
+    my $logfile = $self->_environment eq 'test' ? '/nfs/pathnfs05/log/pathfindlog/test/reffind.log' : '/nfs/pathnfs05/log/pathfindlog/reffind.log';
     eval {
         Path::Find::Log->new(
-            logfile => '/nfs/pathnfs05/log/pathfindlog/reffind.log',
+            logfile => $logfile,
             args    => $self->args
         )->commandline();
     };
 
-    die "The archive and symlink options cannot be used together\n"
+    Path::Find::Exception::InvalidInput->throw( error => "The archive and symlink options cannot be used together\n")
       if ( defined $archive && defined $symlink );
 
     my $found = 0;    #assume nothing found
 
-    my $root       = '/lustre/scratch108/pathogen/pathpipe/refs/';
-    my $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/refs.index';
-
+    my ($root, $index_file);
+    if( $self->_environment eq 'prod' ){
+        $root       = '/lustre/scratch108/pathogen/pathpipe/refs/';
+        $index_file = '/lustre/scratch108/pathogen/pathpipe/refs/refs.index';
+    }
+    elsif( $self->_environment eq 'test' ){
+        $root       = '/lustre/scratch108/pathogen/pathpipe/pathogen_test_pathfind/refs/';
+        $index_file = '/lustre/scratch108/pathogen/pathpipe/pathogen_test_pathfind/refs/refs.index';
+    }
     my @species_to_find;
     if ( $type eq 'species' ) {
         push( @species_to_find, $id );
@@ -130,6 +147,7 @@ sub run {
         @species_to_find = $self->parse_species_from_file( $self->id );
     }
 
+    my @refpaths_full;
     foreach my $species (@species_to_find) {
         my $references = $self->search_index_file_for_directories_and_references( $index_file, $species );
         if ( keys %{$references} >= 1 ) {
@@ -138,16 +156,17 @@ sub run {
             my $reference_paths = \@default_reference_paths;
             $reference_paths =  $self->find_files_of_given_type( $references, $filetype ) if ( defined $filetype );
             $reference_paths = $self->remove_duplicates( $reference_paths );
-            $self->sym_archive( $reference_paths ) if (( defined $symlink || defined $archive) && defined($reference_paths) );
-            $self->print_references( $reference_paths ) if(defined($reference_paths));
+            push( @refpaths_full, @{ $reference_paths } );
         }
     }
 
-    unless ($found) {
-        print "Could not find references\n";
-    }
-    else {
+    if($found){
+        $self->print_references( \@refpaths_full );
+        $self->sym_archive( \@refpaths_full ) if ( defined $symlink || defined $archive );
         return 1;
+    }
+    else{
+        Path::Find::Exception::NoMatches->throw( error => "Could not find references\n" );
     }
 }
 
@@ -265,7 +284,7 @@ sub search_index_file_for_directories_and_references {
     my %search_results;
     $search_query =~ s! !|!gi;
 
-    open( INDEX_FILE, $index_file ) or die 'Couldnt find the refs.index file';
+    open( INDEX_FILE, $index_file ) or Path::Find::Exception::FileDoesNotExist->throw( error => "Couldnt find the refs.index file\n");
     while (<INDEX_FILE>) {
         chomp;
         my $line = $_;
@@ -307,13 +326,13 @@ sub remove_duplicates {
 sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
-    print <<USAGE;
+    return <<USAGE;
 Usage: $script_name
      -t|type            <species|file>
      -i|id              <species name|species regex|file name>
      -f|filetype        <fa|gff|embl|annotation>
      -l|symlink         <create a symlink to the data>
-	 -a|archive         <create an archive of the data>
+     -a|archive         <create an archive of the data>
      -h|help            <print this message>
 
 Given a species or a partial name of a species, this script will output the path (on pathogen disk) to the reference. 
@@ -331,7 +350,6 @@ reffind -t species -i bongori -a
 creates an archive with a default name in the current directory
 
 USAGE
-    exit;
 }
 
 __PACKAGE__->meta->make_immutable;

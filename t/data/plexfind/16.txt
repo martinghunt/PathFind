@@ -1,0 +1,7 @@
+Sample : test2_3
+NPG QC : -
+QC : failed
+test2_2, 6578_4, 2, -, pending 
+test2_1, 6578_4, 1, -, passed 
+test2_4, 6578_4, 4, -, pending 
+test2_3, 6578_4, 3, -, failed 

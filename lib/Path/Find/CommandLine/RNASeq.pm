@@ -57,6 +57,7 @@ use Path::Find::Linker;
 use Path::Find::Stats::Generator;
 use Path::Find::Log;
 use Path::Find::Sort;
+use Path::Find::Exception;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -72,13 +73,14 @@ has 'ref'         => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'date'        => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'mapper'      => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'qc'          => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
 
     my (
         $type,  $id,       $symlink, $archive, $help,   $verbose,
-        $stats, $filetype, $ref,     $date,    $mapper, $qc
+        $stats, $filetype, $ref,     $date,    $mapper, $qc, $test
     );
 
 	my @args = @{ $self->args };
@@ -95,34 +97,44 @@ sub BUILD {
         'r|reference=s' => \$ref,
         'd|date=s'      => \$date,
         'm|mapper=s'    => \$mapper,
-        'q|qc=s'        => \$qc
+        'q|qc=s'        => \$qc,
+        'test'          => \$test
     );
 
-    $self->type($type)         if ( defined $type );
-    $self->id($id)             if ( defined $id );
-    $self->symlink($symlink)   if ( defined $symlink );
-    $self->archive($archive)   if ( defined $archive );
-    $self->help($help)         if ( defined $help );
-    $self->verbose($verbose)   if ( defined $verbose );
-    $self->stats($stats)       if ( defined $stats );
-    $self->filetype($filetype) if ( defined $filetype );
-    $self->ref($ref)           if ( defined $ref );
-    $self->date($date)         if ( defined $date );
-    $self->mapper($mapper)     if ( defined $mapper );
-    $self->qc($qc)             if ( defined $qc );
+    $self->type($type)          if ( defined $type );
+    $self->id($id)              if ( defined $id );
+    $self->symlink($symlink)    if ( defined $symlink );
+    $self->archive($archive)    if ( defined $archive );
+    $self->help($help)          if ( defined $help );
+    $self->verbose($verbose)    if ( defined $verbose );
+    $self->stats($stats)        if ( defined $stats );
+    $self->filetype($filetype)  if ( defined $filetype );
+    $self->ref($ref)            if ( defined $ref );
+    $self->date($date)          if ( defined $date );
+    $self->mapper($mapper)      if ( defined $mapper );
+    $self->qc($qc)              if ( defined $qc );
+    $self->_environment('test') if ( defined $test );
+}
 
-    (
-        $type && $id && $id ne '' && ( $type eq 'study'
-            || $type eq 'lane'
-            || $type eq 'sample'
-            || $type eq 'file'
-            || $type eq 'species'
-            || $type eq 'database' )
-    ) or die $self->usage_text;
+sub check_inputs{
+    my $self = shift;
+    return(
+        $self->type 
+        && $self->id 
+        && $self->id ne '' 
+        && !$self->help
+        && ( $self->type eq 'study'
+            || $self->type eq 'lane'
+            || $self->type eq 'sample'
+            || $self->type eq 'file'
+            || $self->type eq 'species'
+            || $self->type eq 'database' )
+    );
 }
 
 sub run {
     my ($self) = @_;
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text);
 
     # assign variables
     my $type     = $self->type;
@@ -137,16 +149,17 @@ sub run {
     my $mapper   = $self->mapper;
     my $qc       = $self->qc;
 
-    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+    Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
 
+    my $logfile = $self->_environment eq 'test' ? '/nfs/pathnfs05/log/pathfindlog/test/rnaseqfind.log' : '/nfs/pathnfs05/log/pathfindlog/rnaseqfind.log';
     eval {
         Path::Find::Log->new(
-            logfile => '/nfs/pathnfs05/log/pathfindlog/rnaseqfind.log',
+            logfile => $logfile,
             args    => $self->args
         )->commandline();
     };
 
-    die "The archive and symlink options cannot be used together\n"
+    Path::Find::Exception::InvalidInput->throw( error => "The archive and symlink options cannot be used together\n")
       if ( defined $archive && defined $symlink );
 
     my %type_extensions = (
@@ -160,11 +173,12 @@ sub run {
     my $found = 0;
 
     # Get databases and loop through them
-    my @pathogen_databases = Path::Find->pathogen_databases;
+    my $find = Path::Find->new( environment => $self->_environment );
+    my @pathogen_databases = $find->pathogen_databases;
     for my $database (@pathogen_databases) {
 
         # Connect to database and get info
-        my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+        my ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
@@ -186,7 +200,7 @@ sub run {
         # filter lanes
         my $verbose_info = 0;
         if ( $verbose || $date || $ref || $mapper ){
-            $filetype = "bam";
+            $filetype = "bam" unless(defined $filetype);
             $verbose_info = 1;
         }
         $lane_filter = Path::Find::Filter->new(
@@ -275,9 +289,7 @@ sub run {
     }
 
     unless ($found) {
-
-        print "Could not find lanes or files for input data \n";
-
+        Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
     }
 }
 
@@ -314,7 +326,7 @@ sub set_linker_name {
 sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
-    print <<USAGE;
+    return <<USAGE;
 Usage: $script_name
      -t|type      <study|lane|file|sample|species>
      -i|id        <study id|study name|lane name|file of lane names>
@@ -348,7 +360,6 @@ The -m|mapper option will limit results to lanes mapped using the specified mapp
 The -d|date option will limit results to lanes processed after a given date. The date format should be dd-mm-yyyy (eg 01-01-2010)
 
 USAGE
-    exit;
 }
 
 __PACKAGE__->meta->make_immutable;

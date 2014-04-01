@@ -46,6 +46,8 @@ use VRTrack::VRTrack;
 use VRTrack::Lane;
 use VertRes::Utils::VRTrackFactory;
 use Path::Find::Log;
+use Path::Find::Exception;
+use Path::Find;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -53,11 +55,12 @@ has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'tag'         => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
 
-    my ( $type, $id, $tag, $help );
+    my ( $type, $id, $tag, $help, $test );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
@@ -66,55 +69,76 @@ sub BUILD {
         'i|id=s'   => \$id,
         'tag=s'    => \$tag,
         'h|help'   => \$help,
+        'test'     => \$test,
     );
 
-    $self->type($type) if ( defined $type );
-    $self->id($id)     if ( defined $id );
-    $self->tag($tag)   if ( defined $tag );
-    $self->help($help) if ( defined $help );
+    $self->type($type)          if ( defined $type );
+    $self->id($id)              if ( defined $id );
+    $self->tag($tag)            if ( defined $tag );
+    $self->help($help)          if ( defined $help );
+    $self->_environment('test') if ( defined $test );
+}
 
-    (
-        $type
-          && ( $type eq 'study'
-            || $type eq 'lane' )
-          && $id
-    ) or die $self->usage_text;
+sub check_inputs{
+    my $self = shift;
+    return(
+        $self->type
+        && !$self->help
+          && ( $self->type eq 'study'
+            || $self->type eq 'lane' )
+          && $self->id
+    );
 }
 
 sub run {
     my ($self) = @_;
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text);
 
     # assign variables
     my $type = $self->type;
     my $id   = $self->id;
     my $tag  = $self->tag;
 
+    Path::Find::Exception::InvalidInput->throw( error => "-tag cannot be used with -t study" ) if ( $type eq 'study' && defined $tag );
+
+    my $logfile = $self->_environment eq 'test' ? '/nfs/pathnfs05/log/pathfindlog/test/plexfind.log' : '/nfs/pathnfs05/log/pathfindlog/plexfind.log';
     eval {
         Path::Find::Log->new(
-            logfile => '/nfs/pathnfs05/log/pathfindlog/plexfind.log',
+            logfile => $logfile,
             args    => $self->args
         )->commandline();
     };
 
-    my %databases = (
-        'viruses'     => 'pathogen_virus_track',
-        'prokaryotes' => 'pathogen_prok_track',
-        'eukaryotes'  => 'pathogen_euk_track',
-        'helminths'   => 'pathogen_helminth_track',
-        'rnd'         => 'pathogen_rnd_track'
-    );
+    my %databases;
+    if($self->_environment eq 'prod'){ 
+        %databases = (
+            'viruses'     => 'pathogen_virus_track',
+            'prokaryotes' => 'pathogen_prok_track',
+            'eukaryotes'  => 'pathogen_euk_track',
+            'helminths'   => 'pathogen_helminth_track',
+            'rnd'         => 'pathogen_rnd_track'
+        );
+    }
+    elsif($self->_environment eq 'test'){
+        %databases = ('pathogen_test_pathfind' => 'pathogen_test_pathfind');
+    }
 
 # Connection details for the read only account and hierarchy template hard-coded here
 # but should eventually be put into the pathogen profile
-    my %connection_details = (
-        host     => "mcs6",
-        port     => 3347,
-        user     => "pathpipe_ro",
-        password => ""
-    );
+    my $find = Path::Find->new( environment => $self->_environment );
 
-    my $hierarchy_template =
-"genus:species-subspecies:TRACKING:projectssid:sample:technology:library:lane";
+    #my $port = defined $test ? 3346:3347;
+    #my %connection_details = (
+    #    host     => "mcs6",
+    #    port     => $port,
+    #    user     => "pathpipe_ro",
+    #    password => ""
+    #);
+
+    #my $hierarchy_template = "genus:species-subspecies:TRACKING:projectssid:sample:technology:library:lane";
+
+    my %connection_details = %{ $find->connection };
+    my $hierarchy_template = $find->template;
 
     my $track;
     my $study_obj;
@@ -191,7 +215,7 @@ sub run {
               . ";port="
               . $connection_details{port};
             my $dbh = DBI->connect( $dbi_connect, $connection_details{user} )
-              or die "Can't connect to database: $DBI::errstr\n";
+              or Path::Find::Exception::ConnectionFail->throw( error => "Can't connect to database: $DBI::errstr\n");
 
             my $lane_names = $dbh->selectall_arrayref(
                     'select name from latest_lane where name like "'
@@ -227,7 +251,7 @@ sub run {
 
 	return 1 if(scalar %data);
 
-    print "No info found for the details you provided.\n";
+    Path::Find::Exception::NoMatches->throw( error => "No info found for the details you provided.\n");
 
 }
 
@@ -285,7 +309,7 @@ sub get_sample {
 sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
-    print <<USAGE;
+    return <<USAGE;
 Usage: $script_name
      -t|type  <study|lane>
      -i|id    <study id|study name|lane id>
@@ -296,7 +320,6 @@ Given a study name or study id this script will return a list of multiplex lanes
 along with their corresponding tag number. Given a lane id the script will return the list of samples in the specified multiplex lane and their corresponding tag number.
 
 USAGE
-    exit;
 }
 
 __PACKAGE__->meta->make_immutable;

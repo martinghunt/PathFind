@@ -28,6 +28,9 @@ use VRTrack::Lane;
 use VRTrack::Individual;
 use Data::Dumper;
 
+use lib "../../";
+use Path::Find::Exception;
+
 has 'search_type'    => ( is => 'ro', isa => 'Str', required => 1 );
 has 'search_id'      => ( is => 'ro', isa => 'Str', required => 1 );
 has 'processed_flag' => ( is => 'ro', isa => 'Int', required => 1 );
@@ -100,15 +103,18 @@ sub _lookup_by_study {
     my ($self) = @_;
     my @lanes;
 
+    my $search_id = $self->search_id;
+    $search_id =~ s/\W+/_/g;
+
     my $lane_names = $self->dbh->selectall_arrayref(
         'select lane.name from latest_project as project
       inner join latest_sample as sample on sample.project_id = project.project_id
       inner join latest_library as library on library.sample_id = sample.sample_id
       inner join latest_lane as lane on lane.library_id = library.library_id
       where (project.ssid = "'
-          . $self->search_id
+          . $search_id
           . '" OR  project.name like "'
-          . $self->search_id
+          . $search_id
           . '") AND lane.processed & '
           . $self->processed_flag . ' = '
           . $self->processed_flag
@@ -185,7 +191,7 @@ sub _lookup_by_file {
   my @lanes;
 
   my %lanenames;
-  open( my $fh, $self->search_id ) || die "Error: Could not open file '" . $self->search_id . "'\n";
+  open( my $fh, $self->search_id ) || Path::Find::Exception::FileDoesNotExist->throw( error => "Error: Could not open file '" . $self->search_id . "'\n");
   foreach my $lane_id (<$fh>) {
       chomp $lane_id;
       next if $lane_id eq '';

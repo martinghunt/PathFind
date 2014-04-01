@@ -44,10 +44,12 @@ use lib "../lib";
 
 use Getopt::Long qw(GetOptionsFromArray);
 use WWW::Mechanize;
+use Data::Dumper;
 
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Log;
+use Path::Find::Exception;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -59,15 +61,17 @@ has 'submitted'   => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'outfile' =>
   ( is => 'rw', isa => 'Str', required => 0, default => 'accessionfind.out' );
 has 'help' => ( is => 'rw', isa => 'Bool', required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
 
     $ENV{'http_proxy'} = 'http://webcache.sanger.ac.uk:3128/';
 
-    my ( $type, $id, $help, $external, $submitted, $outfile );
+    my ( $type, $id, $help, $external, $submitted, $outfile, $test );
 
     my @args = @{ $self->args };
+
     GetOptionsFromArray(
         \@args,
         't|type=s'    => \$type,
@@ -76,7 +80,8 @@ sub BUILD {
         'f|fastq'     => \$external,
         's|submitted' => \$submitted,
         'o|outfile=s' => \$outfile,
-    );
+        'test'        => \$test,
+    ) or Path::Find::Exception::InvalidInput->throw( error => "");
 
     $self->type($type)           if ( defined $type );
     $self->id($id)               if ( defined $id );
@@ -84,23 +89,29 @@ sub BUILD {
     $self->external($external)   if ( defined $external );
     $self->submitted($submitted) if ( defined $submitted );
     $self->outfile($outfile)     if ( defined $outfile );
+    $self->_environment('test')  if ( defined $test );
+}
 
-    # print usage text if required parameters are not present
-    (
-        $type
-          && ( $type eq 'study'
-            || $type eq 'lane'
-            || $type eq 'file'
-            || $type eq 'sample'
-            || $type eq 'species'
-            || $type eq 'database' )
-          && $id
-          && !$help
-    ) or die $self->usage_text;
+sub check_inputs{
+    my $self = shift; 
+    return(
+        $self->type
+          && ( $self->type eq 'study'
+            || $self->type eq 'lane'
+            || $self->type eq 'file'
+            || $self->type eq 'sample'
+            || $self->type eq 'species'
+            || $self->type eq 'database' )
+          && $self->id
+          && !$self->help
+    );
 }
 
 sub run {
     my ($self)   = @_;
+
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text);
+
     my $type     = $self->type;
     my $id       = $self->id;
 
@@ -108,21 +119,23 @@ sub run {
 	my $submitted = $self->submitted;
     my $outfile   = $self->outfile;
 
-    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+    Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
 
+    my $logfile = $self->_environment eq 'test' ? '/nfs/pathnfs05/log/pathfindlog/test/accessionfind.log' : '/nfs/pathnfs05/log/pathfindlog/accessionfind.log';
     eval {
         Path::Find::Log->new(
-            logfile => '/nfs/pathnfs05/log/pathfindlog/accessionfind.log',
+            logfile => $logfile,
             args    => $self->args
         )->commandline();
     };
 
     # Get databases
-    my @pathogen_databases = Path::Find->pathogen_databases;
+    my $find = Path::Find->new( environment => $self->_environment );
+    my @pathogen_databases = $find->pathogen_databases;
     my $lanes_found        = 0;
 
     for my $database (@pathogen_databases) {
-        my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+        my ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
@@ -167,13 +180,16 @@ sub run {
     }
 
     # No lanes found
-    print "No lanes found for search of '$type' with '$id'\n"
+    Path::Find::Exception::NoMatches->throw( error => "No lanes found for search of '$type' with '$id'\n")
       unless $lanes_found;
 }
 
 sub print_ftp_url {
     my ( $self, $url_type, $acc, $outfile ) = @_;
     
+    # check outfile location
+    system("touch $outfile") == 0 or Path::Find::Exception::FileDoesNotExist->throw("Cannot write to $outfile\n");
+
     open( OUT, ">> $outfile" );
     my $url;
     if ( $url_type eq "sub" ) {
@@ -184,14 +200,17 @@ sub print_ftp_url {
         $url = 'http://www.ebi.ac.uk/ena/data/view/reports/sra/fastq_files/';
     }
     $url .= $acc;
+    #print "$url\n";
     my $mech = WWW::Mechanize->new;
     $mech->get($url);
     my $down = $mech->content( format => 'text' );
     my @lines = split( /\n/, $down );
+    #print Dumper \@lines;
     foreach my $x ( 1 .. $#lines ) {
         my @fields = split( /\t/, $lines[$x] );
         print OUT "$fields[18]\n";
     }
+    close OUT;
 }
 
 sub get_sample_from_lane {
@@ -208,7 +227,7 @@ sub get_sample_from_lane {
 sub usage_text {
     my ($self) = @_;
     my $scriptname = $self->script_name;
-    print <<USAGE;
+    return <<USAGE;
 Usage: $scriptname -t <type> -i <id> [options]   
 	 t|type      <study|lane|file|sample|species>
 	 i|id        <study id|study name|lane name|file of lane names|lane accession|sample accession>
@@ -217,7 +236,6 @@ Usage: $scriptname -t <type> -i <id> [options]
 	 o|outfile   <file to write output to. If not given, defaults to accessionfind.out>
 	 h|help      <this message>
 USAGE
-    exit;
 }
 
 __PACKAGE__->meta->make_immutable;

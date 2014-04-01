@@ -91,6 +91,21 @@ sub _get_lane_name {
     my ($lane) = @_;
 
     if ($lane =~ /\//){
+        my @dirs = split('/', $lane);
+        my ($tracking_index) = grep { $dirs[$_] ~~ 'TRACKING' } 0 .. $#dirs;
+        my $lane_index = $tracking_index + 5;
+        my $end = join('/', splice(@dirs, $lane_index+1));
+        return ($dirs[$lane_index], $end);
+    }
+    else{
+        return ($lane, undef);
+    }
+}
+
+sub _get_lane_name_old {
+    my ($lane) = @_;
+
+    if ($lane =~ /\//){
 	my @dirs = split('/', $lane);
 	my $end = join('/', splice(@dirs, 15));
 	return ($dirs[14], $end);

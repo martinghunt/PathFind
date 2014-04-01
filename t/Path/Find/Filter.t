@@ -17,7 +17,7 @@ BEGIN {
 
 use_ok('Path::Find::Filter');
 
-my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info('pathogen_prok_track');
+my ( $pathtrack, $dbh, $root ) = Path::Find->new->get_db_info('pathogen_prok_track');
 my ( $filter, @matching_lanes, @matching_lanes_edit );
 
 my %type_extensions = (

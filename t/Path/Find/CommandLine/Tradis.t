@@ -9,114 +9,306 @@ no warnings qw{qw};
 
 BEGIN { unshift( @INC, './lib' ) }
 
-
+BEGIN {
 use Test::Most;
 use Test::Output;
-
+use Test::Exception;
+}
 
 use_ok('Path::Find::CommandLine::Tradis');
 
 my $script_name = 'tradisfind';
 my $cwd = getcwd();
 
-my $destination_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
-my $destination_directory = $destination_directory_obj->dirname();
+my $temp_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
+my $tmp = $temp_directory_obj->dirname();
 
-my (@args, $arg_str, $exp_out, $tradis_obj);
+my (@args, $arg_str, $exp_out, $obj);
 
-# test basic output
-@args = ("-t", "lane", "-i", "4354_3#6");
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/451/CALF3_51_55_IN/SLX/CALF3_51_55_IN_112184/4354_3#6\n";
-
-$tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
+# test 1
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'bam' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/1.txt');
 $arg_str = join(" ", @args);
-stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test file type & file parse
-@args = qw(-t file -i t/data/tradis_lanes.txt -f bam);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhimurium/TRACKING/451/CALF1_11_15_IN/SLX/CALF1_11_15_IN_112182/4354_7#5/545055.se.markdup.bam.corrected.bam
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/2027/PMHKU30_1/SLX/PMHKU30_1_4049668/7138_6#15/454631.pe.markdup.bam.corrected.bam\n";
 
-$tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
+# test 2
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'coverage', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/2.txt');
 $arg_str = join(" ", @args);
-stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test symlink
-@args = ("-t", "study", "-i", "2561", "-l", "$destination_directory/symlink_test");
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/1_CR_TraDIS/SLX/1_CR_TraDIS_6982967/9521_1#1
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/2_CR_TraDIS/SLX/2_CR_TraDIS_6982970/9521_1#2
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/2_CR_TraDIS/SLX/2_CR_TraDIS_6982968/9521_1#3
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Citrobacter/rodentium/TRACKING/2561/1_CR_TraDIS/SLX/1_CR_TraDIS_6982969/9521_1#5
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Pseudomonas/aeruginosa/TRACKING/2561/Gm_input_1/SLX/Gm_input_1_6982965/9521_1#14
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Pseudomonas/aeruginosa/TRACKING/2561/Gm_input_2/SLX/Gm_input_2_6982966/9521_1#15\n";
 
-$tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
+# test 3
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'intergenic', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 4
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'spreadsheet', '-d', '20-03-2014' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/4.txt');
 $arg_str = join(" ", @args);
-stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
-ok( -e "$destination_directory/symlink_test/520105.se.markdup.bam.insertion.csv", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/520108.se.markdup.bam.insertion.csv", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/520111.se.markdup.bam.insertion.csv", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/520153.se.markdup.bam.insertion.csv", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/526338.se.markdup.bam.insertion.csv", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/557408.se.markdup.bam.insertion.csv", 'symlink exists');
-remove_tree('symlink_test');
 
-# test archive
-@args = ("-t", "study", "-i", "2561", "-a", "$destination_directory/archive_test");
-
-$tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
+# test 5
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'bam', '-d', '19-03-2014', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/5.txt');
 $arg_str = join(" ", @args);
-stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
-system("cd $destination_directory; tar xvfz archive_test.tar.gz");
-ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
-ok( -e "$destination_directory/archive_test/520105.se.markdup.bam.insertion.csv", 'archived file exists');
-ok( -e "$destination_directory/archive_test/520108.se.markdup.bam.insertion.csv", 'archived file exists');
-ok( -e "$destination_directory/archive_test/520111.se.markdup.bam.insertion.csv", 'archived file exists');
-ok( -e "$destination_directory/archive_test/520153.se.markdup.bam.insertion.csv", 'archived file exists');
-ok( -e "$destination_directory/archive_test/526338.se.markdup.bam.insertion.csv", 'archived file exists');
-ok( -e "$destination_directory/archive_test/557408.se.markdup.bam.insertion.csv", 'archived file exists');
-unlink("$destination_directory/archive_test.tar.gz");
-remove_tree("$destination_directory/archive_test");
 
-# test verbose
-@args = qw(-t file -i t/data/tradis_verbose_lanes.txt -v);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/A_M_6_IN_2/SLX/A_M_6_IN_2_5647193/8211_1#4/539502.se.markdup.bam.corrected.bam\tStreptococcus_suis_P1_7_v1\tsmalt\t13-07-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S1/SLX/R20291_S1_5765227/8405_4#7/377155.pe.markdup.bam.corrected.bam\tClostridium_difficile_R20291_v1.1\tbwa\t07-10-2012
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S1/SLX/R20291_S1_5765227/8405_4#7/445618.pe.markdup.bam.corrected.bam\tClostridium_difficile_R20291_v1.1\tbwa\t17-03-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S2/SLX/R20291_S2_5765228/8405_4#8/377152.pe.markdup.bam.corrected.bam\tClostridium_difficile_R20291_v1.1\tbwa\t07-10-2012
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Clostridium/difficile/TRACKING/2027/R20291_S2/SLX/R20291_S2_5765228/8405_4#8/445621.pe.markdup.bam.corrected.bam\tClostridium_difficile_R20291_v1.1\tbwa\t17-03-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2342/5_STyphi_Rif_2/SLX/5_STyphi_Rif_2_6098734/8788_8#24/557441.se.markdup.bam.corrected.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_Ty2_v1\tsmalt\t29-07-2013\n";
+# test 6
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'coverage', '-d', '20-03-2014', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
 
-$tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
+# test 7
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'intergenic', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 8
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'spreadsheet', '-d', 'invalid_value', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 9
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'bam', '-r', 'Streptococcus_pneumoniae_INV200_v1' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/9.txt');
 $arg_str = join(" ", @args);
-stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test mapper filter
-@args = qw(-t file -i t/data/tradis_verbose_lanes.txt -v -m smalt);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/A_M_6_IN_2/SLX/A_M_6_IN_2_5647193/8211_1#4/539502.se.markdup.bam.corrected.bam\tStreptococcus_suis_P1_7_v1\tsmalt\t13-07-2013
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Salmonella/enterica_subsp_enterica_serovar_Typhi/TRACKING/2342/5_STyphi_Rif_2/SLX/5_STyphi_Rif_2_6098734/8788_8#24/557441.se.markdup.bam.corrected.bam\tSalmonella_enterica_subsp_enterica_serovar_Typhi_Ty2_v1\tsmalt\t29-07-2013\n";
 
-$tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
+# test 10
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'coverage', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/10.txt');
 $arg_str = join(" ", @args);
-stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test date filter
-@args = qw(-t file -i t/data/tradis_verbose_lanes.txt -v -d 01-07-2013);
 
-$tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
+# test 11
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'intergenic', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 12
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'spreadsheet', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-d', '18-03-2014' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/12.txt');
 $arg_str = join(" ", @args);
-stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test reference filter
-@args = qw(-t file -i t/data/tradis_verbose_lanes.txt -v -r Streptococcus_suis_P1_7_v1);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/suis/TRACKING/607/A_M_6_IN_2/SLX/A_M_6_IN_2_5647193/8211_1#4/539502.se.markdup.bam.corrected.bam\tStreptococcus_suis_P1_7_v1\tsmalt\t13-07-2013\n";
 
-$tradis_obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => $script_name);
+# test 13
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'bam', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-d', '20-03-2014', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/13.txt');
 $arg_str = join(" ", @args);
-stdout_is {$tradis_obj->run} $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+
+# test 14
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'coverage', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-d', '20-03-2014', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 15
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'intergenic', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 16
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'spreadsheet', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-d', 'invalid_value', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 17
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'bam', '-r', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 18
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'coverage', '-r', 'invalid_value', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 19
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'intergenic', '-r', 'invalid_value', '-d', '20-03-2014' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 20
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'spreadsheet', '-r', 'invalid_value', '-d', '20-03-2014', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 21
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'bam', '-v' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/21.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 22
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'coverage', '-v', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/22.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 23
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'intergenic', '-v', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 24
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'spreadsheet', '-v', '-d', '19-03-2014' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/24.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 25
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'bam', '-v', '-d', '20-03-2014', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/25.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 26
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'coverage', '-v', '-d', '20-03-2014', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 27
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'intergenic', '-v', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 28
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'spreadsheet', '-v', '-d', 'invalid_value', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 29
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'bam', '-v', '-r', 'Streptococcus_pneumoniae_INV200_v1' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/29.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 30
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'coverage', '-v', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/30.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 31
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'intergenic', '-v', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 32
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'spreadsheet', '-v', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-d', '20-03-2014' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/32.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 33
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'bam', '-v', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-d', '20-03-2014', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/33.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 34
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'coverage', '-v', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-d', '20-03-2014', '-m', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 35
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'intergenic', '-v', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-d', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 36
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'spreadsheet', '-v', '-r', 'Streptococcus_pneumoniae_INV200_v1', '-d', 'invalid_value', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 37
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'bam', '-v', '-r', 'invalid_value' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 38
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'coverage', '-v', '-r', 'invalid_value', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 39
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'intergenic', '-v', '-r', 'invalid_value', '-d', '20-03-2014' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 40
+@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'spreadsheet', '-v', '-r', 'invalid_value', '-d', '20-03-2014', '-m', 'smalt' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 41
+#@args = ( '--test', '-t', 'file', '-i', 't/data/tradisfind/tradis_lanes.txt', '-f', 'bam', '-s', '-d', '20-03-2014' );
+#$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+#$exp_out = read_file('t/data/tradisfind/41.txt');
+#$arg_str = join(" ", @args);
+#stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 42
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#1' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/42.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 43
+@args = ( '--test', '-t', 'study', '-i', '3' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/43.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+# test 44
+@args = ( '--test', '-t', 'sample', '-i', 'test2_4' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/44.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 45
+@args = ( '--test', '-t', 'species', '-i', 'shigella' );
+$obj = Path::Find::CommandLine::Tradis->new(args => \@args, script_name => 'tradisfind');
+$exp_out = read_file('t/data/tradisfind/45.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+remove_tree($tmp);
 done_testing();

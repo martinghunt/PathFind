@@ -44,7 +44,6 @@ use Data::Dumper;
 
 #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";
-
 use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 
@@ -62,6 +61,7 @@ use Path::Find::Linker;
 use Path::Find::Log;
 use Path::Find::Stats::Generator;
 use Path::Find::Sort;
+use Path::Find::Exception;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
@@ -72,11 +72,12 @@ has 'stats'       => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',     required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
 
-    my ( $type, $id, $symlink, $stats, $filetype, $archive, $help );
+    my ( $type, $id, $symlink, $stats, $filetype, $archive, $help, $test );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
@@ -88,6 +89,7 @@ sub BUILD {
         'l|symlink:s'  => \$symlink,
         'a|archive:s'  => \$archive,
         's|stats:s'    => \$stats,
+        'test'         => \$test,
     );
 
     $self->type($type)         if ( defined $type );
@@ -97,33 +99,40 @@ sub BUILD {
     $self->filetype($filetype) if ( defined $filetype );
     $self->archive($archive)   if ( defined $archive );
     $self->help($help)         if ( defined $help );
+    $self->_environment('test') if ( defined $test );
+}
 
-    (
-             $type
-          && $id
-          && $id ne ''
-          && ( $type eq 'study'
-            || $type eq 'lane'
-            || $type eq 'file'
-            || $type eq 'sample'
-            || $type eq 'species'
-            || $type eq 'database' )
+sub check_inputs{
+    my $self = shift;
+    return(
+             $self->type
+          && $self->id
+          && $self->id ne ''
+          && !$self->help
+          && ( $self->type eq 'study'
+            || $self->type eq 'lane'
+            || $self->type eq 'file'
+            || $self->type eq 'sample'
+            || $self->type eq 'species'
+            || $self->type eq 'database' )
           && (
-            !$filetype
+            !$self->filetype
             || (
-                $filetype
-                && (   $filetype eq 'contigs'
-                    || $filetype eq 'scaffold' )
+                $self->filetype
+                && (   $self->filetype eq 'contigs'
+                    || $self->filetype eq 'scaffold' )
             )
           )
-          && ( !defined($archive)
-            || $archive eq ''
-            || ( $archive && !( $stats || $symlink ) ) )
-    ) or die $self->usage_text;
+          && ( !defined($self->archive)
+            || $self->archive eq ''
+            || ( $self->archive && !( $self->stats || $self->symlink ) ) )
+    );
 }
 
 sub run {
     my ($self) = @_;
+    $self->check_inputs or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text);
+
     my ( $qc, $destination, $tmpdirectory_name, $archive_name,
         $all_stats, $archive_path, $archive_suffix );
 
@@ -135,18 +144,19 @@ sub run {
     my $filetype = $self->filetype;
     my $archive  = $self->archive;
 
-    die "File $id does not exist.\n" if( $type eq 'file' && !-e $id );
+    Path::Find::Exception::FileDoesNotExist->throw( error => "File $id does not exist.\n") if( $type eq 'file' && !-e $id );
     my $found = 0;
 
+    my $logfile = $self->_environment eq 'test' ? '/nfs/pathnfs05/log/pathfindlog/test/assemblyfind.log' : '/nfs/pathnfs05/log/pathfindlog/assemblyfind.log';
     eval {
         Path::Find::Log->new(
-            logfile => '/nfs/pathnfs05/log/pathfindlog/assemblyfind.log',
+            logfile => $logfile,
             args    => $self->args
         )->commandline();
     };
 
-    # Get databases
-    my @pathogen_databases = Path::Find->pathogen_databases;
+    Path::Find::Exception::InvalidInput->throw( error => "The archive and symlink options cannot be used together\n")
+      if ( defined $archive && defined $symlink );
 
     # Set assembly subdirectories
     my @sub_directories;
@@ -172,10 +182,13 @@ sub run {
 
     my $lane_filter;
 
+    # Get databases
+    my $find = Path::Find->new( environment => $self->_environment );
+    my @pathogen_databases = $find->pathogen_databases;
     for my $database (@pathogen_databases) {
 
         # Connect to database and get info
-        my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+        my ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
@@ -244,7 +257,11 @@ sub run {
         if ( $lane_filter->found ) {
 	    $found = 1;
             if ( defined $stats ) {
-                $stats = "$id.assembly_stats.csv" if ( $stats eq '' );
+                if ( $stats eq '' ){
+                    my @dirs = split('/', $stats);
+                    my $s = pop(@dirs);
+                    $stats = "$s.assembly_stats.csv";
+                }
                 $stats =~ s/\s+/_/g;
                 Path::Find::Stats::Generator->new(
                     lane_hashes => \@matching_lanes,
@@ -258,9 +275,7 @@ sub run {
     }
 
     unless ( $found ) {
-
-        print "Could not find lanes or files for input data\n";
-
+        Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data\n");
     }
 }
 
@@ -324,7 +339,7 @@ sub link_rename_hash {
 sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
-    print <<USAGE;
+    return <<USAGE;
 Usage: $script_name
      -t|type            <study|lane|file|sample|species>
      -i|id              <study id|study name|lane name|file of lane names>
@@ -338,11 +353,13 @@ Given a study, lane or a file containing a list of lanes, this script will outpu
 Using the option -l|symlink will create a symlink to the queried data in a default directory created in the current directory, alternativley an output directory can be specified in which the symlinks will be created.
 Using the option -a|archive will create an archive (.tar.gz) containing the selected assemblies. The -archive option will automatically name the archive file if a name is not supplied.
 
+Note: scaffolds are returned as default. -f contigs will return all unscaffolded contigs.
+
 # find an assembly for a given lane
 assemblyfind -t lane -i 1234_5#6
 
-# find scaffolds for a given lane
-assemblyfind -t lane -i 1234_5#6 -f scaffold
+# find contigs for a given lane
+assemblyfind -t lane -i 1234_5#6 -f contigs
 
 # create a CSV file of assembly statistics for all assemblies in the given study
 assemblyfind -t study -i 123 -s my_assembly_stats.csv
@@ -357,7 +374,6 @@ assemblyfind -t study -i 123 -a study_123_assemblies.tgz
 
 
 USAGE
-    exit;
 }
 
 __PACKAGE__->meta->make_immutable;

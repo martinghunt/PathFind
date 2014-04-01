@@ -1,5 +1,8 @@
 #!/usr/bin/env perl
 use Moose;
+use Data::Dumper;
+use File::Slurp;
+use File::Path qw( remove_tree);
 use Cwd;
 use File::Temp;
 no warnings qw{qw};
@@ -9,51 +12,328 @@ BEGIN { unshift( @INC, './lib' ) }
 BEGIN {
     use Test::Most;
 	use Test::Output;
+	use Test::Exception;
 }
 
 use_ok('Path::Find::CommandLine::Info');
 
-my $script_name = 'Path::Find::CommandLine::Info';
+my $script_name = 'infofind';
 my $cwd = getcwd();
 
-my $destination_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
-my $destination_directory = $destination_directory_obj->dirname();
+my $temp_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
+my $tmp = $temp_directory_obj->dirname();
 
-my (@args, $arg_str, @formatted_out, $exp_out, $info_obj);
+my (@args, $arg_str, $exp_out, $obj);
 
-# test basic output
-@args = qw(-t lane -id 10812_1#86);
-@formatted_out = ("Lane\tSample\tSupplier Name\tPublic Name\tStrain",
-"10812_1#86\t2682STDY5583393\tMDR1343\tMDR1343\tMDR1343");
-$exp_out = "";
-foreach my $line (@formatted_out){
-	my @fields = split("\t", $line);
-	$exp_out .= sprintf "%-15s %-25s %-25s %-25s %-20s\n", @fields;
-}
+# test 1
+@args = ( '--test' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
-$info_obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => $script_name);
+# test 2
+@args = ( '--test', '-o', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 3
+@args = ( '--test', '-o', 'not/a/real/destination' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 4
+@args = ( '--test', '-i', 'valid_value' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 5
+@args = ( '--test', '-i', 'valid_value', '-o', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 6
+@args = ( '--test', '-i', 'valid_value', '-o', 'not/a/real/destination' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 7
+@args = ( '--test', '-i', 'invalid_value' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 8
+@args = ( '--test', '-i', 'invalid_value', '-o', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 9
+@args = ( '--test', '-t', 'study' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 10
+@args = ( '--test', '-t', 'study', '-o', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 11
+@args = ( '--test', '-t', 'study', '-o', 'not/a/real/destination' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 12
+@args = ( '--test', '-t', 'study', '-i', '3' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+$exp_out = read_file('t/data/infofind/12.txt');
 $arg_str = join(" ", @args);
-stdout_is { $info_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test study output
-#@args = qw(-t study -i 66);
-#@formatted_out = ("Lane\tSample\tSupplier Name\tPublic Name\tStrain",
-#"554_1\tPool 2\tNA\tA1338, AKU_12061, B4173, B418, B964, D441 A1338, AKU_12061, B4173, B418, B964, D441\t ",
-#"554_2\tPool 7\tNA\tstr44, str10, str21, E771, B1378, 14/06 str44, str10, str21, E771, B1378, 14/06\t ",
-#"554_3\tPool 6\tNA\t2664, BL1344, BL4579, B7697, 6911, 6912 2664, BL1344, BL4579, B7697, 6911, 6912\t ",
-#"554_5\tPool 5\tNA\t2129, BL8758, BL4595, BL14275, 58/38, 138/69 2129, BL8758, BL4595, BL14275, 58/38, 138/69\t ",
-#"554_6\tPool 4\tNA\tA1345, A2248, B4986, C806, D4075, F846 A1345, A2248, B4986, C806, D4075, F846\t ",
-#"554_7\tPool 3\tNA\tAKU_12601\tAKU_12601",
-#"554_8\tPool 1\tNA\tB1357, D2383, D1985, B943, C4672 B1357, D2383, D1985, B943, C4672\t ");
-#$exp_out = "";
-#foreach my $line (@formatted_out){
-#	print STDERR "$line\n";
-#	my @fields = split("\t", $line);
-#	$exp_out .= sprintf "%-15s %-25s %-25s %-25s %-20s\n", @fields;
-#}
-#
-#$info_obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => $script_name);
-#$arg_str = join(" ", @args);
-#stdout_is { $info_obj->run } $exp_out, "Correct results for '$arg_str'";
+# test 13
+@args = ( '--test', '-t', 'study', '-i', '3', '-o', "$tmp/test.13" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+$exp_out = read_file('t/data/infofind/13.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# check output file
+ok( -e "$tmp/test.13.csv", 'symlink dir exists' );
+is(
+	read_file('t/data/infofind/13.csv'),
+	read_file("$tmp/test.13.csv"),
+	'file contents correct'
+);
+
+# test 14
+@args = ( '--test', '-t', 'study', '-i', '3', '-o', 'not/a/real/destination' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 15
+@args = ( '--test', '-t', 'study', '-i', 'invalid_value' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 16
+@args = ( '--test', '-t', 'study', '-i', 'invalid_value', '-o', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 17
+@args = ( '--test', '-t', 'lane' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 18
+@args = ( '--test', '-t', 'lane', '-o', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 19
+@args = ( '--test', '-t', 'lane', '-o', 'not/a/real/destination' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 20
+@args = ( '--test', '-t', 'lane', '-i', '6578_4#4' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+$exp_out = read_file('t/data/infofind/20.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 21
+@args = ( '--test', '-t', 'lane', '-i', '6578_4#4', '-o', "$tmp/test.21" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+$exp_out = read_file('t/data/infofind/21.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check output file
+ok( -e "$tmp/test.21.csv", 'symlink dir exists' );
+is(
+	read_file('t/data/infofind/21.csv'),
+	read_file("$tmp/test.21.csv"),
+	'file contents correct'
+);
+
+# test 22
+@args = ( '--test', '-t', 'lane', '-i', '6578_4#4', '-o', 'not/a/real/destination' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 23
+@args = ( '--test', '-t', 'lane', '-i', 'invalid_value' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 24
+@args = ( '--test', '-t', 'lane', '-i', 'invalid_value', '-o', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 25
+@args = ( '--test', '-t', 'file' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 26
+@args = ( '--test', '-t', 'file', '-o', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 27
+@args = ( '--test', '-t', 'file', '-o', 'not/a/real/destination' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 28
+@args = ( '--test', '-t', 'file', '-i', 't/data/infofind/info_lanes.txt' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+$exp_out = read_file('t/data/infofind/28.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 29
+@args = ( '--test', '-t', 'file', '-i', 't/data/infofind/info_lanes.txt', '-o', "$tmp/test.29" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+$exp_out = read_file('t/data/infofind/29.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check output file
+ok( -e "$tmp/test.29.csv", 'symlink dir exists' );
+is(
+	read_file('t/data/infofind/29.csv'),
+	read_file("$tmp/test.29.csv"),
+	'file contents correct'
+);
+
+# test 30
+@args = ( '--test', '-t', 'file', '-i', 't/data/infofind/info_lanes.txt', '-o', 'not/a/real/destination' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 31
+@args = ( '--test', '-t', 'file', '-i', 'invalid_value' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 32
+@args = ( '--test', '-t', 'file', '-i', 'invalid_value', '-o', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 33
+@args = ( '--test', '-t', 'sample' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 34
+@args = ( '--test', '-t', 'sample', '-o', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 35
+@args = ( '--test', '-t', 'sample', '-o', 'not/a/real/destination' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 36
+@args = ( '--test', '-t', 'sample', '-i', 'test1_3' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+$exp_out = read_file('t/data/infofind/36.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 37
+@args = ( '--test', '-t', 'sample', '-i', 'test1_3', '-o', "$tmp/test.37" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+$exp_out = read_file('t/data/infofind/37.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check output file
+ok( -e "$tmp/test.37.csv", 'symlink dir exists' );
+is(
+	read_file('t/data/infofind/37.csv'),
+	read_file("$tmp/test.37.csv"),
+	'file contents correct'
+);
+
+# test 38
+@args = ( '--test', '-t', 'sample', '-i', 'test1_3', '-o', 'not/a/real/destination' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 39
+@args = ( '--test', '-t', 'sample', '-i', 'invalid_value' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 40
+@args = ( '--test', '-t', 'sample', '-i', 'invalid_value', '-o', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 41
+@args = ( '--test', '-t', 'species' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 42
+@args = ( '--test', '-t', 'species', '-o', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 43
+@args = ( '--test', '-t', 'species', '-o', 'not/a/real/destination' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 44
+@args = ( '--test', '-t', 'species', '-i', 'strep' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+$exp_out = read_file('t/data/infofind/44.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 45
+@args = ( '--test', '-t', 'species', '-i', 'strep', '-o', "$tmp/test.45" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+$exp_out = read_file('t/data/infofind/45.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check output file
+ok( -e "$tmp/test.45.csv", 'symlink dir exists' );
+is(
+	read_file('t/data/infofind/45.csv'),
+	read_file("$tmp/test.45.csv"),
+	'file contents correct'
+);
+
+# test 46
+@args = ( '--test', '-t', 'species', '-i', 'strep', '-o', 'not/a/real/destination' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown';
+
+# test 47
+@args = ( '--test', '-t', 'species', '-i', 'invalid_value' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 48
+@args = ( '--test', '-t', 'species', '-i', 'invalid_value', '-o', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown';
+
+# test 49
+@args = ( '--test', '-t', 'species', '-i', 'invalid_value', '-o', "$tmp/valid_dest", '-h', 'yes' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 50
+@args = ( '--test', '-h', 'yes' );
+$obj = Path::Find::CommandLine::Info->new(args => \@args, script_name => 'infofind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+remove_tree($tmp);
 done_testing();

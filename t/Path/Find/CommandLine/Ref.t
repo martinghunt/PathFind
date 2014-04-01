@@ -7,16 +7,13 @@ use Cwd;
 use File::Temp;
 no warnings qw{qw};
 
-sub run_object {
-	my $ro = shift;
-	$ro->run;
-}
-
 BEGIN { unshift( @INC, './lib' ) }
+use Path::Find::Exception;
 
 BEGIN {
     use Test::Most;
-	use Test::Output;
+    use Test::Output;
+    use Test::Exception;
 }
 
 use_ok('Path::Find::CommandLine::Ref');
@@ -24,69 +21,446 @@ use_ok('Path::Find::CommandLine::Ref');
 my $script_name = 'reffind';
 my $cwd = getcwd();
 
-my $destination_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
-my $destination_directory = $destination_directory_obj->dirname();
+my $temp_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
+my $tmp = $temp_directory_obj->dirname();
 
-my (@args, $arg_str, $exp_out, $ref_obj);
+my (@args, $arg_str, $exp_out, $obj);
 
-# test basic output
-@args = qw(-t species -i cholera);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/refs/Salmonella/enterica_subsp_enterica_serovar_Choleraesuis_str_SC-B67
-/lustre/scratch108/pathogen/pathpipe/refs/Vibrio/cholerae_O1_biovar_eltor_str_N16961
-/lustre/scratch108/pathogen/pathpipe/refs/Vibrio/cholerae_O395\n";
+# test 1
+@args = ( "--test", "-f", "fa" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', "correct error thrown; test #1";
 
-$ref_obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+## test 2
+@args = ( "--test", "-i", "valid_value", "-f", "gff", "-a", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown; test #2';
+
+# test 3
+@args = ( "--test", "-i", "valid_value", "-f", "embl", "-l", "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown; test #3';
+
+# test 4
+@args = ( "--test", "-i", "invalid_value", "-f", "annotation", "-a", "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown; test #4';
+
+# test 5
+@args = ( "--test", "-t", "species", "-f", "fa", "-l", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown; test #5';
+
+# test 6
+@args = ( "--test", "-t", "species", "-f", "gff" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown; test #6';
+
+# test 7
+@args = ( "--test", "-t", "species", "-f", "embl", "-a", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown; test #7';
+
+# test 8
+@args = ( "--test", "-t", "species", "-f", "annotation", "-l", "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown; test #8';
+
+# test 9
+@args = ( "--test", "-t", "species", "-i", "etec", "-f", "fa" );
+$exp_out = read_file("t/data/reffind/9.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is { $ref_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test file parse and file type
-@args = qw(-t file -i t/data/ref_lanes.txt -f fa);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/refs/Shigella/boydii_CDC_3083-94/Shigella_boydii_CDC_3083-94_v1.fa
-/lustre/scratch108/pathogen/pathpipe/refs/Shigella/boydii_Sb227/Shigella_boydii_Sb227_v1.fa
-/lustre/scratch108/pathogen/pathpipe/refs/Shigella/sonnei_53G/Shigella_sonnei_53G_v1.fa
-/lustre/scratch108/pathogen/pathpipe/refs/Shigella/sonnei_Ss046/Shigella_sonnei_Ss046_v1.fa\n";
-
-$ref_obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+# test 10
+@args = ( "--test", "-t", "species", "-i", "etec", "-f", "fa", "-a", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/10.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is { $ref_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test annotation file retrieval
-@args = qw(-t species -i vibrio -f annotation);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/refs/Aliivibrio/salmonicida_LFI1238/annotation/Aliivibrio_salmonicida_LFI1238_v1.gff
-/lustre/scratch108/pathogen/pathpipe/refs/Vibrio/cholerae_O1_biovar_eltor_str_N16961/annotation/Vibrio_cholerae_O1_biovar_eltor_str_N16961_v1.gff
-/lustre/scratch108/pathogen/pathpipe/refs/Vibrio/cholerae_O1_biovar_eltor_str_N16961/annotation/Vibrio_cholerae_O1_biovar_eltor_str_N16961_v2.gff
-/lustre/scratch108/pathogen/pathpipe/refs/Vibrio/cholerae_O395/annotation/Vibrio_cholerae_O395_v1.gff\n";
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
 
-$ref_obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+# test 11
+@args = ( "--test", "-t", "species", "-i", "etec", "-f", "fa", "-a", "/not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #11';
+
+# test 12
+@args = ( "--test", "-t", "species", "-i", "etec", "-f", "fa", "-l", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/12.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is { $ref_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test symlink
-@args = ("-t", "species", "-i", "dublin", "-f", "fa", "-l", "$destination_directory/symlink_test");
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/refs/Salmonella/enterica_subsp_enterica_serovar_Dublin_str_BA207/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_BA207_v0.1.fa
-/lustre/scratch108/pathogen/pathpipe/refs/Salmonella/enterica_subsp_enterica_serovar_Dublin_str_SC50/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_SC50_v0.1.fa\n";
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
 
-$ref_obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+# test 13
+@args = ( "--test", "-t", "species", "-i", "etec", "-f", "fa", "-l", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #13';
+
+# test 14
+@args = ( "--test", "-t", "species", "-i", "kleb", "-f", "gff" );
+$exp_out = read_file("t/data/reffind/14.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is { $ref_obj->run } $exp_out, "Correct results for '$arg_str'";
-ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
-ok( -e "$destination_directory/symlink_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_BA207_v0.1.fa", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_SC50_v0.1.fa", 'symlink exists');
-remove_tree("$destination_directory/symlink_test");
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test archive
-@args = ("-t", "species", "-i", "dublin", "-f", "fa", "-a", "$destination_directory/archive_test");
-
-$ref_obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+# test 15
+@args = ( "--test", "-t", "species", "-i", "kleb", "-f", "gff", "-a", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/15.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
-stdout_is { $ref_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
-system("cd $destination_directory; tar xvfz archive_test.tar.gz");
-ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
-ok( -e "$destination_directory/archive_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_BA207_v0.1.fa", 'archived file exists');
-ok( -e "$destination_directory/archive_test/Salmonella_enterica_subsp_enterica_serovar_Dublin_str_SC50_v0.1.fa", 'archived file exists');
-remove_tree("$destination_directory/archive_test");
-unlink("$destination_directory/archive_test.tar.gz");
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
 
+# test 16
+@args = ( "--test", "-t", "species", "-i", "kleb", "-f", "gff", "-a", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #16';
+
+# test 17
+@args = ( "--test", "-t", "species", "-i", "kleb", "-f", "gff", "-l", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/17.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+# test 18
+@args = ( "--test", "-t", "species", "-i", "kleb", "-f", "gff", "-l", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #18';
+
+# test 19
+@args = ( "--test", "-t", "species", "-i", "leish", "-f", "embl" );
+$exp_out = read_file("t/data/reffind/19.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 20
+@args = ( "--test", "-t", "species", "-i", "leish", "-f", "embl", "-a", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/20.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+# test 21
+@args = ( "--test", "-t", "species", "-i", "leish", "-f", "embl", "-a", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #21';
+
+# test 22
+@args = ( "--test", "-t", "species", "-i", "leish", "-f", "embl", "-l", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/22.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+# test 23
+@args = ( "--test", "-t", "species", "-i", "leish", "-f", "embl", "-l", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #23';
+
+# test 24
+@args = ( "--test", "-t", "species", "-i", "clost", "-f", "annotation" );
+$exp_out = read_file("t/data/reffind/24.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 25
+@args = ( "--test", "-t", "species", "-i", "clost", "-f", "annotation", "-a", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/25.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+# test 26
+@args = ( "--test", "-t", "species", "-i", "clost", "-f", "annotation", "-a", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #26';
+
+# test 27
+@args = ( "--test", "-t", "species", "-i", "clost", "-f", "annotation", "-l", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/27.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+# test 28
+@args = ( "--test", "-t", "species", "-i", "clost", "-f", "annotation", "-l", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #28';
+
+# test 29
+@args = ( "--test", "-t", "species", "-i", "invalid_value", "-f", "fa", "-l", "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown; test #29';
+
+# test 30
+@args = ( "--test", "-t", "species", "-i", "invalid_value", "-f", "gff", "-a", "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown; test #30';
+
+# test 31
+@args = ( "--test", "-t", "species", "-i", "invalid_value", "-f", "embl" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown; test #31';
+
+# test 32
+@args = ( "--test", "-t", "species", "-i", "invalid_value", "-f", "annotation", "-l", "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown; test #32';
+
+# test 33
+@args = ( "--test", "-t", "file", "-f", "fa", "-l", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown; test #33';
+
+# test 34
+@args = ( "--test", "-t", "file", "-f", "gff" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown; test #34';
+
+# test 35
+@args = ( "--test", "-t", "file", "-f", "embl", "-a", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown; test #35';
+
+# test 36
+@args = ( "--test", "-t", "file", "-f", "annotation", "-l", "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown; test #36';
+
+# test 37
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "fa" );
+$exp_out = read_file("t/data/reffind/37.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 38
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "fa", "-a", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/38.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+# test 39
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "fa", "-a", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #39';
+
+# test 40
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "fa", "-l", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/40.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+# test 41
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "fa", "-l", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #41';
+
+# test 42
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "gff" );
+$exp_out = read_file("t/data/reffind/42.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 43
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "gff", "-a", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/43.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+# test 44
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "gff", "-a", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #44';
+
+# test 45
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "gff", "-l", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/45.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+# test 46
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "gff", "-l", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #46';
+
+# test 47
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "embl" );
+$exp_out = read_file("t/data/reffind/47.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 48
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "embl", "-a", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/48.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+# test 49
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "embl", "-a", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #49';
+
+# test 50
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "embl", "-l", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/50.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+# test 51
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "embl", "-l", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #51';
+
+# test 52
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "annotation" );
+$exp_out = read_file("t/data/reffind/52.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 53
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "annotation", "-a", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/53.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+# test 54
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "annotation", "-a", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #54';
+
+# test 55
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "annotation", "-l", "$tmp/valid_dest" );
+$exp_out = read_file("t/data/reffind/55.txt");
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+# test 56
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "annotation", "-l", "not/a/real/dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidDestination', 'correct error thrown; test #56';
+
+# test 57
+@args = ( "--test", "-t", "file", "-i", "invalid_value", "-f", "fa", "-l", "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown; test #57';
+
+# test 58
+@args = ( "--test", "-t", "file", "-i", "invalid_value", "-f", "gff", "-a", "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown; test #58';
+
+# test 59
+@args = ( "--test", "-t", "file", "-i", "invalid_value", "-f", "embl" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown; test #59';
+
+# test 60
+@args = ( "--test", "-t", "file", "-i", "invalid_value", "-f", "annotation", "-l", "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::FileDoesNotExist', 'correct error thrown; test #60';
+
+# test 61
+@args = ( "--test", "-t", "species", "-i", "kleb", "-f", "gff", "-l", "$tmp/valid_dest", "-h" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown; test #61';
+
+# test 62
+@args = ( "--test", "-t", "file", "-i", "t/data/reffind/ref_lanes.txt", "-f", "embl", "-l", "$tmp/valid_dest", "-a", "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Ref->new(args => \@args, script_name => $script_name);
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown when symlink and archive used together';
+
+
+File::Temp::cleanup();
 done_testing();
+
+sub check_links {
+	my ($n, $fl) = @_;
+
+	my $owd = getcwd();
+	chdir($tmp);
+
+	my $dir = $n;
+	if($n =~ /\.tar\.gz/){
+		system("tar xvfz $n");
+		$dir =~ s/\.tar\.gz//;
+	}
+
+	my $result = 1;
+	foreach my $f (split( "\n", $fl )){
+		my @d = split("/", $f);
+		my $e = pop @d;
+		$result = 0 unless( -e "$dir/$e" );
+	}
+	chdir($owd);
+
+	if(!$result){
+		print STDERR "DIR: $dir\n";
+		system("ls $dir");
+	}
+
+	return $result;
+}

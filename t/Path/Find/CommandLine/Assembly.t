@@ -7,16 +7,13 @@ use Cwd;
 use File::Temp;
 no warnings qw{qw};
 
-sub run_object {
-	my $ro = shift;
-	$ro->run;
-}
-
 BEGIN { unshift( @INC, './lib' ) }
+use Path::Find::Exception;
 
 BEGIN {
-    use Test::Most;
+        use Test::Most;
 	use Test::Output;
+	use Test::Exception;
 }
 
 use_ok('Path::Find::CommandLine::Assembly');
@@ -24,65 +21,669 @@ use_ok('Path::Find::CommandLine::Assembly');
 my $script_name = 'assemblyfind';
 my $cwd = getcwd();
 
-my $destination_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
-my $destination_directory = $destination_directory_obj->dirname();
+my $temp_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
+my $tmp = $temp_directory_obj->dirname();
 
-my (@args, $arg_str, $exp_out, $ass_obj);
+my (@args, $arg_str, $exp_out, $obj);
 
-# test basic output
-@args = qw(-t lane -id 5364_8#1);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pyogenes/TRACKING/655/NS53GAS/SLX/NS53GAS_1351267/5364_8#1/velvet_assembly/contigs.fa\n";
+# test 1
+@args = ( '--test', '-t', 'species', '-f', 'contigs' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
-$ass_obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => $script_name);
+# test 2
+@args = ( '--test', '-t', 'species', '-f', 'scaffold' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 3
+@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-f', 'contigs' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/3.txt');
 $arg_str = join(" ", @args);
-stdout_is { $ass_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test file type & file parse
-@args = qw(-t file -i t/data/assembly_lanes.txt -f contigs);
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Streptococcus/pneumoniae/TRACKING/466/ILBStrepP15424631/SLX/6714257/9517_4#15/velvet_assembly/unscaffolded_contigs.fa
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Staphylococcus/aureus/TRACKING/2662/2662STDY5553572/SLX/8094217/10770_3#64/velvet_assembly/unscaffolded_contigs.fa\n";
-
-$ass_obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => $script_name);
+# test 4
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'contigs', '-a');
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/4.txt');
 $arg_str = join(" ", @args);
-stdout_is { $ass_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test symlink
-@args = ("-t", "study", "-i", "2583", "-l", "$destination_directory/symlink_test");
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/unidentified/TRACKING/2583/SK116C1P/SLX/SK116C1P_7067788/9653_7#1/velvet_assembly/contigs.fa
-/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/unidentified/TRACKING/2583/SK116C2P/SLX/SK116C2P_7067789/9653_7#2/velvet_assembly/contigs.fa\n";
+# check archive
+ok(-e "assemblyfind_Shigella_flexneri.tar.gz", 'archive exists');
+ok(check_links('assemblyfind_Shigella_flexneri.tar.gz', $exp_out, 1), 'correct files present');
 
-$ass_obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => $script_name);
+
+# test 5
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'contigs', '-a', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/5.txt');
 $arg_str = join(" ", @args);
-stdout_is { $ass_obj->run } $exp_out, "Correct results for '$arg_str'";
-ok( -d "$destination_directory/symlink_test", 'symlink directory exists' );
-ok( -e "$destination_directory/symlink_test/9653_7#1.contigs_velvet.fa", 'symlink exists');
-ok( -e "$destination_directory/symlink_test/9653_7#2.contigs_velvet.fa", 'symlink exists');
-remove_tree("$destination_directory/symlink_test");
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# test archive
-@args = ("-t", "study", "-i", "2727", "-a", "$destination_directory/archive_test");
-$exp_out = "/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Burkholderia/gladioli/TRACKING/2727/BCC0238_A/SLX/BCC0238_A_7908989/10532_1#75/velvet_assembly/contigs.fa\n";
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links("$tmp/valid_dest.tar.gz", $exp_out), 'correct files present');
 
-$ass_obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => $script_name);
+
+# test 6
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'contigs', '-l');
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/6.txt');
 $arg_str = join(" ", @args);
-stdout_is { $ass_obj->run } $exp_out, "Correct results for '$arg_str'";
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-ok( -e "$destination_directory/archive_test.tar.gz", 'archive exists');
-system("cd $destination_directory; tar xvfz archive_test.tar.gz");
-ok( -d "$destination_directory/archive_test", 'decompressed archive directory exists' );
-ok( -e "$destination_directory/archive_test/10532_1#75.contigs_velvet.fa", 'archived file exists');
-remove_tree("$destination_directory/archive_test");
-unlink("$destination_directory/archive_test.tar.gz");
+# check symlinks
+ok( -e "assemblyfind_Shigella_flexneri", 'symlink dir exists' );
+ok( check_links("assemblyfind_Shigella_flexneri", $exp_out, 1), 'correct files symlinked' );
 
-# test stats file
-@args = ("-t", "file", "-i", "t/data/assembly_lanes.txt", "-s", "$destination_directory/assemblyfind_test.stats");
-$ass_obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => $script_name);
-$ass_obj->run;
-ok( -e "$destination_directory/assemblyfind_test.stats", 'stats file exists');
+
+# test 7
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'contigs', '-l', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/7.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links("$tmp/valid_dest", $exp_out), 'correct files symlinked' );
+
+
+# test 8
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'scaffold' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/8.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 9
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'scaffold', '-a');
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/9.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "assemblyfind_Shigella_flexneri.tar.gz", 'archive exists');
+ok(check_links('assemblyfind_Shigella_flexneri.tar.gz', $exp_out, 1), 'correct files present');
+
+
+# test 10
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'scaffold', '-a', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/10.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 11
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'scaffold', '-l');
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/11.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "assemblyfind_Shigella_flexneri", 'symlink dir exists' );
+ok( check_links('assemblyfind_Shigella_flexneri', $exp_out, 1), 'correct files symlinked' );
+
+
+# test 12
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'scaffold', '-l', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/12.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 13
+@args = ( '--test', '-t', 'file', '-i', 't/data/assemblyfind/assembly_lanes.txt', '-f', 'contigs' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/13.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 14
+@args = ( '--test', '-t', 'file', '-i', 't/data/assemblyfind/assembly_lanes.txt', '-f', 'contigs', '-a');
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/14.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "assemblyfind_assembly_lanes.txt.tar.gz", 'archive exists');
+ok(check_links('assemblyfind_assembly_lanes.txt.tar.gz', $exp_out, 1), 'correct files present');
+
+
+# test 15
+@args = ( '--test', '-t', 'file', '-i', 't/data/assemblyfind/assembly_lanes.txt', '-f', 'contigs', '-a', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/15.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 16
+@args = ( '--test', '-t', 'file', '-i', 't/data/assemblyfind/assembly_lanes.txt', '-f', 'contigs', '-l');
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/16.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 17
+@args = ( '--test', '-t', 'file', '-i', 't/data/assemblyfind/assembly_lanes.txt', '-f', 'contigs', '-l', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/17.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 18
+@args = ( '--test', '-t', 'file', '-i', 't/data/assemblyfind/assembly_lanes.txt', '-f', 'scaffold' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/18.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 19
+@args = ( '--test', '-t', 'file', '-i', 't/data/assemblyfind/assembly_lanes2.txt', '-f', 'scaffold', '-a' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/19.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "assemblyfind_assembly_lanes2.txt.tar.gz", 'archive exists');
+ok(check_links('assemblyfind_assembly_lanes2.txt.tar.gz', $exp_out, 1), 'correct files present');
+
+
+# test 20
+@args = ( '--test', '-t', 'file', '-i', 't/data/assemblyfind/assembly_lanes.txt', '-f', 'scaffold', '-a', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/20.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 21
+@args = ( '--test', '-t', 'file', '-i', 't/data/assemblyfind/assembly_lanes.txt', '-f', 'scaffold', '-l' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/21.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 22
+@args = ( '--test', '-t', 'file', '-i', 't/data/assemblyfind/assembly_lanes.txt', '-f', 'scaffold', '-l', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/22.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 23
+@args = ( '--test', '-t', 'lane', '-f', 'contigs', '-a' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 24
+@args = ( '--test', '-t', 'lane', '-f', 'scaffold' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 25
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-f', 'contigs' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/25.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 26
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-f', 'contigs', '-a',  );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/26.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 27
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-f', 'contigs', '-a', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/27.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 28
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-f', 'contigs', '-l' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/28.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 29
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-f', 'contigs', '-l', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/29.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 30
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-f', 'scaffold' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/30.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 31
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-f', 'scaffold', '-a' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/31.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 32
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-f', 'scaffold', '-a', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/32.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 33
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-f', 'scaffold', '-l' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/33.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 34
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-f', 'scaffold', '-l', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/34.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 35
+@args = ( '--test', '-t', 'study', '-f', 'scaffold', '-l', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 36
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-f', 'contigs' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/36.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 37
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-f', 'contigs', '-a');
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/37.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 38
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-f', 'contigs', '-a', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/38.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 39
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-f', 'contigs', '-l' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/39.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 40
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-f', 'contigs', '-l', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/40.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 41
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-f', 'scaffold' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/41.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 42
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-f', 'scaffold', '-a');
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/42.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 43
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-f', 'scaffold', '-a', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/43.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 44
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-f', 'scaffold', '-l');
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/44.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 45
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-f', 'scaffold', '-l', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/45.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 46
+@args = ( '--test', '-t', 'species', '-f', 'contigs', '-l', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 47
+@args = ( '--test', '-t', 'species', '-f', 'scaffold' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 48
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'contigs' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/48.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 49
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'contigs', '-a' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/49.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 50
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'contigs', '-a', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/50.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 51
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'contigs', '-l');
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/51.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 52
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'contigs', '-l', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/52.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 53
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'scaffold' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/53.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 54
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'scaffold', '-a');
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/54.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 55
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'scaffold', '-a', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/55.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check archive
+ok(-e "$tmp/valid_dest.tar.gz", 'archive exists');
+ok(check_links('valid_dest.tar.gz', $exp_out), 'correct files present');
+
+
+# test 56
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'scaffold', '-l');
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/56.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 57
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'scaffold', '-l', "$tmp/valid_dest" );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/57.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check symlinks
+ok( -e "$tmp/valid_dest", 'symlink dir exists' );
+ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
+
+
+# test 58
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-f', 'scaffold', '-l', '-a' );
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 59
+@args = ( '--test', '-t', 'lane', '-i', '6578_4#2', '-f', 'scaffold', '-s', "$tmp/test.59.stats");
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/59.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
 is(
-	read_file("$destination_directory/assemblyfind_test.stats"),
-	read_file("t/data/assemblyfind_stats.exp"),
-	'stats are correct'
+	read_file("t/data/assemblyfind/59.stats"),
+	read_file("$tmp/test.59.stats"),
+	'stats file correct'
 );
 
+remove_tree($tmp);
 done_testing();
+
+sub check_links {
+	my ($n, $fl, $cwd) = @_;
+
+	my $tar = $n =~ /\.tar\.gz/ ? 1 : 0;
+	my $owd = getcwd();
+	chdir($tmp) unless($cwd);
+
+	my $dir = $n;
+	if($tar){
+		system("tar xvfz $n");
+		$dir =~ s/\.tar\.gz//;
+	}
+
+	my @exp_files = exp_files($fl);
+	my $result = 1;
+	foreach my $f (@exp_files){
+		$result = 0 unless( -e "$dir/$f" );
+	}
+	chdir($owd) unless($cwd);
+
+	# remove stuff
+	unlink($n) if( $tar );
+	remove_tree( $dir );
+
+	return $result;
+}
+
+sub exp_files {
+	my $fl = shift;
+	
+	my $default_type = "*.fa";
+	my @ef;
+
+	foreach my $f (split( "\n", $fl )){
+		my @d = split("/", $f);
+		my $e = $d[$#d];
+		$e=~s/contigs/contigs_velvet/;
+		my $h=$d[$#d-2];
+		$h.= ".";
+		$h.= $e;
+		if( $h =~ /\./ ){
+			push(@ef, $h);
+		}
+		else{
+			my @all = glob("$f/$default_type");
+			foreach my $a ( @all ){
+				my @dirs = split('/', $a);
+				my $fn = pop @dirs;
+				push( @ef, $fn );
+			}
+		}
+	}
+	return @ef;
+}
+

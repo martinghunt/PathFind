@@ -34,6 +34,7 @@ path-help@sanger.ac.uk
 use Moose;
 use Pathogens::Reports::Mapping::Report;
 use Path::Find::Stats::Row;
+use Path::Find::Exception;
 
 use Data::Dumper;
 
@@ -49,7 +50,7 @@ has '_out_filehandle' => (is => 'rw', required => 0, lazy_build => 1);
 sub _build__out_filehandle {
     my ($self) = @_;
     my $outfile = $self->output;
-    open(my $fh, ">", $outfile) or die "Can't open $outfile for statistics. Error code: $?\n";
+    open(my $fh, ">", $outfile) or Path::Find::Exception::InvalidDestination->throw( error => "Can't open $outfile to write statistics. Error code: $?\n");
     return $fh;
 }
 
@@ -276,7 +277,7 @@ sub assemblyfind {
         my $l       = $l_h->{lane};
         my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
         my ( $stats_file, $bamcheck_file ) = @{ $l_h->{stats} };
-        die "Stats file not found at $stats_file" unless ( -e $stats_file );
+        Path::Find::Exception::FileDoesNotExist->throw( error => "Stats file not found at $stats_file") unless ( -e $stats_file );
         my $row = Path::Find::Stats::Row->new(
             lane       => $l,
             mapstats   => $mapstat,

@@ -37,6 +37,8 @@ use Cwd;
 use Data::Dumper;
 use Carp;
 use File::Basename;
+use File::Path qw( remove_tree);
+use Path::Find::Exception;
 
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has '_tmp_dir' => ( is => 'rw', lazy => 1, builder  => '_build__tmp_dir' );
@@ -72,6 +74,7 @@ sub _build__checked_name {
     # if not, set given destination to CWD
     if ( $name =~ /^\// ) {
         my($filename, $directories, $suffix) = fileparse($name);
+        Path::Find::Exception::InvalidDestination->throw( error => "$directories does not exist\n" ) unless( -e $directories );
         $self->_set__given_destination( $directories );
 		$name = $filename;
     }
@@ -79,8 +82,8 @@ sub _build__checked_name {
         my $current_cwd = getcwd;
         $self->_set__given_destination($current_cwd);
     }
-    $name =~ s/\s+/_/;
-	print STDERR "$name\n";
+    $name =~ s/\s+/_/g;
+	#print STDERR "$name\n";
     return $name;
 }
 
@@ -136,6 +139,7 @@ sub archive {
     my $er_code = $self->_tar($dirname);
 
 	File::Temp::cleanup();
+    remove_tree($dirname);
 
 	return $er_code;
 }
@@ -184,10 +188,10 @@ sub _create_symlinks {
         foreach my $linkf (@files2link) {
             my ( $source, $dest ) = @{$linkf};
             my $cmd = "ln -sf $source $dest";
-            system($cmd) == 0 or die "Could not create symlink for $lane in $destination/$name: error code $?\n";
+            system($cmd) == 0 or Path::Find::Exception::SymlinkFail->throw( error => "Could not create symlink for $lane in $destination/$name: error code $?\n");
             if( defined $index_files && -e "$source.$index_files" ){
                 $cmd = "ln -sf $source.$index_files $dest.$index_files";
-                system($cmd) == 0 or die "Could not create symlink for $lane in $destination/$name: error code $?\n";
+                system($cmd) == 0 or Path::Find::Exception::SymlinkFail->throw( error => "Could not create symlink for $lane in $destination/$name: error code $?\n");
             }
         }
     }
@@ -199,7 +203,7 @@ sub _check_dest {
 
     if ( !-e $destination ) {
         system("mkdir $destination") == 0
-          or croak "Could not create $destination: error code $? , $!\n";
+          or Path::Find::Exception::InvalidDestination->( error => "Could not create $destination: error code $? , $!\n");
     }
     return 1;
 }
