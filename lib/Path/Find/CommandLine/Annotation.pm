@@ -140,6 +140,7 @@ sub check_inputs{
             $self->filetype
             && (   $self->filetype eq 'gff'
                 || $self->filetype eq 'faa'
+                || $self->filetype eq 'gbk'
                 || $self->filetype eq 'ffn' )
         )
       );
@@ -198,7 +199,8 @@ Path::Find::Exception::InvalidInput->throw( error => "The gene option can only r
     my %type_extensions = (
         gff => '*.gff',
         faa => '*.faa',
-        ffn => '*.ffn'
+        ffn => '*.ffn',
+        gbk => '*.gbk'
     );
 
     if ($gene || !defined $filetype) {
@@ -313,9 +315,18 @@ Path::Find::Exception::InvalidInput->throw( error => "The gene option can only r
         if ( $lane_filter->found ) {
             $found = 1;
             if ( defined $stats ) {
-                $stats = "$id.csv" if ( $stats eq '' );
+                if ( $stats eq '' ){
+                    my $s;
+                    if( $id =~ /\// ){
+                        my @dirs = split('/', $id);
+                        $s = pop(@dirs);
+                    }
+                    else{
+                        $s = $id;
+                    }
+                    $stats = "$s.annotation_stats.csv";
+                }
                 $stats =~ s/\s+/_/g;
-		$stats =~ s/\//_/g;
                 Path::Find::Stats::Generator->new(
                     lane_hashes => \@matching_lanes,
                     output      => $stats,

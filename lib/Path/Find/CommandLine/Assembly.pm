@@ -258,9 +258,12 @@ sub run {
         if ( $lane_filter->found ) {
 	    $found = 1;
             if ( defined $stats ) {
-                $stats = "$id.assembly_stats.csv" if ( $stats eq '' );
+                if ( $stats eq '' ){
+                    my @dirs = split('/', $stats);
+                    my $s = pop(@dirs);
+                    $stats = "$s.assembly_stats.csv";
+                }
                 $stats =~ s/\s+/_/g;
-                $stats =~ s/\//_/g;
                 Path::Find::Stats::Generator->new(
                     lane_hashes => \@matching_lanes,
                     output      => $stats,

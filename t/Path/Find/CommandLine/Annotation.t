@@ -213,6 +213,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check file
 ok( -e "output.yfgF_1.fa", 'output file exists' );
 compare_ok("output.yfgF_1.fa", "t/data/annotationfind/annotation_aa.txt", "files are identical");
+unlink("output.yfgF_1.fa");
 
 # test 24
 @args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-g', 'yfgF_1', '-n' );
@@ -224,6 +225,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check file
 ok( -e "output.yfgF_1.fa", 'output file exists' );
 compare_ok("output.yfgF_1.fa", "t/data/annotationfind/annotation_nuc.txt", "files are identical");
+unlink("output.yfgF_1.fa");
 
 # test 25
 @args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-g', 'yfgF_1', '-o' );
@@ -240,7 +242,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check file
 ok( -e "valid_out.yfgF_1.fa", 'output file exists' );
 compare_ok("valid_out.yfgF_1.fa", "t/data/annotationfind/annotation_aa.txt", "files are identical");
-
+unlink("valid_out.yfgF_1.fa");
 
 # test 27
 @args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-p' );
@@ -262,6 +264,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check file
 ok( -e "output.yfgF_1.fa", 'output file exists' );
 compare_ok("output.yfgF_1.fa", "t/data/annotationfind/annotation_aa.txt", "files are identical");
+unlink("output.yfgF_1.fa");
 
 # test 30
 @args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-g', 'yfgF_1', '-p', 'cytochrome C', -n);
@@ -273,6 +276,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check file
 ok( -e "output.yfgF_1.fa", 'output file exists' );
 compare_ok("output.yfgF_1.fa", "t/data/annotationfind/annotation_nuc.txt", "files are identical");
+unlink("output.yfgF_1.fa");
 
 # test 31
 @args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-o', 'valid', '-n',  '-g', 'yfgF_1', '-p', 'cytochrome C');
@@ -282,8 +286,9 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check file
-ok( -e "output.yfgF_1.fa", 'output file exists' );
+ok( -e "valid.yfgF_1.fa", 'output file exists' );
 compare_ok("valid.yfgF_1.fa", "t/data/annotationfind/annotation_nuc.txt", "files are identical");
+unlink("valid.yfgF_1.fa");
 
 # test 32
 @args = ('--test', '-t', 'species', '-i', 'Shigella flexneri', '-g', 'yfgF_1', '-a' );
@@ -328,8 +333,9 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check file
-ok( -e "Shigella_flexneri.csv", 'output file exists' );
-compare_ok("Shigella_flexneri.csv", "t/data/annotationfind/annotation_stats_species.exp", "files are identical");
+ok( -e "Shigella_flexneri.annotation_stats.csv", 'output file exists' );
+compare_ok("Shigella_flexneri.annotation_stats.csv", "t/data/annotationfind/annotation_stats_species.exp", "files are identical");
+unlink('Shigella_flexneri.annotation_stats.csv');
 
 # test 40
 @args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-s', 'statsfile');
@@ -341,6 +347,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check file
 ok( -e "statsfile", 'output file exists' );
 compare_ok("statsfile", "t/data/annotationfind/annotation_stats_species.exp", "files are identical");
+unlink("statsfile");
 
 # test 41
 @args = ( '--test', '-t', 'file', '-i', 't/data/annotationfind/annotation_lanes.txt', '-s');
@@ -350,8 +357,9 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check file
-ok( -e "t_data_annotationfind_annotation_lanes.txt.csv", 'output file exists' );
-compare_ok("t_data_annotationfind_annotation_lanes.txt.csv", "t/data/annotationfind/annotation_stats_file.exp", "files are identical");
+ok( -e "annotation_lanes.txt.annotation_stats.csv", 'output file exists' );
+compare_ok("annotation_lanes.txt.annotation_stats.csv", "t/data/annotationfind/annotation_stats_file.exp", "files are identical");
+unlink("annotation_lanes.txt.annotation_stats.csv");
 
 # test 42
 @args = ( '--test', '-t', 'file', '-i', 't/data/annotationfind/annotation_lanes.txt', '-s', 'filestatsfile.csv');
@@ -363,6 +371,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check file
 ok( -e "filestatsfile.csv", 'output file exists' );
 compare_ok("filestatsfile.csv", "t/data/annotationfind/annotation_stats_file.exp", "files are identical");
+unlink("filestatsfile.csv");
 
 # test 43
 @args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-s');
@@ -372,8 +381,9 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check file
-ok( -e "5477_6#2.csv", 'output file exists' );
-compare_ok("5477_6#2.csv", "t/data/annotationfind/annotation_stats_lane.exp", "files are identical");
+ok( -e "5477_6#2.annotation_stats.csv", 'output file exists' );
+compare_ok("5477_6#2.annotation_stats.csv", "t/data/annotationfind/annotation_stats_lane.exp", "files are identical");
+unlink("5477_6#2.annotation_stats.csv");
 
 # test 44
 @args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-s', 'lanestatsfile.csv');
@@ -385,6 +395,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check file
 ok( -e "lanestatsfile.csv", 'output file exists' );
 compare_ok("lanestatsfile.csv", "t/data/annotationfind/annotation_stats_lane.exp", "files are identical");
+unlink("lanestatsfile.csv");
 
 # test 45
 @args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-s');
@@ -394,8 +405,9 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check file
-ok( -e "5477_6#2.csv", 'output file exists' );
-compare_ok("Test_Study_2.csv", "t/data/annotationfind/annotation_stats_study.exp", "files are identical");
+ok( -e "Test_Study_2.annotation_stats.csv", 'output file exists' );
+compare_ok("Test_Study_2.annotation_stats.csv", "t/data/annotationfind/annotation_stats_study.exp", "files are identical");
+unlink("Test_Study_2.annotation_stats.csv");
 
 # test 46
 @args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-s', 'studystatsfile.csv');
@@ -407,6 +419,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check file
 ok( -e "studystatsfile.csv", 'output file exists' );
 compare_ok("studystatsfile.csv", "t/data/annotationfind/annotation_stats_study.exp", "files are identical");
+unlink("studystatsfile.csv");
 
 remove_tree($tmp);
 done_testing();

@@ -28,7 +28,7 @@ use Cwd 'abs_path';
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
 
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use Getopt::Long qw(GetOptionsFromArray);
 use File::Path qw(make_path);
@@ -130,11 +130,12 @@ sub run {
 "Creating pan genome. If you kill this process it will stop. How long it takes depends on how many samples there are and how busy the farm is.\n";
 
     # Get databases and loop through
-    my @pathogen_databases = Path::Find->pathogen_databases;
+    my $pf = Path::Find->new;
+    my @pathogen_databases = $pf->pathogen_databases;
     for my $database (@pathogen_databases) {
 
         # Connect to database and get info
-        my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+        my ( $pathtrack, $dbh, $root ) = $pf->get_db_info($database);
 
         # find matching lanes
         my $find_lanes = Path::Find::Lanes->new(

@@ -213,6 +213,8 @@ sub run {
         }
 
         # filter lanes
+        $filetype = 'vcf' if(!defined $filetype);
+
         if ( defined $pseudogenome ) {
             $filetype = "pseudogenome";
         }
