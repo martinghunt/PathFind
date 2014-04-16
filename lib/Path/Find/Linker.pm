@@ -65,6 +65,7 @@ has '_given_destination' => (
 has 'rename_links' => ( is => 'ro', isa => 'HashRef', required => 0 );
 has 'script_name'  => ( is => 'ro', isa => 'Str', required => 0, default => $0 );
 has 'index_files'   => ( is => 'rw', isa => 'Maybe[Str]', required => 0 );
+has 'stats' => ( is => 'ro', isa => 'Str', required => 0 );
 
 sub _build__checked_name {
     my ($self) = @_;
@@ -82,8 +83,7 @@ sub _build__checked_name {
         my $current_cwd = getcwd;
         $self->_set__given_destination($current_cwd);
     }
-    $name =~ s/\s+/_/g;
-	#print STDERR "$name\n";
+    $name =~ s/\W+/_/g;
     return $name;
 }
 
@@ -133,6 +133,14 @@ sub archive {
 
     #create symlinks
     $self->_create_symlinks;
+
+    #add stats
+    #my $stats = $self->stats;
+    #if(defined $stats){
+    #    open(STATS, ">", "$dirname/$c_name/stats.csv") or Path::Find::Exception::InvalidDestination->throw( error => "Can't write statistics to archive. Error code: $?\n");
+    #    print STATS $stats;
+    #    close STATS;
+    #}
 
     #tar and move to CWD
     print STDERR "Archiving lanes to $final_dest/$c_name:\n";
