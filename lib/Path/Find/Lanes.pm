@@ -104,7 +104,6 @@ sub _lookup_by_study {
     my @lanes;
 
     my $search_id = $self->search_id;
-    $search_id =~ s/\W+/_/g;
 
     my $lane_names = $self->dbh->selectall_arrayref(
         'select lane.name from latest_project as project
