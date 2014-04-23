@@ -161,8 +161,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check archive
-ok(-e "assemblyfind_assembly_lanes.txt.tar.gz", 'archive exists');
-ok(check_links('assemblyfind_assembly_lanes.txt.tar.gz', $exp_out, 1), 'correct files present');
+ok(-e "assemblyfind_assembly_lanes_txt.tar.gz", 'archive exists');
+ok(check_links('assemblyfind_assembly_lanes_txt.tar.gz', $exp_out, 1), 'correct files present');
 
 
 # test 15
@@ -216,8 +216,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check archive
-ok(-e "assemblyfind_assembly_lanes2.txt.tar.gz", 'archive exists');
-ok(check_links('assemblyfind_assembly_lanes2.txt.tar.gz', $exp_out, 1), 'correct files present');
+ok(-e "assemblyfind_assembly_lanes2_txt.tar.gz", 'archive exists');
+ok(check_links('assemblyfind_assembly_lanes2_txt.tar.gz', $exp_out, 1), 'correct files present');
 
 
 # test 20
@@ -639,13 +639,14 @@ sub check_links {
 	my $owd = getcwd();
 	chdir($tmp) unless($cwd);
 
+	my @exp_files = exp_files($fl);
 	my $dir = $n;
 	if($tar){
 		system("tar xvfz $n");
 		$dir =~ s/\.tar\.gz//;
+		push(@exp_files, 'stats.csv');
 	}
 
-	my @exp_files = exp_files($fl);
 	my $result = 1;
 	foreach my $f (@exp_files){
 		$result = 0 unless( -e "$dir/$f" );
@@ -673,6 +674,7 @@ sub exp_files {
 		$h.= ".";
 		$h.= $e;
 		if( $h =~ /\./ ){
+			$h =~ s/[^\w\.]+/_/g;
 			push(@ef, $h);
 		}
 		else{
@@ -680,6 +682,7 @@ sub exp_files {
 			foreach my $a ( @all ){
 				my @dirs = split('/', $a);
 				my $fn = pop @dirs;
+				$fn =~ s/[^\w\.]+/_/g;
 				push( @ef, $fn );
 			}
 		}

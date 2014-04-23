@@ -16,17 +16,17 @@ Path::Find::CommandLine::RNASeq
 
 where \@ARGV uses the following parameters:
 -t|type      <study|lane|file|sample|species>
- -i|id        <study id|study name|lane name|file of lane names>
- -f|filetype  <bam>
- -q|qc        <pass|failed|pending>
- -l|symlink   <create a symlink to the data>
- -a|arvhive   <archive the data>
- -v|verbose   <display reference, mapper and date>
- -s|stats     <output file for summary of mapping results in CSV format>
- -r|reference <filter results based on reference>
- -m|mapper    <filter results based on mapper>
- -d|date      <show only results produced after a given date>
- -h|help      <print help message>
+-i|id        <study id|study name|lane name|file of lane names>
+-f|filetype  <bam|coverage|intergenic|spreadsheet>
+-q|qc        <pass|failed|pending>
+-l|symlink   <create a symlink to the data>
+-a|arvhive   <archive the data>
+-v|verbose   <display reference, mapper and date>
+-s|stats     <output file for summary of mapping results in CSV format>
+-r|reference <filter results based on reference>
+-m|mapper    <filter results based on mapper>
+-d|date      <show only results produced after a given date>
+-h|help      <print this message>
 
 =head1 CONTACT
 
@@ -199,8 +199,8 @@ sub run {
 
         # filter lanes
         my $verbose_info = 0;
+        $filetype = "bam" unless(defined $filetype);
         if ( $verbose || $date || $ref || $mapper ){
-            $filetype = "bam" unless(defined $filetype);
             $verbose_info = 1;
         }
         $lane_filter = Path::Find::Filter->new(
@@ -226,17 +226,39 @@ sub run {
         my $sorted_ml = Path::Find::Sort->new(lanes => \@matching_lanes)->sort_lanes;
         @matching_lanes = @{ $sorted_ml };
 
-      # Set up to symlink/archive. Check whether default filetype should be used
+        # stats
+        my $stats_output;
+        if ( defined $stats || defined $archive ) {
+            $stats_output = Path::Find::Stats::Generator->new(
+                lane_hashes => \@matching_lanes,
+                vrtrack     => $pathtrack
+            )->rnaseqfind;
+            if( defined $stats ){
+                my $stats_name = $self->stats_name;
+                open(STATS, ">", $stats_name) or Path::Find::Exception::InvalidDestination->throw( error => "Can't write statistics to archive. Error code: $?\n");
+                print STATS $stats_output;
+                close STATS;
+            }
+        }
+
+        # Set up to symlink/archive. Check whether default filetype should be used
         my $use_default = 0;
         $use_default = 1 if ( !defined $filetype );
         if ( $lane_filter->found && ( defined $symlink || defined $archive ) ) {
             my $name = $self->set_linker_name;
+            my %link_names = $self->link_rename_hash( \@matching_lanes );
+
+            my $ind;
+            $ind = "bai" if ($filetype eq "bam");
 
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,
                 use_default_type => $use_default,
-				script_name      => $self->script_name
+				script_name      => $self->script_name,
+                rename_links     => \%link_names,
+                index_files      => $ind,
+                stats            => $stats_output
             );
 
             $linker->sym_links if ( defined $symlink );
@@ -267,23 +289,6 @@ sub run {
         $dbh->disconnect();
 
         if ($found) {
-            if ( defined $stats ) {
-
-                # add required mapstats ID to lane hash
-                foreach my $li ( 0 .. $#matching_lanes ) {
-                    my ($s) = @{ $matching_lanes[$li]->{stats} };
-                    $s =~ /\/(\d+)[^\/]+corrected.bam$/;
-                    $matching_lanes[$li]->{mapstat_id} = $1;
-                }
-
-                $stats = "$id.csv" if ( $stats eq '' );
-                $stats =~ s/\s+/_/g;
-                Path::Find::Stats::Generator->new(
-                    lane_hashes => \@matching_lanes,
-                    output      => $stats,
-                    vrtrack     => $pathtrack
-                )->rnaseqfind;
-            }
             return 1;
         }
     }
@@ -291,6 +296,41 @@ sub run {
     unless ($found) {
         Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
     }
+}
+
+sub stats_name {
+    my ($self) = @_;
+    my $stats = $self->stats;
+    my $id = $self->id;
+
+    if ( $stats eq '' ){
+        my $s;
+        if( $id =~ /\// ){
+            my @dirs = split('/', $id);
+            $s = pop(@dirs);
+        }
+        else{
+            $s = $id;
+        }
+        $stats = "$s.rnaseq_stats.csv";
+    }
+    $stats =~ s/[^\w\.\/]+/_/g;
+    return $stats;
+}
+
+sub link_rename_hash {
+    my ($self, $mlanes) = @_;
+    my @matching_lanes = @{ $mlanes };
+
+    my %link_names;
+    foreach my $mf (@matching_lanes) {
+        my $lane = $mf->{path};
+        my @parts = split('/', $lane);
+        my $f = pop(@parts);
+        my $l = pop(@parts);
+        $link_names{$lane} = "$l.$f";
+    }
+    return %link_names;
 }
 
 sub set_linker_name {

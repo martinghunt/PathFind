@@ -42,17 +42,17 @@ use Data::Dumper;
 has 'lane_hashes' => ( is => 'ro', isa => 'ArrayRef', required => 0 );
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef[VRTrack::Lane]', required => 0, );
 
-has 'output' => ( is => 'ro', isa => 'Str', required => 1 );
+#has 'output' => ( is => 'ro', isa => 'Str', required => 1 );
 has 'vrtrack' => ( is => 'rw', required => 1 );
 
-has '_out_filehandle' => (is => 'rw', required => 0, lazy_build => 1);
+#has '_out_filehandle' => (is => 'rw', required => 0, lazy_build => 1);
 
-sub _build__out_filehandle {
-    my ($self) = @_;
-    my $outfile = $self->output;
-    open(my $fh, ">", $outfile) or Path::Find::Exception::InvalidDestination->throw( error => "Can't open $outfile to write statistics. Error code: $?\n");
-    return $fh;
-}
+# sub _build__out_filehandle {
+#     my ($self) = @_;
+#     my $outfile = $self->output;
+#     open(my $fh, ">", $outfile) or Path::Find::Exception::InvalidDestination->throw( error => "Can't open $outfile to write statistics. Error code: $?\n");
+#     return $fh;
+# }
 
 sub pathfind {
     my ($self) = @_;
@@ -100,35 +100,37 @@ sub pathfind {
         'manual_qc'
     );
 
-    my $fileh = $self->_out_filehandle;
+    my @complete_stats;
 
     #output headers
     my $header_line = join( "\t", @headers );
-    print $fileh "$header_line\n";
+    push( @complete_stats, $header_line );
 
     #loop through lanes and print info to file
 	my @all_stats;
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
         my $l       = $l_h->{lane};
-        my $mapstat = $self->_select_mapstat( $l->qc_mappings );
-        my $row     = Path::Find::Stats::Row->new(
-            lane     => $l,
-            mapstats => $mapstat,
-            vrtrack  => $vrtrack
-        );
+        my @mapstat = @{$self->_select_mapstats( $l->qc_mappings, $l_h )};
+        foreach my $m (@mapstat){
+            my $row     = Path::Find::Stats::Row->new(
+                lane     => $l,
+                mapstats => $m,
+                vrtrack  => $vrtrack
+            );
 
-        my @info;
-        foreach my $c (@columns) {
-            my $i = defined( $row->$c ) ? $row->$c : "NA";
-            push( @info, $i );
+            my @info;
+            foreach my $c (@columns) {
+                my $i = defined( $row->$c ) ? $row->$c : "NA";
+                push( @info, $i );
+            }
+            my $row_joined = join( "\t", @info );
+            push(@all_stats, $row_joined);
         }
-        my $row_joined = join( "\t", @info );
-        push(@all_stats, $row_joined);
     }
-	@all_stats = $self->remove_dups(\@all_stats);
-	print $fileh join( "\n", @all_stats );
-	$self->close_filehandle;
+	my @uniq_stats = $self->remove_dups(\@all_stats);
+    push(@complete_stats, @uniq_stats);
+    return join( "\n", @complete_stats );
 }
 
 sub mapfind {
@@ -174,36 +176,37 @@ sub mapfind {
         'genome_covered_100x'
     );
 
-    # set up output file handle
-    my $fileh = $self->_out_filehandle;
+    my @complete_stats;
 
     #output headers
     my $header_line = join( "\t", @headers );
-    print $fileh "$header_line\n";
+    push( @complete_stats, $header_line );
 
     #loop through lanes and print info to file
 	my @all_stats;
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
         my $l       = $l_h->{lane};
-        my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
-        my $row     = Path::Find::Stats::Row->new(
-            lane     => $l,
-            mapstats => $mapstat,
-            vrtrack  => $vrtrack
-        );
+        my @mapstats = @{ $self->_select_mapstats( $l->mappings_excluding_qc, $l_h ) };
+        foreach my $m (@mapstats){
+            my $row     = Path::Find::Stats::Row->new(
+                lane     => $l,
+                mapstats => $m,
+                vrtrack  => $vrtrack
+            );
 
-        my @info;
-        foreach my $c (@columns) {
-            my $i = defined( $row->$c ) ? $row->$c : "NA";
-            push( @info, $i );
+            my @info;
+            foreach my $c (@columns) {
+                my $i = defined( $row->$c ) ? $row->$c : "NA";
+                push( @info, $i );
+            }
+            my $row_joined = join( "\t", @info );
+            push(@all_stats, $row_joined);
         }
-        my $row_joined = join( "\t", @info );
-        push(@all_stats, $row_joined);
     }
-	@all_stats = $self->remove_dups(\@all_stats);
-	print $fileh join( "\n", @all_stats );
-	$self->close_filehandle;
+    my @uniq_stats = $self->remove_dups(\@all_stats);
+    push(@complete_stats, @uniq_stats);
+    return join( "\n", @complete_stats);
 }
 
 sub assemblyfind {
@@ -263,24 +266,22 @@ sub assemblyfind {
         'avg_insert_size',       'sd_insert_size'
     );
 
-    # set up output file handle
-    my $fileh = $self->_out_filehandle;
+    my @complete_stats;
 
     #output headers
     my $header_line = join( "\t", @headers );
-    print $fileh "$header_line\n";
+    push( @complete_stats, $header_line );
 
     #loop through lanes and print info to file
     my @all_stats;
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
         my $l       = $l_h->{lane};
-        my $mapstat = $self->_select_mapstat( $l->mappings_excluding_qc );
         my ( $stats_file, $bamcheck_file ) = @{ $l_h->{stats} };
         Path::Find::Exception::FileDoesNotExist->throw( error => "Stats file not found at $stats_file") unless ( -e $stats_file );
         my $row = Path::Find::Stats::Row->new(
             lane       => $l,
-            mapstats   => $mapstat,
+            mapstats   => undef,
             vrtrack    => $vrtrack,
             stats_file => $stats_file,
             bamcheck   => $bamcheck_file
@@ -294,9 +295,9 @@ sub assemblyfind {
         my $row_joined = join( "\t", @info );
         push(@all_stats, $row_joined);
     }
-    @all_stats = $self->remove_dups(\@all_stats);
-    print $fileh join( "\n", @all_stats );
-    $self->close_filehandle;
+    my @uniq_stats = $self->remove_dups(\@all_stats);
+    push(@complete_stats, @uniq_stats);
+    return join( "\n", @complete_stats );
 }
 
 sub rnaseqfind {
@@ -342,38 +343,38 @@ sub rnaseqfind {
         'genome_covered_100x'
     );
 
-    # set up output file handle
-    my $fileh = $self->_out_filehandle;
+    my @complete_stats;
 
     #output headers
     my $header_line = join( "\t", @headers );
-    print $fileh "$header_line\n";
+    push( @complete_stats, $header_line );
 
     #loop through lanes and print info to file
     my @all_stats;
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
-        my $l     = $l_h->{lane};
-        my $ms_id = $l_h->{mapstat_id};
-        my $mapstat =
-          $self->_select_mapstat( $l->mappings_excluding_qc, $ms_id );
-        my $row = Path::Find::Stats::Row->new(
-            lane       => $l,
-            mapstats   => $mapstat,
-            vrtrack    => $vrtrack
-        );
+        my $l = $l_h->{lane};
 
-        my @info;
-        foreach my $c (@columns) {
-            my $i = defined( $row->$c ) ? $row->$c : "NA";
-            push( @info, $i );
+        my @mapstats = @{ $self->_select_mapstats( $l->mappings_excluding_qc, $l_h ) };
+        foreach my $ms ( @mapstats ){
+            my $row = Path::Find::Stats::Row->new(
+                lane       => $l,
+                mapstats   => $ms,
+                vrtrack    => $vrtrack
+            );
+
+            my @info;
+            foreach my $c (@columns) {
+                my $i = defined( $row->$c ) ? $row->$c : "NA";
+                push( @info, $i );
+            }
+            my $row_joined = join( "\t", @info );
+            push(@all_stats, $row_joined);
         }
-        my $row_joined = join( "\t", @info );
-        push(@all_stats, $row_joined);
     }
-	@all_stats = $self->remove_dups(\@all_stats);
-	print $fileh join( "\n", @all_stats );
-	$self->close_filehandle;
+	my @uniq_stats = $self->remove_dups(\@all_stats);
+    push(@complete_stats, @uniq_stats);
+    return join( "\n", @complete_stats );
 }
 
 sub annotationfind {
@@ -410,55 +411,59 @@ sub annotationfind {
         'cds_n'
     );
 
-    # set up output file handle
-    my $fileh = $self->_out_filehandle;
+    my @complete_stats;
 
     #output headers
     my $header_line = join( "\t", @headers );
-    print $fileh "$header_line\n";
+    push( @complete_stats, $header_line );
 
     #loop through lanes and print info to file
 	my @all_stats;
     my $vrtrack = $self->vrtrack;
     foreach my $l_h (@lanes) {
         my $l       = $l_h->{lane};
-        my $mapstat = $self->_select_mapstat( $l->qc_mappings );
+        my @mapstats = @{ $self->_select_mapstats( $l->qc_mappings, $l_h ) };
 		my ( $stats_file, $bamcheck_file, $gff_file ) = @{ $l_h->{stats} };
-        my $row = Path::Find::Stats::Row->new(
-            lane       => $l,
-            mapstats   => $mapstat,
-            vrtrack    => $vrtrack,
-            stats_file => $stats_file,
-            bamcheck   => $bamcheck_file,
-			gff_file   => $gff_file
-        );
+        foreach my $ms ( @mapstats ){
+            my $row = Path::Find::Stats::Row->new(
+                lane       => $l,
+                mapstats   => $ms,
+                vrtrack    => $vrtrack,
+                stats_file => $stats_file,
+                bamcheck   => $bamcheck_file,
+		  	    gff_file   => $gff_file
+            );
 
-        my @info;
-        foreach my $c (@columns) {
-            my $i = defined( $row->$c ) ? $row->$c : "NA";
-            push( @info, $i );
+            my @info;
+            foreach my $c (@columns) {
+                my $i = defined( $row->$c ) ? $row->$c : "NA";
+                push( @info, $i );
+            }
+            my $row_joined = join( "\t", @info );
+            push(@all_stats, $row_joined);
         }
-        my $row_joined = join( "\t", @info );
-        push(@all_stats, $row_joined);
     }
-    @all_stats = $self->remove_dups(\@all_stats);
-    print $fileh join( "\n", @all_stats );
-    $self->close_filehandle;
+    my @uniq_stats = $self->remove_dups(\@all_stats);
+    push(@complete_stats, @uniq_stats);
+    return join( "\n", @complete_stats );
 }
 
-sub _select_mapstat {
-    my ( $self, $mapstats, $id ) = @_;
+sub _select_mapstats {
+    my ($self, $maps, $lane) = @_;
+    my @mappings = @{ $maps };
 
-    if ( defined $id ) {
-        foreach my $ms ( @{$mapstats} ) {
-            if ( $ms->id eq $id ) {
-                return $ms;
-            }
-        }
+    # get ms_id from path
+    my $path = $lane->{path};
+    my $ms_id = $lane->{mapstat_id};
+
+    
+    unless (defined $ms_id){
+        return [undef] unless( @mappings );
+        return \@mappings;
     }
-    else {
-        my @sorted_mapstats = sort { $a->row_id <=> $b->row_id } @{$mapstats};
-        return pop(@sorted_mapstats);
+
+    foreach my $ms ( @mappings ){
+        return [$ms] if( $ms->id eq $ms_id );
     }
 }
 
@@ -469,16 +474,16 @@ sub remove_dups {
 	foreach my $line (@stats){
 		$sh{$line} = 1;
 	}
-	return keys %sh;
-}
 
-sub close_filehandle { 
-    my ($self) = @_;
-    my $outf = $self->output;
-    my $fh = $self->_out_filehandle;
-    print STDERR "Statistics written to $outf\n";
-    close($fh);
-} 
+    my @uniq;
+    foreach my $s (@stats){
+        if($sh{$s} == 1){
+            push(@uniq, $s);
+            $sh{$s} = 0;
+        }
+    }
+    return @uniq;
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

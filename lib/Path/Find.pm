@@ -33,12 +33,9 @@ sub _build_connection {
   my $e = $self->environment;
 
   my $config_dir = "/software/pathogen/projects/PathFind/config";
-
-  #my ($volume, $directory, $file) = File::Spec->splitpath(__FILE__);
-  #$directory =~ s/lib\/Path/config/g;
+  #my $config_dir = "/lustre/scratch108/pathogen/cc21/repos/PathFind/config";
 
   my %connect = %{ Load( scalar read_file("$config_dir/$e.yml") ) };
-  $connect{ 'password' } = undef;
   return \%connect;
 }
 
@@ -225,6 +222,8 @@ sub dbi
     my %CONNECT = %{ $self->connection };
 
     my $dbi_connect = "DBI:mysql:dbname=".$database.";host=".$CONNECT{host}.";port=".$CONNECT{port};
+    $dbi_connect .= ";password=".$CONNECT{password} if( defined $CONNECT{password} );
+    
     my $dbi = DBI->connect($dbi_connect, $CONNECT{user}) or return undef;
 
     return $dbi;

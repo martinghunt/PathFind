@@ -13,7 +13,7 @@ BEGIN {
     use Test::Most;
 	use Test::Output;
 	use Test::Exception;
-        use Test::Files;
+    use Test::Files;
 }
 
 use_ok('Path::Find::CommandLine::Annotation');
@@ -252,7 +252,14 @@ throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thro
 # test 28
 @args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-p', 'cytochrome C' );
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
-throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+$exp_out = read_file('t/data/annotationfind/29.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check file
+ok( -e "output.cytochromeC.fa", 'output file exists' );
+compare_ok("output.cytochromeC.fa", "t/data/annotationfind/annotation_cc.fa", "files are identical");
+unlink("output.cytochromeC.fa");
 
 # test 29
 @args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-g', 'yfgF_1', '-p', 'cytochrome C');
@@ -267,7 +274,7 @@ compare_ok("output.yfgF_1.fa", "t/data/annotationfind/annotation_aa.txt", "files
 unlink("output.yfgF_1.fa");
 
 # test 30
-@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-g', 'yfgF_1', '-p', 'cytochrome C', -n);
+@args = ( '--test', '-t', 'species', '-i', 'Shigella flexneri', '-g', 'yfgF_1', '-p', 'cytochrome C', '-n');
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/30.txt');
 $arg_str = join(" ", @args);
@@ -381,9 +388,9 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check file
-ok( -e "5477_6#2.annotation_stats.csv", 'output file exists' );
-compare_ok("5477_6#2.annotation_stats.csv", "t/data/annotationfind/annotation_stats_lane.exp", "files are identical");
-unlink("5477_6#2.annotation_stats.csv");
+ok( -e "5477_6_2.annotation_stats.csv", 'output file exists' );
+compare_ok("5477_6_2.annotation_stats.csv", "t/data/annotationfind/annotation_stats_lane.exp", "files are identical");
+unlink("5477_6_2.annotation_stats.csv");
 
 # test 44
 @args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-s', 'lanestatsfile.csv');
@@ -410,7 +417,7 @@ compare_ok("Test_Study_2.annotation_stats.csv", "t/data/annotationfind/annotatio
 unlink("Test_Study_2.annotation_stats.csv");
 
 # test 46
-@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-s', 'studystatsfile.csv');
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-s', 'studystatsfile.csv', '-a', "$tmp/test_archive" );
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/46.txt');
 $arg_str = join(" ", @args);
@@ -421,12 +428,24 @@ ok( -e "studystatsfile.csv", 'output file exists' );
 compare_ok("studystatsfile.csv", "t/data/annotationfind/annotation_stats_study.exp", "files are identical");
 unlink("studystatsfile.csv");
 
+# check stats inside archive
+ok( -e "$tmp/test_archive.tar.gz", 'archive exists');
+my $owd = getcwd();
+chdir($tmp);
+system("tar xvfz test_archive.tar.gz");
+system("ls");
+chdir($owd);
+ok( -e "$tmp/test_archive/stats.csv", 'stats file exists' );
+compare_ok("$tmp/test_archive/stats.csv", "t/data/annotationfind/annotation_stats_study.exp", "archived stats correct");
+
 remove_tree($tmp);
 done_testing();
 
 
 sub check_links {
 	my ($n, $fl, $cwd) = @_;
+
+	my @exp_files = exp_files($fl);
 
 	my $tar = $n =~ /\.tar\.gz/ ? 1 : 0;
 	my $owd = getcwd();
@@ -436,9 +455,9 @@ sub check_links {
 	if($tar){
 		system("tar xvfz $n");
 		$dir =~ s/\.tar\.gz//;
+		push(@exp_files, 'stats.csv');
 	}
 
-	my @exp_files = exp_files($fl);
 	my $result = 1;
 	foreach my $f (@exp_files){
 		$result = 0 unless( -e "$dir/$f" );
@@ -462,6 +481,7 @@ sub exp_files {
 		my @d = split("/", $f);
 		my $e = pop @d;
 		if( $e =~ /\./ ){
+			$e =~ s/[^\w\.]+/_/g;
 			push(@ef, $e);
 		}
 		else{
@@ -469,6 +489,7 @@ sub exp_files {
 			foreach my $a ( @all ){
 				my @dirs = split('/', $a);
 				my $fn = pop @dirs;
+				$fn =~ s/[^\w\.]+/_/g;
 				push( @ef, $fn );
 			}
 		}

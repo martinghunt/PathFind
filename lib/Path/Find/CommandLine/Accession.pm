@@ -205,7 +205,6 @@ sub print_ftp_url {
     $mech->get($url);
     my $down = $mech->content( format => 'text' );
     my @lines = split( /\n/, $down );
-    #print Dumper \@lines;
     foreach my $x ( 1 .. $#lines ) {
         my @fields = split( /\t/, $lines[$x] );
         print OUT "$fields[18]\n";
@@ -233,7 +232,7 @@ Usage: $scriptname -t <type> -i <id> [options]
 	 i|id        <study id|study name|lane name|file of lane names|lane accession|sample accession>
 	 f|fastq     <generate ftp addresses for fastq file download from ENA>
 	 s|submitted <generate ftp addresses for submitted file download. Format varies>
-	 o|outfile   <file to write output to. If not given, defaults to accessionfind.out>
+	 o|outfile   <file to write FTP output to. If not given, defaults to accessionfind.out>
 	 h|help      <this message>
 USAGE
 }

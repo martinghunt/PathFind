@@ -167,7 +167,7 @@ sub run {
         );
     }
     else {
-        $filetype        = 'scaffold';
+        $filetype = 'scaffold';
         @sub_directories = (
             '/velvet_assembly', '/velvet_assembly_with_reference',
             '/spades_assembly'
@@ -181,6 +181,13 @@ sub run {
     );
 
     my $lane_filter;
+
+    my @req_stats;
+    if ( defined $stats || defined $archive ){
+        @req_stats = ( 'contigs.fa.stats', 'contigs.mapped.sorted.bam.bc' );
+        $req_stats[0] = 'unscaffolded_contigs.fa.stats' if ($filetype eq 'contigs');
+        push(@req_stats, 'unscaffolded_contigs.fa.stats') unless ( defined $filetype );
+    }
 
     # Get databases
     my $find = Path::Find->new( environment => $self->_environment );
@@ -203,14 +210,7 @@ sub run {
             $dbh->disconnect();
             next;
         }
-
-        # check directories exist, find & filter by file type
-        if ( ( defined $symlink || defined $archive ) && !defined $filetype ) {
-            $filetype = "contigs";
-        }
-        my @req_stats;
-        @req_stats = ( 'contigs.fa.stats', 'contigs.mapped.sorted.bam.bc' )
-          if ( defined $stats );
+        
         $lane_filter = Path::Find::Filter->new(
             lanes           => \@lanes,
             filetype        => $filetype,
@@ -222,11 +222,32 @@ sub run {
         );
         my @matching_lanes = $lane_filter->filter;
 
+        unless (@matching_lanes) {
+            $dbh->disconnect();
+            next;
+        }
+
         my $sorted_ml = Path::Find::Sort->new(lanes => \@matching_lanes)->sort_lanes;
         @matching_lanes = @{ $sorted_ml };
 
-      # symlink or archive
-      # Set up to symlink/archive. Check whether default filetype should be used
+        # stats
+        my $stats_output;
+        if ( defined $stats || defined $archive ) {
+            $stats_output = Path::Find::Stats::Generator->new(
+                lane_hashes => \@matching_lanes,
+                vrtrack     => $pathtrack
+            )->assemblyfind;
+
+            if(defined $stats){
+                my $stats_name = $self->stats_name;
+                open(STATS, ">", $stats_name) or Path::Find::Exception::InvalidDestination->throw( error => "Can't write statistics to archive. Error code: $?\n");
+                print STATS $stats_output;
+                close STATS;
+            }
+        }
+
+        # symlink or archive
+        # Set up to symlink/archive. Check whether default filetype should be used
         my $use_default = 0;
         $use_default = 1 if ( !defined $filetype );
         if ( $lane_filter->found && ( defined $symlink || defined $archive ) ) {
@@ -238,7 +259,8 @@ sub run {
                 lanes            => \@matching_lanes,
                 name             => $name,
                 use_default_type => $use_default,
-                rename_links     => \%link_names
+                rename_links     => \%link_names,
+                stats            => $stats_output
             );
 
             $linker->sym_links if ( defined $symlink );
@@ -255,21 +277,7 @@ sub run {
 
         #no need to look in the next database if relevant data has been found
         if ( $lane_filter->found ) {
-	    $found = 1;
-            if ( defined $stats ) {
-                if ( $stats eq '' ){
-                    my @dirs = split('/', $stats);
-                    my $s = pop(@dirs);
-                    $stats = "$s.assembly_stats.csv";
-                }
-                $stats =~ s/\s+/_/g;
-                Path::Find::Stats::Generator->new(
-                    lane_hashes => \@matching_lanes,
-                    output      => $stats,
-                    vrtrack     => $pathtrack
-                )->assemblyfind;
-
-            }
+	        $found = 1;
             return 1;
         }
     }
@@ -277,6 +285,26 @@ sub run {
     unless ( $found ) {
         Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data\n");
     }
+}
+
+sub stats_name {
+    my ($self) = @_;
+    my $stats = $self->stats;
+    my $id = $self->id;
+
+    if ( $stats eq '' ){
+        my $s;
+        if( $id =~ /\// ){
+            my @dirs = split('/', $id);
+            $s = pop(@dirs);
+        }
+        else{
+            $s = $id;
+        }
+        $stats = "$s.assembly_stats.csv";
+    }
+    $stats =~ s/[^\w\.\/]+/_/g;
+    return $stats;
 }
 
 sub set_linker_name {
