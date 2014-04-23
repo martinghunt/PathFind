@@ -13,6 +13,7 @@ BEGIN {
     use Test::Most;
 	use Test::Output;
 	use Test::Exception;
+	use Test::Files;
 }
 
 use_ok('Path::Find::CommandLine::Map');
@@ -345,6 +346,30 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 @args = ( '--test', '-t', 'sample', '-i', 'test1_3', '-f', 'bam', '-h' );
 $obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 49
+@args = ( '--test', '-t', 'file', '-i', 't/data/mapfind/map_lanes.txt', '-f', 'bam', '-a', "$tmp/test_stats", '-d', '20-03-2014' );
+$obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/41.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check stats inside archive
+ok( -e "$tmp/test_stats.tar.gz", 'archive exists');
+my $owd = getcwd();
+chdir($tmp);
+system("tar xvfz test_stats.tar.gz");
+chdir($owd);
+ok( -e "$tmp/test_stats/stats.csv", 'stats file exists' );
+compare_ok("$tmp/test_stats/stats.csv", "t/data/mapfind/41.stats", "archived stats correct");
+
+#test 50
+# check output in presence of multiple mappings
+@args = ('-t', 'lane', '-i', '12462_1#7' );
+$obj = Path::Find::CommandLine::Map->new(args => \@args, script_name => 'mapfind');
+$exp_out = read_file('t/data/mapfind/50.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 remove_tree($tmp);
 done_testing();

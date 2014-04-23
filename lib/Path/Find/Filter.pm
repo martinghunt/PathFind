@@ -86,7 +86,6 @@ sub filter {
         my $l = $_;
 
         # check if type exension should include mapstat id
-        #print STDERR "check if type exension should include mapstat id\n";
         if ( $filetype && $type_extn =~ /MAPSTAT_ID/ ) {
             my $ms_id = $self->_get_mapstat_id($l);
             $type_extn =~ s/MAPSTAT_ID/$ms_id/;
@@ -164,21 +163,24 @@ sub _make_lane_hash {
 	my $stats = $self->stats;
 	
 	my %lane_hash;
+    my $mapstat = $self->_match_mapstat($path, $lane_obj);
+    my $ms_id = defined $mapstat ? $mapstat->id : undef;
     if ($vb) {
-        my $mapstat = $self->_match_mapstat($path, $lane_obj);
         %lane_hash = (
-            lane   => $lane_obj,
-			path   => $path,
-            ref    => $self->_reference_name($mapstat),
-            mapper => $self->_get_mapper($mapstat),
-            date   => $self->_date_changed($mapstat),
+            lane       => $lane_obj,
+			path       => $path,
+            mapstat_id => $ms_id,
+            ref        => $self->_reference_name($mapstat),
+            mapper     => $self->_get_mapper($mapstat),
+            date       => $self->_date_changed($mapstat)
         );
 
     }
     else {
         %lane_hash = ( 
-			lane => $lane_obj,
-			path => $path 
+			lane       => $lane_obj,
+			path       => $path,
+            mapstat_id => $ms_id
 		);
     }
 
@@ -194,8 +196,7 @@ sub _match_mapstat {
 
     $path =~ /(\d+)\.[ps]e/;
     my $ms_id = $1;
-
-    print "$path\n" unless(defined $ms_id);
+    return undef unless ( defined $ms_id );
 
     my @mapstats = @{ $lane->mappings_excluding_qc };
     foreach my $ms ( @mapstats ){

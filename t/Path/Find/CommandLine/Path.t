@@ -14,6 +14,7 @@ BEGIN {
 	use Test::Most;
 	use Test::Output;
 	use Test::Exception;
+	use Test::Files;
 }
 
 use_ok('Path::Find::CommandLine::Path');
@@ -104,7 +105,6 @@ $exp_out = read_file('t/data/pathfind/15.txt');
 $obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-
 
 is(
 	read_file('t/data/pathfind/15.stats'),
@@ -279,8 +279,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check archive
-ok(-e "pathfind_path_lanes.txt.tar.gz", 'archive exists');
-ok(check_links('pathfind_path_lanes.txt.tar.gz', $exp_out, 1), 'correct files present');
+ok(-e "pathfind_path_lanes_txt.tar.gz", 'archive exists');
+ok(check_links('pathfind_path_lanes_txt.tar.gz', $exp_out, 1), 'correct files present');
 
 # test 35
 @args = ( "--test", "-t", "file", "-i", "t/data/pathfind/path_lanes.txt", "-a", "$tmp/valid_dest" );
@@ -301,8 +301,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check symlinks
-ok( -e "pathfind_path_lanes.txt", 'symlink dir exists' );
-ok( check_links('pathfind_path_lanes.txt', $exp_out, 1), 'correct files symlinked' );
+ok( -e "pathfind_path_lanes_txt", 'symlink dir exists' );
+ok( check_links('pathfind_path_lanes_txt', $exp_out, 1), 'correct files symlinked' );
 
 # test 37
 @args = ( "--test", "-t", "file", "-i", "t/data/pathfind/path_lanes.txt", "-l", "$tmp/valid_dest" );
@@ -330,8 +330,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check archive
-ok(-e "pathfind_path_lanes.txt.tar.gz", 'archive exists');
-ok(check_links('pathfind_path_lanes.txt.tar.gz', $exp_out, 1), 'correct files present');
+ok(-e "pathfind_path_lanes_txt.tar.gz", 'archive exists');
+ok(check_links('pathfind_path_lanes_txt.tar.gz', $exp_out, 1), 'correct files present');
 
 # test 40
 @args = ( "--test", "-t", "file", "-i", "t/data/pathfind/path_lanes.txt", "-f", "fastq", "-a", "$tmp/valid_dest" );
@@ -352,8 +352,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check symlinks
-ok( -e "pathfind_path_lanes.txt", 'symlink dir exists' );
-ok( check_links('pathfind_path_lanes.txt', $exp_out, 1), 'correct files symlinked' );
+ok( -e "pathfind_path_lanes_txt", 'symlink dir exists' );
+ok( check_links('pathfind_path_lanes_txt', $exp_out, 1), 'correct files symlinked' );
 
 # test 42
 @args = ( "--test", "-t", "file", "-i", "t/data/pathfind/path_lanes.txt", "-f", "fastq", "-l", "$tmp/valid_dest" );
@@ -434,8 +434,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check archive
-ok(-e "pathfind_5477_6#1.tar.gz", 'archive exists');
-ok(check_links("pathfind_5477_6#1.tar.gz", $exp_out, 1), 'correct files present');
+ok(-e "pathfind_5477_6_1.tar.gz", 'archive exists');
+ok(check_links("pathfind_5477_6_1.tar.gz", $exp_out, 1), 'correct files present');
 
 # test 53
 @args = ( "--test", "-t", "lane", "-i", "5477_6#1", "-a", "$tmp/valid_dest" );
@@ -456,8 +456,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check symlinks
-ok( -e "pathfind_5477_6#1", 'symlink dir exists' );
-ok( check_links('pathfind_5477_6#1', $exp_out, 1), 'correct files symlinked' );
+ok( -e "pathfind_5477_6_1", 'symlink dir exists' );
+ok( check_links('pathfind_5477_6_1', $exp_out, 1), 'correct files symlinked' );
 
 # test 55
 @args = ( "--test", "-t", "lane", "-i", "5477_6#1", "-l", "$tmp/valid_dest" );
@@ -485,8 +485,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check archive
-ok(-e "pathfind_5477_6#1.tar.gz", 'archive exists');
-ok(check_links('pathfind_5477_6#1.tar.gz', $exp_out, 1), 'correct files present');
+ok(-e "pathfind_5477_6_1.tar.gz", 'archive exists');
+ok(check_links('pathfind_5477_6_1.tar.gz', $exp_out, 1), 'correct files present');
 
 # test 58
 @args = ( "--test", "-t", "lane", "-i", "5477_6#1", "-f", "fastq", "-a", "$tmp/valid_dest" );
@@ -507,8 +507,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check symlinks
-ok( -e "pathfind_5477_6#1", 'symlink dir exists' );
-ok( check_links('pathfind_5477_6#1', $exp_out, 1), 'correct files symlinked' );
+ok( -e "pathfind_5477_6_1", 'symlink dir exists' );
+ok( check_links('pathfind_5477_6_1', $exp_out, 1), 'correct files symlinked' );
 
 # test 60
 @args = ( "--test", "-t", "lane", "-i", "5477_6#1", "-f", "fastq", "-l", "$tmp/valid_dest" );
@@ -688,6 +688,22 @@ throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thro
 $obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
+# test 81
+@args = ( "--test", "-t", "study", "-i", "3", "-a", "$tmp/test_stats" );
+$exp_out = read_file('t/data/pathfind/65.txt');
+$obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check stats inside archive
+ok( -e "$tmp/test_stats.tar.gz", 'archive exists');
+my $owd = getcwd();
+chdir($tmp);
+system("tar xvfz test_stats.tar.gz");
+chdir($owd);
+ok( -e "$tmp/test_stats/stats.csv", 'stats file exists' );
+compare_ok("$tmp/test_stats/stats.csv", "t/data/pathfind/65.stats", "archived stats correct");
+
 remove_tree($tmp);
 done_testing();
 
@@ -728,6 +744,7 @@ sub exp_files {
 		my @d = split("/", $f);
 		my $e = pop @d;
 		if( $e =~ /\./ ){
+			$e =~ s/[^\w\.]+/_/g;
 			push(@ef, $e);
 		}
 		else{
@@ -735,6 +752,7 @@ sub exp_files {
 			foreach my $a ( @all ){
 				my @dirs = split('/', $a);
 				my $fn = pop @dirs;
+				$fn =~ s/[^\w\.]+/_/g;
 				push( @ef, $fn );
 			}
 		}

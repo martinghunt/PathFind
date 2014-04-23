@@ -65,7 +65,7 @@ has '_given_destination' => (
 has 'rename_links' => ( is => 'ro', isa => 'HashRef', required => 0 );
 has 'script_name'  => ( is => 'ro', isa => 'Str', required => 0, default => $0 );
 has 'index_files'   => ( is => 'rw', isa => 'Maybe[Str]', required => 0 );
-has 'stats' => ( is => 'ro', isa => 'Str', required => 0 );
+has 'stats' => ( is => 'ro', isa => 'Maybe[Str]', required => 0 );
 
 sub _build__checked_name {
     my ($self) = @_;
@@ -135,12 +135,12 @@ sub archive {
     $self->_create_symlinks;
 
     #add stats
-    #my $stats = $self->stats;
-    #if(defined $stats){
-    #    open(STATS, ">", "$dirname/$c_name/stats.csv") or Path::Find::Exception::InvalidDestination->throw( error => "Can't write statistics to archive. Error code: $?\n");
-    #    print STATS $stats;
-    #    close STATS;
-    #}
+    my $stats = $self->stats;
+    if(defined $stats){
+        open(STATS, ">", "$dirname/$c_name/stats.csv") or Path::Find::Exception::InvalidDestination->throw( error => "Can't write statistics to archive. Error code: $?\n");
+        print STATS $stats;
+        close STATS;
+    }
 
     #tar and move to CWD
     print STDERR "Archiving lanes to $final_dest/$c_name:\n";
@@ -231,25 +231,20 @@ sub _link_names {
 		@matching_files = ($lane);
 	}
 
-    #if(defined $index_suff){
-    #    my @indexes = `ls $lane$index_suff`;
-    #    push(@matching_files, @indexes);
-    #}
-
-	if ($linknames) {
-        foreach my $mf (@matching_files) {
-            chomp $mf;
-            my $lf = $linknames->{$mf};
-            push( @files2link, [ $mf, "$destination/$name/$lf" ] );
+    foreach my $mf (@matching_files) {
+        chomp $mf;
+        my $lf;
+        if( $linknames ){
+            $lf = $linknames->{$mf};
         }
-    }
-    else {
-        foreach my $mf (@matching_files) {
-            chomp $mf;
+        else{
             $mf =~ /([^\/]+)$/;
-            push( @files2link, [ $mf, "$destination/$name/$1" ] );
+            $lf = $1;
         }
+        $lf =~ s/[^\w\.]+/_/g;
+        push( @files2link, [ $mf, "$destination/$name/$lf" ] );
     }
+    
     return @files2link;
 }
 

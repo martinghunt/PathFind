@@ -1,3 +1,3 @@
 Study ID	Lane Name	Reads	Reference	Reference Size	Mapped %	Depth of Coverage	Adapter %	Total Length	No Contigs	N50	Reads Mapped	Average Quality	No. genes	No. CDS genes
-2	6578_4#3	4872748	Shigella_flexneri_2a_str_301_v2	4828820	94.3	71.37	0.0	4433970	344	30450	4415241	34.6	4596	4364
 2	6578_4#2	8286578	Shigella_flexneri_2a_str_301_v2	4828820	97.5	125.46	0.0	4448900	331	33225	7617370	34.6	4597	4355
+2	6578_4#3	4872748	Shigella_flexneri_2a_str_301_v2	4828820	94.3	71.37	0.0	4433970	344	30450	4415241	34.6	4596	4364

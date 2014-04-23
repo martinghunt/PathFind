@@ -13,6 +13,7 @@ BEGIN {
     use Test::Most;
 	use Test::Output;
 	use Test::Exception;
+	use Test::Files;
 }
 
 use_ok('Path::Find::CommandLine::RNASeq');
@@ -331,6 +332,22 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 @args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'intergenic', '-s', "$tmp/test.47.stats", '-qc', 'pending', '-r', 'Shigella_flexneri_2a_str_301_v2', '-h' );
 $obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
+
+# test 48
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'bam', '-a', "$tmp/test_stats", '-d', '19-03-2014' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/41.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check stats inside archive
+ok( -e "$tmp/test_stats.tar.gz", 'archive exists');
+my $owd = getcwd();
+chdir($tmp);
+system("tar xvfz test_stats.tar.gz");
+chdir($owd);
+ok( -e "$tmp/test_stats/stats.csv", 'stats file exists' );
+compare_ok("$tmp/test_stats/stats.csv", "t/data/rnaseqfind/41.stats", "archived stats correct");
 
 remove_tree($tmp);
 done_testing();

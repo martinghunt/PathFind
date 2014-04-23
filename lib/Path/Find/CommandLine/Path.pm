@@ -40,9 +40,8 @@ use Moose;
 
 use Data::Dumper;
 use Cwd;
-use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
-  ;    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use Getopt::Long qw(GetOptionsFromArray);
 
@@ -181,6 +180,7 @@ sub run {
             next;
         }
 
+
         # filter lanes
         $lane_filter = Path::Find::Filter->new(
             lanes           => \@lanes,
@@ -192,8 +192,29 @@ sub run {
         );
         my @matching_lanes = $lane_filter->filter;
 
+        unless (@matching_lanes) {
+            $dbh->disconnect();
+            next;
+        }
+
         my $sorted_ml = Path::Find::Sort->new(lanes => \@matching_lanes)->sort_lanes;
         @matching_lanes = @{ $sorted_ml };
+
+        # generate stats
+        my $stats_output;
+        if ( defined $stats || defined $archive ) {
+            my $sg = Path::Find::Stats::Generator->new(
+                lane_hashes => \@matching_lanes,
+                vrtrack     => $pathtrack
+            );
+            $stats_output = $sg->pathfind;
+            if(defined $stats){
+                my $stats_name = $self->stats_name;
+                open(STATS, ">", $stats_name) or Path::Find::Exception::InvalidDestination->throw( error => "Can't write statistics to archive. Error code: $?\n");
+                print STATS $stats_output;
+                close STATS;
+            }
+        }
 
       # Set up to symlink/archive. Check whether default filetype should be used
         my $use_default = 0;
@@ -205,7 +226,8 @@ sub run {
                 lanes            => \@matching_lanes,
                 name             => $name,
                 use_default_type => $use_default,
-				script_name      => $self->script_name
+				script_name      => $self->script_name,
+                stats            => $stats_output
             );
 
             $linker->sym_links if ( defined $symlink );
@@ -221,23 +243,31 @@ sub run {
 	   }
 
         $dbh->disconnect();
-
-        if ( $lane_filter->found ) {
-            if ( defined $stats ) {
-                $stats = "$id.csv" if ( $stats eq '' );
-                $stats =~ s/\s+/_/g;
-                Path::Find::Stats::Generator->new(
-                    lane_hashes => \@matching_lanes,
-                    output      => $stats,
-                    vrtrack     => $pathtrack
-                )->pathfind;
-            }
-            return 1;
-        }
+        return 1;  
     }
     unless ( $found ) {
         Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
     }
+}
+
+sub stats_name {
+    my ($self) = @_;
+    my $stats = $self->stats;
+    my $id = $self->id;
+
+    if ( $stats eq '' ){
+        my $s;
+        if( $id =~ /\// ){
+            my @dirs = split('/', $id);
+            $s = pop(@dirs);
+        }
+        else{
+            $s = $id;
+        }
+        $stats = "$s.pathfind_stats.csv";
+    }
+    $stats =~ s/[^\w\.\/]+/_/g;
+    return $stats;
 }
 
 sub set_linker_name {

@@ -20,7 +20,7 @@ where \@ARGV follows the following parameters:
 -l|symlink         <create a symlink to the data>
 -f|filetype        <gff|faa|ffn>
 -g|gene            <name of gene>
--p|search_products <when searching for genes also search products>
+-p|product         <search products>
 -o|output          <name of output fasta file of genes>
 -n|nucleotides     <output nucleotide sequence instead of amino acids in fasta file>
 -a|archive		   <name of archive>
@@ -45,7 +45,8 @@ use Cwd qw(abs_path getcwd);
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
+use lib "/lustre/scratch108/pathogen/cc21/repos/Bio-AutomatedAnnotation/lib";
 use lib "../lib";
 
 #use File::Temp;
@@ -64,45 +65,45 @@ use Path::Find::Log;
 use Path::Find::Sort;
 use Path::Find::Exception;
 
-has 'args'            => ( is => 'ro', isa => 'ArrayRef',        required => 1 );
-has 'script_name'     => ( is => 'ro', isa => 'Str',             required => 1 );
-has 'type'            => ( is => 'rw', isa => 'Str',             required => 0 );
-has 'id'              => ( is => 'rw', isa => 'Str',             required => 0 );
-has 'symlink'         => ( is => 'rw', isa => 'Str',             required => 0 );
-has 'help'            => ( is => 'rw', isa => 'Str',             required => 0 );
-has 'filetype'        => ( is => 'rw', isa => 'Str',             required => 0 );
-has 'output'          => ( is => 'rw', isa => 'Maybe[Str]',      required => 0 );
-has 'gene'            => ( is => 'rw', isa => 'Str',             required => 0 );
-has 'search_products' => ( is => 'rw', isa => 'Str',             required => 0 );
-has 'nucleotides'     => ( is => 'rw', isa => 'Str',             required => 0 );
-has 'archive'         => ( is => 'rw', isa => 'Str',             required => 0 );
-has 'stats'           => ( is => 'rw', isa => 'Str',             required => 0 );
-has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
+has 'args'            => ( is => 'ro', isa => 'ArrayRef',   required => 1 );
+has 'script_name'     => ( is => 'ro', isa => 'Str',        required => 1 );
+has 'type'            => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'id'              => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'symlink'         => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'help'            => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'filetype'        => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'output'          => ( is => 'rw', isa => 'Maybe[Str]', required => 0 );
+has 'gene'            => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'product'         => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'nucleotides'     => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'archive'         => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'stats'           => ( is => 'rw', isa => 'Str',        required => 0 );
+has '_environment'    => ( is => 'rw', isa => 'Str',        required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
 
     my (
         $type,        $id,      $symlink, $help,
-        $filetype,    $output,  $gene,    $search_products,
+        $filetype,    $output,  $gene,    $product,
         $nucleotides, $archive, $stats, $test
     );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
         \@args,
-        't|type=s'          => \$type,
-        'i|id=s'            => \$id,
-        'h|help'            => \$help,
-        'f|filetype=s'      => \$filetype,
-        'l|symlink:s'       => \$symlink,
-        'a|archive:s'       => \$archive,
-        'g|gene=s'          => \$gene,
-        'p|search_products=s' => \$search_products,
-        'n|nucleotides'     => \$nucleotides,
-        'o|output=s'        => \$output,
-        's|stats:s'         => \$stats,
-        'test'              => \$test,
+        't|type=s'       => \$type,
+        'i|id=s'         => \$id,
+        'h|help'         => \$help,
+        'f|filetype=s'   => \$filetype,
+        'l|symlink:s'    => \$symlink,
+        'a|archive:s'    => \$archive,
+        'g|gene=s'       => \$gene,
+        'p|product:s'    => \$product,
+        'n|nucleotides'  => \$nucleotides,
+        'o|output=s'     => \$output,
+        's|stats:s'      => \$stats,
+        'test'           => \$test,
 	) or return;
 
     $self->type($type)                       if ( defined $type );
@@ -112,7 +113,7 @@ sub BUILD {
     $self->filetype($filetype)               if ( defined $filetype );
     $self->output($output)                   if ( defined $output );
     $self->gene($gene)                       if ( defined $gene );
-    $self->search_products($search_products) if ( defined $search_products );
+    $self->product($product)                 if ( defined $product );
     $self->nucleotides($nucleotides)         if ( defined $nucleotides );
     $self->archive($archive)                 if ( defined $archive );
     $self->stats($stats)                     if ( defined $stats );
@@ -158,7 +159,7 @@ sub run {
     my $filetype        = $self->filetype;
     my $output          = $self->output;
     my $gene            = $self->gene;
-    my $search_products = $self->search_products;
+    my $product         = $self->product;
     my $nucleotides     = $self->nucleotides;
     my $archive         = $self->archive;
     my $stats           = $self->stats;
@@ -176,16 +177,16 @@ sub run {
     Path::Find::Exception::InvalidInput->throw( error => "The archive and symlink options cannot be used together\n")
       if ( defined $archive && defined $symlink );
 
- Path::Find::Exception::InvalidInput->throw( error => "The search products option can only be used in combination with the gene option\n")
-      if ( defined $search_products && !defined $gene );
+    Path::Find::Exception::InvalidInput->throw( error => "-p requires a value\n" )
+      if ( !defined $gene && defined $product && $product eq '' );
 
- Path::Find::Exception::InvalidInput->throw( error => "The gene and symlink options cannot be used together\n")
+    Path::Find::Exception::InvalidInput->throw( error => "The gene and symlink options cannot be used together\n")
       if ( defined $gene && defined $symlink );
 
- Path::Find::Exception::InvalidInput->throw( error => "The gene and archive options cannot be used together\n")
+    Path::Find::Exception::InvalidInput->throw( error => "The gene and archive options cannot be used together\n")
       if ( defined $gene && defined $archive );
 
-Path::Find::Exception::InvalidInput->throw( error => "The gene option can only return GFF\n")
+    Path::Find::Exception::InvalidInput->throw( error => "The gene option can only return GFF\n")
       if ( defined $gene && defined $filetype && ($filetype eq'faa' || $filetype eq 'ffn'));
 
     my $lane_filter;
@@ -232,7 +233,7 @@ Path::Find::Exception::InvalidInput->throw( error => "The gene option can only r
         @req_stats = (
             'contigs.fa.stats', 'contigs.mapped.sorted.bam.bc',
             'annotation/*.gff'
-        ) if ( defined $stats );
+        ) if ( defined $stats || defined $archive );
 
         # check directories exist, find & filter by file type
         $lane_filter = Path::Find::Filter->new(
@@ -249,8 +250,23 @@ Path::Find::Exception::InvalidInput->throw( error => "The gene option can only r
         my $sorted_ml = Path::Find::Sort->new(lanes => \@matching_lanes)->sort_lanes;
         @matching_lanes = @{ $sorted_ml };
 
-      # symlink or archive
-      # Set up to symlink/archive. Check whether default filetype should be used
+        # stats
+        my $stats_output;
+        if ( defined $stats || defined $archive ) {
+            $stats_output = Path::Find::Stats::Generator->new(
+                lane_hashes => \@matching_lanes,
+                vrtrack     => $pathtrack
+            )->annotationfind;
+            if( defined $stats ){
+                my $stats_name = $self->stats_name;
+                open(STATS, ">", $stats_name) or Path::Find::Exception::InvalidDestination->throw( error => "Can't write statistics to archive. Error code: $?\n");
+                print STATS $stats_output;
+                close STATS;
+            }
+        }
+
+        # symlink or archive
+        # Set up to symlink/archive. Check whether default filetype should be used
         my $use_default = 0;
         $use_default = 1 if ( !defined $filetype );
         if ( $lane_filter->found && ( defined $symlink || defined $archive ) ) {
@@ -259,7 +275,9 @@ Path::Find::Exception::InvalidInput->throw( error => "The gene option can only r
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,
-                use_default_type => $use_default
+                use_default_type => $use_default,
+                script_name      => $self->script_name,
+                stats            => $stats_output
             );
 
             $linker->sym_links if ( defined $symlink );
@@ -272,41 +290,8 @@ Path::Find::Exception::InvalidInput->throw( error => "The gene option can only r
             print "$l\n";
         }
 
-        if ( $lane_filter->found && defined($gene) ) {
-            my $qualifiers_to_search = ['gene'];
-            if ( defined($search_products) ) {
-                push( @{$qualifiers_to_search}, 'product' );
-                push( @{$qualifiers_to_search}, 'ID' );
-            }
-            my $amino_acids = 1;
-            $amino_acids = 0 if ($nucleotides);
-
-            my @gffs;
-            foreach my $file_hash (@matching_lanes){
-                push(@gffs, $file_hash->{path});
-            }
-
-            my $gene_finder =
-              Bio::AutomatedAnnotation::ParseGenesFromGFFs->new(
-                gff_files         => \@gffs,
-                search_query      => $gene,
-                search_qualifiers => $qualifiers_to_search,
-                amino_acids       => $amino_acids
-              );
-
-            # check output location
-            unless( defined $output ){
-                print "Writing output to default file name\n";
-                $output = undef;
-            }
-
-	    $gene_finder->output_base($output) if(defined($output));
-            $gene_finder->create_fasta_file;
-
-            print "Samples containing gene:\t"
-              . $gene_finder->files_with_hits() . "\n";
-            print "Samples missing gene:\t"
-              . $gene_finder->files_without_hits() . "\n";
+        if ( $lane_filter->found && (defined($gene) || defined($product)) ) {
+            $self->parse_gffs(\@matching_lanes);
         }
 
         $dbh->disconnect();
@@ -314,25 +299,6 @@ Path::Find::Exception::InvalidInput->throw( error => "The gene option can only r
         #no need to look in the next database if relevant data has been found
         if ( $lane_filter->found ) {
             $found = 1;
-            if ( defined $stats ) {
-                if ( $stats eq '' ){
-                    my $s;
-                    if( $id =~ /\// ){
-                        my @dirs = split('/', $id);
-                        $s = pop(@dirs);
-                    }
-                    else{
-                        $s = $id;
-                    }
-                    $stats = "$s.annotation_stats.csv";
-                }
-                $stats =~ s/\s+/_/g;
-                Path::Find::Stats::Generator->new(
-                    lane_hashes => \@matching_lanes,
-                    output      => $stats,
-                    vrtrack     => $pathtrack
-                )->annotationfind;
-            }
             return 1;
         }
     }
@@ -340,6 +306,78 @@ Path::Find::Exception::InvalidInput->throw( error => "The gene option can only r
     unless ( $found ) {
         Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
     }
+}
+
+sub parse_gffs {
+    my ($self, $ml)    = @_;
+    my @matching_lanes = @{ $ml };
+    my $gene           = $self->gene;
+    my $product        = $self->product;
+    my $output         = $self->output;
+    my $nucleotides    = $self->nucleotides;
+
+    my ($qualifiers_to_search, $query);
+    if (defined $gene && defined $product){
+        $query = $gene;
+        $qualifiers_to_search = ['gene', 'ID', 'product'];
+    }
+    elsif (defined $gene){
+        $query = $gene;
+        $qualifiers_to_search = ['gene', 'ID'];
+    }
+    elsif ( defined $product ){
+        $query = $product;
+        $qualifiers_to_search = ['product'];
+    }
+
+    my $amino_acids = 1;
+    $amino_acids = 0 if ($nucleotides);
+
+    my @gffs;
+    foreach my $file_hash (@matching_lanes){
+        push(@gffs, $file_hash->{path});
+    }
+
+    my $gene_finder = Bio::AutomatedAnnotation::ParseGenesFromGFFs->new(
+        gff_files         => \@gffs,
+        search_query      => $query,
+        search_qualifiers => $qualifiers_to_search,
+        amino_acids       => $amino_acids
+    );
+
+    # check output location
+    unless( defined $output ){
+        print "Writing output to default file name\n";
+        $output = undef;
+    }
+
+    $gene_finder->output_base($output) if(defined($output));
+    $gene_finder->create_fasta_file;
+
+    print "Samples containing gene:\t"
+      . $gene_finder->files_with_hits() . "\n";
+    print "Samples missing gene:\t"
+      . $gene_finder->files_without_hits() . "\n";
+}
+
+sub stats_name {
+    my ($self) = @_;
+    my $stats = $self->stats;
+    my $id = $self->id;
+
+    if ( $stats eq '' ){
+        my $s;
+        if( $id =~ /\// ){
+            my @dirs = split('/', $id);
+            $s = pop(@dirs);
+        }
+        else{
+            $s = $id;
+        }
+        $stats = "$s.annotation_stats.csv";
+    }
+    $stats =~ s/[^\w\.]+/_/g;
+    return $stats;
 }
 
 sub set_linker_name {
@@ -381,8 +419,8 @@ Usage: $script_name
   -i|id              <study id|study name|lane name|file of lane names>
   -l|symlink         <create a symlink to the data>
   -f|filetype        <gff|faa|ffn|gbk>
-  -g|gene            <name of gene>
-  -p|search_products <when searching for genes also search products>
+  -g|gene            <gene name|gene ID>
+  -p|product         <product name>
   -o|output          <name of output fasta file of genes>
   -n|nucleotides     <output nucleotide sequence instead of amino acids in fasta file>
   -a|archive		 <name of archive>
@@ -398,14 +436,23 @@ gff: The master annotation in GFF3 format, containing both sequences and annotat
 faa: The Protein FASTA file of the translated CDS sequences.
 ffn: The Nucleotide FASTA file of the CDS sequences.
 
+A search of the GFF can be carried out using the -g and -p options, resulting in a multifasta
+file. To search genes use the -g option with the gene name or ID. To search products, use the
+-p option with the product description. To search genes and products, use -g and -p, with the
+search term provided with the -g option. The fasta contains amino acids by default, specify 
+nucleotide output with -n.
+
 # Create a fasta file containing all of the gryA genes for Stap.
 annotationfind -t species -i Stap -g gryA
 
 # Output as nucleotide sequences instead of amino acids
-annotationfind -t species -i Stap -g gryA -n 
+annotationfind -t species -i Stap -g gryA -n
 
-# Create a fasta file containing all 16S for Strep.
-annotationfind -t species -i Strep -g "16S ribosomal RNA" -p
+# Output a fasta file containing all genes with product "transcriptional regulator"
+annotationfind -t file -i file.txt -p "transcriptional regulator"
+
+# Output a fasta file containing all sequences with gene name or product matching gryA
+annotationfind -t file -i file.txt -g gryA -p
 
 # create a compressed archive containing all annotations for a study
 annotationfind -t study -i 123 -a 

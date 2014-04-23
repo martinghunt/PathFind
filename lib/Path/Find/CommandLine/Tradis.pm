@@ -223,12 +223,14 @@ sub run {
             my $name = $self->set_linker_name;
 			
 			my $script_name = $self->script_name;
+            my %link_names = $self->link_rename_hash( \@matching_lanes );
 
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,
                 use_default_type => $use_default,
-				script_name      => $script_name
+				script_name      => $script_name,
+                rename_links     => \%link_names
             );
 
             $linker->sym_links if ( defined $symlink );
@@ -263,6 +265,21 @@ sub run {
     unless ($found) {
         Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
     }
+}
+
+sub link_rename_hash {
+    my ($self, $mlanes) = @_;
+    my @matching_lanes = @{ $mlanes };
+
+    my %link_names;
+    foreach my $mf (@matching_lanes) {
+        my $lane = $mf->{path};
+        my @parts = split('/', $lane);
+        my $f = pop(@parts);
+        my $l = pop(@parts);
+        $link_names{$lane} = "$l.$f";
+    }
+    return %link_names;
 }
 
 sub set_linker_name {

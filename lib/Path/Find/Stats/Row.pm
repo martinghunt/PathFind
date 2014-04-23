@@ -34,9 +34,9 @@ use Path::Find::Exception;
 has 'vrtrack'    => ( is => 'ro', isa => 'VRTrack::VRTrack',         required => 1 );    # database
 has 'lane'       => ( is => 'ro', isa => 'VRTrack::Lane',            required => 1 );    # lane
 has 'mapstats'   => ( is => 'ro', isa => 'Maybe[VRTrack::Mapstats]', required => 0 );    # mapstats
-has 'stats_file' => ( is => 'ro', isa => 'Str',                      required => 0 );    # assembly stats file
-has 'bamcheck'   => ( is => 'ro', isa => 'Str',                      required => 0 );    # assembly bamcheck file
-has 'gff_file'	 => ( is => 'ro', isa => 'Str',                      required => 0 );
+has 'stats_file' => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );    # assembly stats file
+has 'bamcheck'   => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );    # assembly bamcheck file
+has 'gff_file'	 => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );
 
 # Checks
 has 'is_qc_mapstats'      => ( is => 'ro', isa => 'Bool',        lazy_build => 1 );    # qc or mapping mapstats.
@@ -184,7 +184,7 @@ sub _build_is_mapping_complete {
         my ($self) = @_;
         my $path_to_file = $self->bamcheck;
 
-        return undef if ( !-e $path_to_file || !-s $path_to_file );
+        return undef if ( !defined $path_to_file || ( !-e $path_to_file || !-s $path_to_file ));
         return VertRes::Parser::bamcheck->new( file => $path_to_file );
     }
 
@@ -523,8 +523,8 @@ sub _build_is_mapping_complete {
 			my $sf = $self->stats_file;
 			$sf =~ /([^\/]+_assembly[^\/]*)/;
 			my %types = (
-				'velvet_assembly' => 'Velvet',
-				'spades_assembly' => 'SPAdes',
+				'velvet_assembly' => 'Velvet + Improvement',
+				'spades_assembly' => 'SPAdes + Improvement',
 				'velvet_assembly_with_reference' => 'Columbus'
 			);
 			return $types{$1};

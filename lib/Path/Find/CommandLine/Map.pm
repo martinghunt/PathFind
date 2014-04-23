@@ -45,7 +45,7 @@ use Data::Dumper;
 use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use Getopt::Long qw(GetOptionsFromArray);
 
@@ -197,20 +197,33 @@ sub run {
             $filetype = "bam";
             $verbose_info = 1;
         }
-        $lane_filter = Path::Find::Filter->new(
-            lanes           => \@lanes,
-            filetype        => $filetype,
-            root            => $root,
-            pathtrack       => $pathtrack,
-            type_extensions => \%type_extensions,
-            alt_type        => 'alt_bam',
-            qc              => $qc,
-            reference       => $ref,
-            mapper          => $mapper,
-            date            => $date,
-            verbose         => $verbose_info
-        );
-        my @matching_lanes = $lane_filter->filter;
+        my @matching_lanes;
+        foreach my $l (@lanes){
+            # add mapstats ID to type_extensions to get files for multiple mappings
+            my @mapstats = @{$l->mappings_excluding_qc};
+            foreach my $ms_obj (@mapstats){
+                my $ms_id = $ms_obj->id;
+                my %ms_types;
+                foreach my $k (keys %type_extensions){
+                    $ms_types{$k} = $ms_id . "." . $type_extensions{$k};
+                }
+
+                $lane_filter = Path::Find::Filter->new(
+                    lanes           => [$l],
+                    filetype        => $filetype,
+                    root            => $root,
+                    pathtrack       => $pathtrack,
+                    type_extensions => \%ms_types,
+                    alt_type        => 'alt_bam',
+                    qc              => $qc,
+                    reference       => $ref,
+                    mapper          => $mapper,
+                    date            => $date,
+                    verbose         => $verbose_info
+                );
+                push( @matching_lanes, $lane_filter->filter);
+            }
+        }
 
         unless (@matching_lanes) {
             $dbh->disconnect();
@@ -220,7 +233,22 @@ sub run {
         my $sorted_ml = Path::Find::Sort->new(lanes => \@matching_lanes)->sort_lanes;
         @matching_lanes = @{ $sorted_ml };
 
-      # Set up to symlink/archive. Check whether default filetype should be used
+        # generate stats
+        my $stats_output;
+        if ( defined $stats || defined $archive ) {
+            $stats_output = Path::Find::Stats::Generator->new(
+                lane_hashes => \@matching_lanes,
+                vrtrack     => $pathtrack
+            )->mapfind;
+            if(defined $stats){
+                my $stats_name = $self->stats_name;
+                open(STATS, ">", $stats_name) or Path::Find::Exception::InvalidDestination->throw( error => "Can't write statistics to archive. Error code: $?\n");
+                print STATS $stats_output;
+                close STATS;
+            }
+        }
+
+        # Set up to symlink/archive. Check whether default filetype should be used
         my $use_default = 0;
         $use_default = 1 if ( !defined $filetype );
         if ( $lane_filter->found && ( defined $symlink || defined $archive ) ) {
@@ -236,7 +264,8 @@ sub run {
                 use_default_type => $use_default,
 				script_name      => $self->script_name,
                 rename_links     => \%link_names,
-                index_files      => $ind
+                index_files      => $ind,
+                stats            => $stats_output
             );
 
             $linker->sym_links if ( defined $symlink );
@@ -266,16 +295,6 @@ sub run {
 
         #no need to look in the next database if relevant data has been found
         if ($found) {
-
-            if ( defined $stats ) {
-                $stats = "$id.csv" if ( $stats eq '' );
-                $stats =~ s/\s+/_/g;
-                Path::Find::Stats::Generator->new(
-                    lane_hashes => \@matching_lanes,
-                    output      => $stats,
-                    vrtrack     => $pathtrack
-                )->mapfind;
-            }
             return 1;
         }
     }
@@ -283,6 +302,26 @@ sub run {
     unless ($found) {
         Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
     }
+}
+
+sub stats_name {
+    my ($self) = @_;
+    my $stats = $self->stats;
+    my $id = $self->id;
+
+    if ( $stats eq '' ){
+        my $s;
+        if( $id =~ /\// ){
+            my @dirs = split('/', $id);
+            $s = pop(@dirs);
+        }
+        else{
+            $s = $id;
+        }
+        $stats = "$s.mapping_stats.csv";
+    }
+    $stats =~ s/[^\w\.\/]+/_/g;
+    return $stats;
 }
 
 sub link_rename_hash {
