@@ -136,7 +136,7 @@ sub run {
             my $files    = $lane->files;
             for my $file (@{$files})
             {
-              print "iget ".$file->name;
+              print "iget ".$file->name."\n";
             }
         }
         $lanes_found = scalar @lanes;
