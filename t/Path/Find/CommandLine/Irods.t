@@ -28,10 +28,24 @@ $obj = Path::Find::CommandLine::Irods->new(args => \@args, script_name => 'irods
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
 # test 2
-@args = ( '--test', '-t', 'lane', '-i', '25466_C01' );
+@args = ( '--test', '-t', 'lane', '-i', '22893_A01' );
 $obj = Path::Find::CommandLine::Irods->new(args => \@args, script_name => 'irodsfind');
 $exp_out = read_file('t/data/irodsfind/2.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# test 2
+@args = ( '--test', '-t', 'species', '-i', 'Mycobacterium tuberculosis' );
+$obj = Path::Find::CommandLine::Irods->new(args => \@args, script_name => 'irodsfind');
+$exp_out = read_file('t/data/irodsfind/3.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+@args = ( '--test', '-t', 'study', '-i', 'Pacbio_pathogens' );
+$obj = Path::Find::CommandLine::Irods->new(args => \@args, script_name => 'irodsfind');
+$exp_out = read_file('t/data/irodsfind/4.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
 
 done_testing();
