@@ -199,23 +199,32 @@ sub _lookup_by_file {
   close $fh;
 
   my @all_lane_names = keys %lanenames;
+  my $contains_names_which_might_be_accessions = 0;
   for ( my $i = 0 ; $i < @all_lane_names ; $i++ ) {
       unless ( $all_lane_names[$i] =~ /\#/ ) {
           $all_lane_names[$i] .= '%';
       }
-
+      if($all_lane_names[$i]  =~ /^[A-Za-z]/)
+      {
+         $contains_names_which_might_be_accessions = 1;
+      }
   }
 
   my $lane_name_search_query = join( '" OR lane.name like "', @all_lane_names );
   $lane_name_search_query = ' (lane.name like "' . $lane_name_search_query . '") ';
+  
+  my $lane_acc_search_query = '';
+  if( $contains_names_which_might_be_accessions == 1) 
+  {
+    $lane_acc_search_query = join( '" OR lane.acc = "', (keys %lanenames) );
+    $lane_acc_search_query = ' OR (lane.acc = "' . $lane_acc_search_query . '") ';
+  }
 
-  my $lane_acc_search_query = join( '" OR lane.acc = "', (keys %lanenames) );
-  $lane_acc_search_query = ' (lane.acc = "' . $lane_acc_search_query . '") ';
 
   my $lane_names =
     $self->dbh->selectall_arrayref( 'select lane.name from latest_lane as lane where '
         . '( ' . $lane_name_search_query
-        . ' OR ' . $lane_acc_search_query . ' )'
+        .  $lane_acc_search_query . ' )'
         . ' AND lane.processed & '
         . $self->processed_flag . ' = '
         . $self->processed_flag
