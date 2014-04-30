@@ -106,6 +106,7 @@ sub _move_production_databases_to_the_front
    {
      if($db_list_lookup{$db_name})
      {
+       push(@reordered_db_list, $db_name);
        delete($db_list_lookup{$db_name});
      }
    }
