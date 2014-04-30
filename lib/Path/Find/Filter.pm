@@ -27,6 +27,7 @@ use VRTrack::Individual;
 use Path::Find;
 use Data::Dumper;
 use Storable;
+use File::Find::Rule;
 
 use lib "../../";
 use Path::Find::Exception;
@@ -109,7 +110,6 @@ sub filter {
 				    @matching_files = grep {!/pool_1.fastq.gz/} @matching_files;
 
                     for my $m ( @matching_files ) {
-                        if ( -e $m ) {
                             $self->_set_found(1);
 						    my %lane_hash = $self->_make_lane_hash( $m, $l );
 
@@ -120,7 +120,6 @@ sub filter {
 
 
                             push( @matching_paths, \%lane_hash );
-                        }
                     }
                 }
                 else {
@@ -139,7 +138,10 @@ sub filter {
 sub find_files {
     my ( $self, $full_path, $type_extn ) = @_;
 
-    my @matches = glob "$full_path/$type_extn";
+    my @matches = File::Find::Rule->file()
+                                  ->name( $type_extn )
+                                  ->in($full_path );
+
     if (@matches) {
         return \@matches;
     }
@@ -147,7 +149,10 @@ sub find_files {
         my $alt_type = $self->alt_type;
         if( defined $alt_type ){
             my $alt_extn = my $type_extn = $self->type_extensions->{$alt_type};
-            @matches = glob "$full_path/$alt_extn";
+            
+            @matches = File::Find::Rule->file()
+                                          ->name( $alt_extn )
+                                          ->in($full_path );
             return undef unless ( @matches );
             return \@matches;
         }
@@ -233,7 +238,10 @@ sub _get_stats_paths {
 	foreach my $l ( @lane_paths ){
 		$l =~ s/annotation//;
 		foreach my $sf ( @{ $stats } ){
-			my @stat_files = glob "$l/$sf";
+			my @stat_files = File::Find::Rule->file()
+                                    ->name( $sf )
+                                    ->in($l );
+			
 			foreach my $st_file ( @stat_files ){
 				if(-e $st_file){
 					push(@stats_paths, $st_file);
