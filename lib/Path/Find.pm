@@ -73,21 +73,17 @@ sub pathogen_databases
     my %CONNECT = %{ $self->connection };
 
     my @db_list_all = grep(s/^DBI:mysql://, DBI->data_sources("mysql", \%CONNECT));
-
-    #print "DB LIST ALL:\n";
-    #print Dumper \@db_list_all;
-
+    
     my @db_list = (); # tracking and external databases
     if($self->environment eq 'prod'){
       push @db_list, grep (/^pathogen_.+_track$/,   @db_list_all); # pathogens_..._track
       push @db_list, grep (/^pathogen_.+_external$/,@db_list_all); # pathogens_..._external
+      
+      @db_list = @{$self->_move_production_databases_to_the_front(\@db_list)};
     }
     elsif($self->environment eq 'test'){
       push @db_list, grep (/^pathogen_test_pathfind$/, @db_list_all);
     }
-
-    #print "DB LIST WANTED:\n";
-    #print Dumper \@db_list;
 
     my @db_list_out = (); # databases with files on disk
     for my $database (@db_list)
@@ -96,11 +92,31 @@ sub pathogen_databases
         push @db_list_out, $database  if defined $root_dir;
     }
 
-    #print "DB LIST OUT:\n";
-    #print Dumper \@db_list_out;
-
     return @db_list_out;
 }
+
+# Ensure that our largest production databases are searched first
+sub _move_production_databases_to_the_front
+{
+   my ($self,$db_list) = @_;
+   my @reordered_db_list;
+   my %db_list_lookup = map { $_ => 1 } @{$db_list};
+
+   for my $db_name (qw(pathogen_prok_track pathogen_euk_track pathogen_virus_track pathogen_helminth_track))   
+   {
+     if($db_list_lookup{$db_name})
+     {
+       delete($db_list_lookup{$db_name});
+     }
+   }
+
+   for my $db_name (sort keys %db_list_lookup)
+   {
+     push(@reordered_db_list, $db_name);
+   }
+   return \@reordered_db_list;
+}
+
 
 =begin nd
 
