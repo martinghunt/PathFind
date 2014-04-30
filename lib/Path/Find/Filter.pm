@@ -139,7 +139,7 @@ sub find_files {
     my ( $self, $full_path, $type_extn ) = @_;
 
     my @matches;
-    if($type_extn =~ /\*/)
+    if(defined($type_extn) && $type_extn =~ /\*/)
     {
       @matches = File::Find::Rule->file()
                                     ->extras({ follow => 1 })
@@ -150,7 +150,7 @@ sub find_files {
     {
       push(@matches, "$full_path/$type_extn");
     }
-    elsif(defined($self->type_extensions)  && defined($self->type_extensions->{$self->alt_type}) ) {
+    elsif(defined($self->type_extensions) && defined($self->alt_type) && defined($self->type_extensions->{$self->alt_type}) ) {
             @matches = File::Find::Rule->file()
                                           ->extras({ follow => 1 })
                                           ->name( $self->type_extensions->{$self->alt_type} )
