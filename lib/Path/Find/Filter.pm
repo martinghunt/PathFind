@@ -25,8 +25,6 @@ use Moose;
 use VRTrack::Lane;
 use VRTrack::Individual;
 use Path::Find;
-use Data::Dumper;
-use Storable;
 use File::Find::Rule;
 
 use lib "../../";
@@ -139,29 +137,34 @@ sub find_files {
     my ( $self, $full_path, $type_extn ) = @_;
 
     my @matches;
-    if(defined($type_extn) && $type_extn =~ /\*/)
-    {
-      @matches = File::Find::Rule->file()
-                                    ->extras({ follow => 1 })
-                                    ->name( $type_extn )
-                                    ->in($full_path );      
-    }
-    elsif(-e "$full_path/$type_extn")
+    if(-e "$full_path/$type_extn")
     {
       push(@matches, "$full_path/$type_extn");
+      return \@matches;
     }
-    elsif(defined($self->type_extensions) && defined($self->alt_type) && defined($self->type_extensions->{$self->alt_type}) ) {
-            @matches = File::Find::Rule->file()
-                                          ->extras({ follow => 1 })
-                                          ->name( $self->type_extensions->{$self->alt_type} )
-                                          ->in($full_path );
+
+    my $file_query;
+    if(defined($type_extn) && $type_extn =~ /\*/)
+    {
+      $file_query =  $type_extn;
     }
-    elsif(defined($self->type_extensions)  && defined($self->type_extensions->{$type_extn}) ) {
-            @matches = File::Find::Rule->file()
-                                          ->extras({ follow => 1 })
-                                          ->name( $self->type_extensions->{$type_extn} )
-                                          ->in($full_path );
+    elsif(defined($self->type_extensions) && defined($self->alt_type) && defined($self->type_extensions->{$self->alt_type}) ) 
+    {
+      $file_query = $self->alt_type;
     }
+    elsif(defined($self->type_extensions)  && defined($self->type_extensions->{$type_extn}) ) 
+    {
+       $file_query = $self->type_extensions->{$type_extn};
+    }
+    
+    if(defined($file_query))
+    {    
+      @matches = File::Find::Rule->file()
+                                    ->extras({ follow => 1 })
+                                    ->name(  $file_query )
+                                    ->in($full_path );      
+    }
+
     return \@matches;
 }
 
