@@ -209,8 +209,8 @@ sub _lookup_by_file {
   my $lane_name_search_query = join( '" OR lane.name like "', @all_lane_names );
   $lane_name_search_query = ' (lane.name like "' . $lane_name_search_query . '") ';
 
-  my $lane_acc_search_query = join( '" OR lane.acc like "', (keys %lanenames) );
-  $lane_acc_search_query = ' (lane.acc like "' . $lane_acc_search_query . '") ';
+  my $lane_acc_search_query = join( '" OR lane.acc = "', (keys %lanenames) );
+  $lane_acc_search_query = ' (lane.acc = "' . $lane_acc_search_query . '") ';
 
   my $lane_names =
     $self->dbh->selectall_arrayref( 'select lane.name from latest_lane as lane where '
