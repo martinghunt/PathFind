@@ -138,28 +138,31 @@ sub filter {
 sub find_files {
     my ( $self, $full_path, $type_extn ) = @_;
 
-    my @matches = File::Find::Rule->file()
-                                  ->name( $type_extn )
-                                  ->in($full_path );
-
-    if (@matches) {
-        return \@matches;
+    my @matches;
+    if($type_extn =~ /\*/)
+    {
+      @matches = File::Find::Rule->file()
+                                    ->extras({ follow => 1 })
+                                    ->name( $type_extn )
+                                    ->in($full_path );      
     }
-    else {
-        my $alt_type = $self->alt_type;
-        if( defined $alt_type ){
-            my $alt_extn = my $type_extn = $self->type_extensions->{$alt_type};
-            
+    elsif(-e "$full_path/$type_extn")
+    {
+      push(@matches, "$full_path/$type_extn");
+    }
+    elsif(defined($self->type_extensions)  && defined($self->type_extensions->{$self->alt_type}) ) {
             @matches = File::Find::Rule->file()
-                                          ->name( $alt_extn )
+                                          ->extras({ follow => 1 })
+                                          ->name( $self->type_extensions->{$self->alt_type} )
                                           ->in($full_path );
-            return undef unless ( @matches );
-            return \@matches;
-        }
-        else{
-            return undef;
-        }
     }
+    elsif(defined($self->type_extensions)  && defined($self->type_extensions->{$type_extn}) ) {
+            @matches = File::Find::Rule->file()
+                                          ->extras({ follow => 1 })
+                                          ->name( $self->type_extensions->{$type_extn} )
+                                          ->in($full_path );
+    }
+    return \@matches;
 }
 
 sub _make_lane_hash {
@@ -239,6 +242,7 @@ sub _get_stats_paths {
 		$l =~ s/annotation//;
 		foreach my $sf ( @{ $stats } ){
 			my @stat_files = File::Find::Rule->file()
+			                              ->extras({ follow => 1 })
                                     ->name( $sf )
                                     ->in($l );
 			
