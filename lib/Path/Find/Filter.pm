@@ -106,7 +106,7 @@ sub filter {
             }
 
 
-            foreach my $subdir (keys %{$sub_dir_paths}) {
+            for my $subdir (keys %{$sub_dir_paths}) {
               my $full_path = $sub_dir_paths->{$subdir}.$subdir;
                 if ($filetype) {
 
@@ -143,7 +143,7 @@ sub filter {
 }
 
 sub find_files {
-    my ( $self, $full_path, $type_extn,$lane_obj ) = @_;
+    my ( $self, $full_path, $type_extn,$lane_obj, $subdir ) = @_;
 
     my @matches;
     
