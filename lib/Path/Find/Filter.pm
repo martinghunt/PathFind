@@ -103,7 +103,7 @@ sub filter {
                 if ($filetype) {
 
                     #my $search_path = "$full_path/$type_extn";
-                    next unless my $mfiles = $self->find_files( $full_path, $type_extn );
+                    next unless my $mfiles = $self->find_files( $full_path, $type_extn, $l);
                     my @matching_files = @{$mfiles};
 
                     # exclude pool_1.fastq.gz files
@@ -135,10 +135,19 @@ sub filter {
 }
 
 sub find_files {
-    my ( $self, $full_path, $type_extn ) = @_;
+    my ( $self, $full_path, $type_extn,$lane_obj ) = @_;
 
     my @matches;
-    if ( -e "$full_path/$type_extn" ) {
+    
+    # If there is a storage path - lookup nexsan directly instead of going via lustre, but return the lustre path
+    # There a potential for error here but its a big speed increase.    
+    my $storage_path = $lane_obj->storage_path;
+    if(defined($storage_path) && -e "$storage_path/$type_extn" )
+    {
+      push( @matches, "$full_path/$type_extn" );
+      return \@matches;
+    }
+    elsif ( -e "$full_path/$type_extn" ) {
         push( @matches, "$full_path/$type_extn" );
         return \@matches;
     }
