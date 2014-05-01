@@ -97,13 +97,21 @@ sub filter {
         }
 
         if ( !$qc || ( defined( $l->qc_status() ) && ( $qc && $qc eq $l->qc_status() ) ) ) {
-            my @paths = $self->_get_full_path($l);
+            my $sub_dir_paths = $self->_get_full_path($l);
+            
+            my @paths;
+            for my $subdir (keys %{$sub_dir_paths})
+            {
+              push(@paths, $sub_dir_paths->{$subdir}.$subdir);
+            }
 
-            foreach my $full_path (@paths) {
+
+            foreach my $subdir (keys %{$sub_dir_paths}) {
+              my $full_path = $sub_dir_paths->{$subdir}.$subdir;
                 if ($filetype) {
 
                     #my $search_path = "$full_path/$type_extn";
-                    next unless my $mfiles = $self->find_files( $full_path, $type_extn, $l);
+                    next unless my $mfiles = $self->find_files( $full_path, $type_extn, $l,$subdir);
                     my @matching_files = @{$mfiles};
 
                     # exclude pool_1.fastq.gz files
@@ -142,7 +150,7 @@ sub find_files {
     # If there is a storage path - lookup nexsan directly instead of going via lustre, but return the lustre path
     # There a potential for error here but its a big speed increase.    
     my $storage_path = $lane_obj->storage_path;
-    if(defined($storage_path) && -e "$storage_path/$type_extn" )
+    if(defined($storage_path) && -e "$storage_path$subdir/$type_extn" )
     {
       push( @matches, "$full_path/$type_extn" );
       return \@matches;
@@ -221,6 +229,8 @@ sub _match_mapstat {
     return undef;
 }
 
+
+
 sub _get_full_path {
     my ( $self, $lane ) = @_;
     my $root    = $self->root;
@@ -231,12 +241,14 @@ sub _get_full_path {
     my $hierarchy_template = $self->hierarchy_template;
     my $pathtrack          = $self->pathtrack;
 
+    my %path_details;
     $lane_path = $pathtrack->hierarchy_path_of_lane( $lane, $hierarchy_template );
     foreach my $subdir (@subdirs) {
-        push( @fps, "$root/$lane_path$subdir" );
+        $path_details{$subdir} = "$root/$lane_path";
     }
 
-    return @fps;
+
+    return \%path_details;
 }
 
 sub _get_stats_paths {
