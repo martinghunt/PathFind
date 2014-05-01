@@ -242,9 +242,7 @@ sub _get_stats_paths {
             my @stat_files = File::Find::Rule->file()->extras( { follow => 1 } )->name($sf)->in($l);
 
             foreach my $st_file (@stat_files) {
-                if ( -e $st_file ) {
                     push( @stats_paths, $st_file );
-                }
             }
         }
         return \@stats_paths if (@stats_paths);
