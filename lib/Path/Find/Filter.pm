@@ -111,7 +111,7 @@ sub filter {
 
                     for my $m (@matching_files) {
                         $self->_set_found(1);
-                        my %lane_hash = $self->_make_lane_hash( $m, $l );
+                        my %lane_hash = $self->_make_lane_hash( $m, $l, \@paths );
 
                         # check ref, date or mapper matches
                         next if ( defined $ref    && !$self->_reference_matches( $lane_hash{ref} ) );
@@ -124,7 +124,7 @@ sub filter {
                 else {
                     if ( -e $full_path ) {
                         $self->_set_found(1);
-                        my %lane_hash = $self->_make_lane_hash( $full_path, $l );
+                        my %lane_hash = $self->_make_lane_hash( $full_path, $l, \@paths );
                         push( @matching_paths, \%lane_hash );
                     }
                 }
@@ -165,7 +165,7 @@ sub find_files {
 }
 
 sub _make_lane_hash {
-    my ( $self, $path, $lane_obj ) = @_;
+    my ( $self, $path, $lane_obj, $get_full_paths ) = @_;
     my $vb    = $self->verbose;
     my $stats = $self->stats;
 
@@ -192,7 +192,7 @@ sub _make_lane_hash {
     }
 
     if ( defined $stats ) {
-        $lane_hash{stats} = $self->_get_stats_paths($lane_obj);
+        $lane_hash{stats} = $self->_get_stats_paths($lane_obj, $get_full_paths );
     }
 
     return %lane_hash;
@@ -231,8 +231,8 @@ sub _get_full_path {
 }
 
 sub _get_stats_paths {
-    my ( $self, $lane_obj ) = @_;
-    my @lane_paths = $self->_get_full_path($lane_obj);
+    my ( $self, $lane_obj, $get_full_paths) = @_;
+    my @lane_paths = @{$get_full_paths};
     my $stats      = $self->stats;
 
     my @stats_paths;
