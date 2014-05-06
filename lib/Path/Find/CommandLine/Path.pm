@@ -40,8 +40,9 @@ use Moose;
 
 use Data::Dumper;
 use Cwd;
+use Cwd 'abs_path';
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use Getopt::Long qw(GetOptionsFromArray);
 
@@ -66,11 +67,13 @@ has 'symlink'      => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'output'       => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'         => ( is => 'rw', isa => 'Str',      required => 0 );
 has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
+has 'rename'       => ( is => 'rw', isa => 'Str',      required => 0 );
+
 sub BUILD {
     my ($self) = @_;
 
     my ( $type, $id, $qc, $filetype, $archive, $stats, $symlink, $output,
-        $help, $test );
+        $rename, $help, $test );
 
     my @args = @{ $self->args };
 	GetOptionsFromArray(
@@ -82,6 +85,7 @@ sub BUILD {
         'a|archive:s'  => \$archive,
         's|stats:s'    => \$stats,
         'q|qc=s'       => \$qc,
+        'r|rename'     => \$rename,
         'test'         => \$test,
         'h|help'       => \$help
     );
@@ -92,10 +96,20 @@ sub BUILD {
     $self->filetype($filetype)  if ( defined $filetype );
     $self->archive($archive)    if ( defined $archive );
     $self->stats($stats)        if ( defined $stats );
-    $self->symlink($symlink)    if ( defined $symlink );
     $self->output($output)      if ( defined $output );
     $self->help($help)          if ( defined $help );
     $self->_environment('test') if ( defined $test );
+    $self->rename($rename)      if ( defined $rename ); 
+
+    if ( defined $symlink ){
+        if ($symlink eq ''){
+            $self->symlink($symlink);
+        }
+        else{
+            $self->symlink(abs_path($symlink));
+        }
+    }
+
 }
     
 sub check_inputs {
@@ -227,7 +241,8 @@ sub run {
                 name             => $name,
                 use_default_type => $use_default,
 				script_name      => $self->script_name,
-                stats            => $stats_output
+                stats            => $stats_output,
+                replace_hashes   => $self->rename
             );
 
             $linker->sym_links if ( defined $symlink );

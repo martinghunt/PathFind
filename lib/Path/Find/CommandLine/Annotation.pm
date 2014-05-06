@@ -45,7 +45,7 @@ use Cwd qw(abs_path getcwd);
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "/lustre/scratch108/pathogen/cc21/repos/Bio-AutomatedAnnotation/lib";
 use lib "../lib";
 
@@ -108,7 +108,6 @@ sub BUILD {
 
     $self->type($type)                       if ( defined $type );
     $self->id($id)                           if ( defined $id );
-    $self->symlink($symlink)                 if ( defined $symlink );
     $self->help($help)                       if ( defined $help );
     $self->filetype($filetype)               if ( defined $filetype );
     $self->output($output)                   if ( defined $output );
@@ -118,6 +117,15 @@ sub BUILD {
     $self->archive($archive)                 if ( defined $archive );
     $self->stats($stats)                     if ( defined $stats );
     $self->_environment('test')              if ( defined $test );
+
+    if ( defined $symlink ){
+        if ($symlink eq ''){
+            $self->symlink($symlink);
+        }
+        else{
+            $self->symlink(abs_path($symlink));
+        }
+    }
 }
 
 sub check_inputs{

@@ -40,6 +40,7 @@ no warnings 'uninitialized';
 use Moose;
 
 use Cwd;
+use Cwd 'abs_path';
 use Data::Dumper;
 
 #Change accordingly once we have a stable checkout
@@ -94,12 +95,20 @@ sub BUILD {
 
     $self->type($type)         if ( defined $type );
     $self->id($id)             if ( defined $id );
-    $self->symlink($symlink)   if ( defined $symlink );
     $self->stats($stats)       if ( defined $stats );
     $self->filetype($filetype) if ( defined $filetype );
     $self->archive($archive)   if ( defined $archive );
     $self->help($help)         if ( defined $help );
     $self->_environment('test') if ( defined $test );
+
+    if ( defined $symlink ){
+        if ($symlink eq ''){
+            $self->symlink($symlink);
+        }
+        else{
+            $self->symlink(abs_path($symlink));
+        }
+    }
 }
 
 sub check_inputs{

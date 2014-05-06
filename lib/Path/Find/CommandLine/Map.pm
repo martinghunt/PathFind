@@ -43,9 +43,10 @@ use Moose;
 
 use Data::Dumper;
 use Cwd;
+use Cwd 'abs_path';
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use Getopt::Long qw(GetOptionsFromArray);
 
@@ -102,7 +103,6 @@ sub BUILD {
 
     $self->type($type)         if ( defined $type );
     $self->id($id)             if ( defined $id );
-    $self->symlink($symlink)   if ( defined $symlink );
     $self->archive($archive)   if ( defined $archive );
     $self->help($help)         if ( defined $help );
     $self->verbose($verbose)   if ( defined $verbose );
@@ -113,6 +113,15 @@ sub BUILD {
     $self->mapper($mapper)     if ( defined $mapper );
     $self->qc($qc)             if ( defined $qc );
     $self->_environment('test') if ( defined $test );
+
+    if ( defined $symlink ){
+        if ($symlink eq ''){
+            $self->symlink($symlink);
+        }
+        else{
+            $self->symlink(abs_path($symlink));
+        }
+    }
 }
 
 sub check_inputs{

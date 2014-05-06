@@ -481,7 +481,6 @@ sub exp_files {
 		my @d = split("/", $f);
 		my $e = pop @d;
 		if( $e =~ /\./ ){
-			$e =~ s/[^\w\.]+/_/g;
 			push(@ef, $e);
 		}
 		else{
@@ -489,7 +488,6 @@ sub exp_files {
 			foreach my $a ( @all ){
 				my @dirs = split('/', $a);
 				my $fn = pop @dirs;
-				$fn =~ s/[^\w\.]+/_/g;
 				push( @ef, $fn );
 			}
 		}
