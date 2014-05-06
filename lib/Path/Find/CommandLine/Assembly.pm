@@ -129,7 +129,8 @@ sub check_inputs{
             || (
                 $self->filetype
                 && (   $self->filetype eq 'contigs'
-                    || $self->filetype eq 'scaffold' )
+                    || $self->filetype eq 'scaffold'
+                    || $self->filetype eq 'columbus')
             )
           )
           && ( !defined($self->archive)
@@ -169,16 +170,22 @@ sub run {
 
     # Set assembly subdirectories
     my @sub_directories;
-    if ($filetype) {
+    if (defined($filetype) && $filetype eq 'contigs') {
         @sub_directories = (
-            '/velvet_assembly', '/velvet_assembly_with_reference',
-            '/spades_assembly'
+            '/velvet_assembly',  '/spades_assembly'
         );
     }
+    elsif (defined($filetype) && $filetype eq 'columbus') {
+        @sub_directories = (
+            '/velvet_assembly', '/velvet_assembly_with_reference',
+        );
+
+    }
+    
     else {
         $filetype = 'scaffold';
         @sub_directories = (
-            '/velvet_assembly', '/velvet_assembly_with_reference',
+            '/velvet_assembly',
             '/spades_assembly'
         );
     }
@@ -187,6 +194,7 @@ sub run {
     my %type_extensions = (
         contigs  => 'unscaffolded_contigs.fa',
         scaffold => 'contigs.fa',
+        columbus => 'contigs.fa',
     );
 
     my $lane_filter;
@@ -380,7 +388,7 @@ sub usage_text {
 Usage: $script_name
      -t|type            <study|lane|file|sample|species>
      -i|id              <study id|study name|lane name|file of lane names>
-     -f|filetype        <contigs|scaffold>
+     -f|filetype        <contigs|scaffold|columbus>
      -l|symlink         <create a symlink to the data>
      -a|archive         <create archive of the data>
      -s|stats           <create a CSV file containing assembly stats>

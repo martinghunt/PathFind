@@ -25,28 +25,25 @@ use Moose;
 use VRTrack::Lane;
 use VRTrack::Individual;
 use Path::Find;
-use Data::Dumper;
-use Storable;
+use File::Find::Rule;
 
 use lib "../../";
 use Path::Find::Exception;
-
 
 # required
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'root'      => ( is => 'ro', required => 1 );
 has 'pathtrack' => ( is => 'ro', required => 1 );
+
 # end required
 
 #optional
-has 'hierarchy_template' =>
-  ( is => 'rw', builder => '_build_hierarchy_template', required => 0 );
+has 'hierarchy_template' => ( is => 'rw', builder => '_build_hierarchy_template', required => 0 );
 has 'filetype'        => ( is => 'ro', required => 0 );
-has 'type_extensions' => ( is => 'rw', isa => 'HashRef', required => 0 );
-has 'alt_type'        => ( is => 'ro', isa => 'Str',     required => 0 );
+has 'type_extensions' => ( is => 'rw', isa      => 'HashRef', required => 0 );
+has 'alt_type'        => ( is => 'ro', isa      => 'Str', required => 0 );
 has 'qc'              => ( is => 'ro', required => 0 );
-has 'found' =>
-  ( is => 'rw', default => 0, writer => '_set_found', required => 0 );
+has 'found'           => ( is => 'rw', default  => 0, writer => '_set_found', required => 0 );
 has 'subdirectories' => (
     is      => 'ro',
     isa     => 'ArrayRef',
@@ -59,8 +56,9 @@ has 'subdirectories' => (
 has 'reference' => ( is => 'ro', required => 0 );
 has 'mapper'    => ( is => 'rw', required => 0 );
 has 'date'      => ( is => 'ro', required => 0 );
-has 'verbose'   => ( is => 'ro', isa => 'Bool', default => 0, required => 0 );
-has 'stats'     => ( is => 'ro', isa => 'ArrayRef', required => 0 );
+has 'verbose'   => ( is => 'ro', isa      => 'Bool', default => 0, required => 0 );
+has 'stats' => ( is => 'ro', isa => 'ArrayRef', required => 0 );
+
 # end optional
 
 sub _build_hierarchy_template {
@@ -91,43 +89,51 @@ sub filter {
             $type_extn =~ s/MAPSTAT_ID/$ms_id/;
         }
 
-	   # check date format
-	   if(defined $date){
-	       ( $date =~ /\d{2}-\d{2}-\d{4}/ ) or Path::Find::Exception::InvalidInput->throw( error => "Date (-d option) '$date' is not in the correct format. Use format: DD-MM-YYYY\n");
-	   }
+        # check date format
+        if ( defined $date ) {
+            ( $date =~ /\d{2}-\d{2}-\d{4}/ )
+              or Path::Find::Exception::InvalidInput->throw(
+                error => "Date (-d option) '$date' is not in the correct format. Use format: DD-MM-YYYY\n" );
+        }
 
-        if ( !$qc || (defined($l->qc_status()) && ( $qc && $qc eq $l->qc_status() )) ) {
-            my @paths = $self->_get_full_path($l);
+        if ( !$qc || ( defined( $l->qc_status() ) && ( $qc && $qc eq $l->qc_status() ) ) ) {
+            my $sub_dir_paths = $self->_get_full_path($l);
+            
+            my @paths;
+            for my $subdir (keys %{$sub_dir_paths})
+            {
+              push(@paths, $sub_dir_paths->{$subdir}.$subdir);
+            }
 
-            foreach my $full_path (@paths) {
+
+            for my $subdir (keys %{$sub_dir_paths}) {
+              my $full_path = $sub_dir_paths->{$subdir}.$subdir;
                 if ($filetype) {
+
                     #my $search_path = "$full_path/$type_extn";
-                    next unless my $mfiles = $self->find_files($full_path, $type_extn);
-				    my @matching_files = @{ $mfiles };
+                    next unless my $mfiles = $self->find_files( $full_path, $type_extn, $l,$subdir);
+                    my @matching_files = @{$mfiles};
 
-				    # exclude pool_1.fastq.gz files
-				    @matching_files = grep {!/pool_1.fastq.gz/} @matching_files;
+                    # exclude pool_1.fastq.gz files
+                    @matching_files = grep { !/pool_1.fastq.gz/ } @matching_files;
 
-                    for my $m ( @matching_files ) {
-                        if ( -e $m ) {
-                            $self->_set_found(1);
-						    my %lane_hash = $self->_make_lane_hash( $m, $l );
+                    for my $m (@matching_files) {
+                        $self->_set_found(1);
+                        my %lane_hash = $self->_make_lane_hash( $m, $l, \@paths );
 
-                            # check ref, date or mapper matches
-                            next if ( defined $ref    && !$self->_reference_matches($lane_hash{ref}) );
-                            next if ( defined $mapper && !$self->_mapper_matches($lane_hash{mapper}) );
-                            next if ( defined $date   && !$self->_date_is_later($lane_hash{date}) );
+                        # check ref, date or mapper matches
+                        next if ( defined $ref    && !$self->_reference_matches( $lane_hash{ref} ) );
+                        next if ( defined $mapper && !$self->_mapper_matches( $lane_hash{mapper} ) );
+                        next if ( defined $date   && !$self->_date_is_later( $lane_hash{date} ) );
 
-
-                            push( @matching_paths, \%lane_hash );
-                        }
+                        push( @matching_paths, \%lane_hash );
                     }
                 }
                 else {
                     if ( -e $full_path ) {
                         $self->_set_found(1);
-					    my %lane_hash = $self->_make_lane_hash( $full_path, $l );
-                        push( @matching_paths, \%lane_hash);
+                        my %lane_hash = $self->_make_lane_hash( $full_path, $l, \@paths );
+                        push( @matching_paths, \%lane_hash );
                     }
                 }
             }
@@ -137,38 +143,56 @@ sub filter {
 }
 
 sub find_files {
-    my ( $self, $full_path, $type_extn ) = @_;
+    my ( $self, $full_path, $type_extn,$lane_obj, $subdir ) = @_;
 
-    my @matches = glob "$full_path/$type_extn";
-    if (@matches) {
+    my @matches;
+    
+    # If there is a storage path - lookup nexsan directly instead of going via lustre, but return the lustre path
+    # There a potential for error here but its a big speed increase.    
+    my $storage_path = $lane_obj->storage_path;
+    if(defined($storage_path) && -e "$storage_path$subdir/$type_extn" )
+    {
+      push( @matches, "$full_path/$type_extn" );
+      return \@matches;
+    }
+    elsif ( -e "$full_path/$type_extn" ) {
+        push( @matches, "$full_path/$type_extn" );
         return \@matches;
     }
-    else {
-        my $alt_type = $self->alt_type;
-        if( defined $alt_type ){
-            my $alt_extn = my $type_extn = $self->type_extensions->{$alt_type};
-            @matches = glob "$full_path/$alt_extn";
-            return undef unless ( @matches );
-            return \@matches;
-        }
-        else{
-            return undef;
-        }
+
+    my $file_query;
+    if ( defined($type_extn) && $type_extn =~ /\*/ ) {
+        $file_query = $type_extn;
     }
+    elsif (defined( $self->type_extensions )
+        && defined( $self->alt_type )
+        && defined( $self->type_extensions->{ $self->alt_type } ) )
+    {
+        $file_query = $self->alt_type;
+    }
+    elsif ( defined( $self->type_extensions ) && defined( $self->type_extensions->{$type_extn} ) ) {
+        $file_query = $self->type_extensions->{$type_extn};
+    }
+
+    if ( defined($file_query) ) {
+        @matches = File::Find::Rule->file()->extras( { follow => 1 } )->name($file_query)->in($full_path);
+    }
+
+    return \@matches;
 }
 
 sub _make_lane_hash {
-    my ( $self, $path, $lane_obj ) = @_;
-    my $vb = $self->verbose;
-	my $stats = $self->stats;
-	
-	my %lane_hash;
-    my $mapstat = $self->_match_mapstat($path, $lane_obj);
+    my ( $self, $path, $lane_obj, $get_full_paths ) = @_;
+    my $vb    = $self->verbose;
+    my $stats = $self->stats;
+
+    my %lane_hash;
+    my $mapstat = $self->_match_mapstat( $path, $lane_obj );
     my $ms_id = defined $mapstat ? $mapstat->id : undef;
     if ($vb) {
         %lane_hash = (
             lane       => $lane_obj,
-			path       => $path,
+            path       => $path,
             mapstat_id => $ms_id,
             ref        => $self->_reference_name($mapstat),
             mapper     => $self->_get_mapper($mapstat),
@@ -177,33 +201,35 @@ sub _make_lane_hash {
 
     }
     else {
-        %lane_hash = ( 
-			lane       => $lane_obj,
-			path       => $path,
+        %lane_hash = (
+            lane       => $lane_obj,
+            path       => $path,
             mapstat_id => $ms_id
-		);
+        );
     }
 
-	if(defined $stats){
-		$lane_hash{stats} = $self->_get_stats_paths($lane_obj);
-	}
-	
-	return %lane_hash;
+    if ( defined $stats ) {
+        $lane_hash{stats} = $self->_get_stats_paths($lane_obj, $get_full_paths );
+    }
+
+    return %lane_hash;
 }
 
 sub _match_mapstat {
-    my ($self, $path, $lane) = @_;
+    my ( $self, $path, $lane ) = @_;
 
     $path =~ /(\d+)\.[ps]e/;
     my $ms_id = $1;
     return undef unless ( defined $ms_id );
 
     my @mapstats = @{ $lane->mappings_excluding_qc };
-    foreach my $ms ( @mapstats ){
-        return $ms if($ms_id eq $ms->id);
+    foreach my $ms (@mapstats) {
+        return $ms if ( $ms_id eq $ms->id );
     }
     return undef;
 }
+
+
 
 sub _get_full_path {
     my ( $self, $lane ) = @_;
@@ -215,34 +241,34 @@ sub _get_full_path {
     my $hierarchy_template = $self->hierarchy_template;
     my $pathtrack          = $self->pathtrack;
 
-    $lane_path =
-      $pathtrack->hierarchy_path_of_lane( $lane, $hierarchy_template );
+    my %path_details;
+    $lane_path = $pathtrack->hierarchy_path_of_lane( $lane, $hierarchy_template );
     foreach my $subdir (@subdirs) {
-        push( @fps, "$root/$lane_path$subdir" );
+        $path_details{$subdir} = "$root/$lane_path";
     }
 
-    return @fps;
+
+    return \%path_details;
 }
 
 sub _get_stats_paths {
-	my ($self, $lane_obj) = @_;
-	my @lane_paths = $self->_get_full_path($lane_obj);
-	my $stats = $self->stats;
-	
-	my @stats_paths;
-	foreach my $l ( @lane_paths ){
-		$l =~ s/annotation//;
-		foreach my $sf ( @{ $stats } ){
-			my @stat_files = glob "$l/$sf";
-			foreach my $st_file ( @stat_files ){
-				if(-e $st_file){
-					push(@stats_paths, $st_file);
-				}
-			}
-		}
-		return \@stats_paths if( @stats_paths );
-	}
-	return undef;
+    my ( $self, $lane_obj, $get_full_paths) = @_;
+    my @lane_paths = @{$get_full_paths};
+    my $stats      = $self->stats;
+
+    my @stats_paths;
+    foreach my $l (@lane_paths) {
+        $l =~ s/annotation//;
+        foreach my $sf ( @{$stats} ) {
+            my @stat_files = File::Find::Rule->file()->extras( { follow => 1 } )->name($sf)->in($l);
+
+            foreach my $st_file (@stat_files) {
+                    push( @stats_paths, $st_file );
+            }
+        }
+        return \@stats_paths if (@stats_paths);
+    }
+    return undef;
 }
 
 sub _reference_matches {
@@ -289,32 +315,32 @@ sub _date_is_later {
 sub _reference_name {
     my ( $self, $mapstat ) = @_;
 
-  return 'NA' if(!defined($mapstat));
-	my $assembly_obj = $mapstat->assembly;
-	
-	if(defined $assembly_obj){
-		return $assembly_obj->name;
-	}
-	else{
-		return 'NA';
-	}
+    return 'NA' if ( !defined($mapstat) );
+    my $assembly_obj = $mapstat->assembly;
+
+    if ( defined $assembly_obj ) {
+        return $assembly_obj->name;
+    }
+    else {
+        return 'NA';
+    }
 }
 
 sub _get_mapper {
     my ( $self, $mapstat ) = @_;
-return 'NA' if(!defined($mapstat));
-	my $mapper_obj = $mapstat->mapper;
-	if( defined $mapper_obj ){
-    	return $mapper_obj->name;
-	}
-	else{
-		return 'NA';
-	}
+    return 'NA' if ( !defined($mapstat) );
+    my $mapper_obj = $mapstat->mapper;
+    if ( defined $mapper_obj ) {
+        return $mapper_obj->name;
+    }
+    else {
+        return 'NA';
+    }
 }
 
 sub _date_changed {
     my ( $self, $mapstat ) = @_;
-    return '01-01-1900' if(!defined($mapstat));
+    return '01-01-1900' if ( !defined($mapstat) );
     my $msch = $mapstat->changed;
     my ( $date, $time ) = split( /\s+/, $msch );
     my @date_elements = split( '-', $date );
