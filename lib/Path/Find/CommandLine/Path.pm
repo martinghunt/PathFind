@@ -165,8 +165,8 @@ sub run {
 
     # set file type extension regular expressions
     my %type_extensions = (
-        fastq => '*.fastq.gz',
-        bam   => '*.bam'
+        fastq => '.fastq.gz',
+        bam   => '.bam'
     );
 
     my $lane_filter;
@@ -202,7 +202,8 @@ sub run {
             qc              => $qc,
             root            => $root,
             pathtrack       => $pathtrack,
-            type_extensions => \%type_extensions
+            type_extensions => \%type_extensions,
+	    search_depth    => 1
         );
         my @matching_lanes = $lane_filter->filter;
 

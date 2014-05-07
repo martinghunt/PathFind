@@ -30,6 +30,8 @@ use File::Find::Rule;
 use lib "../../";
 use Path::Find::Exception;
 
+use Data::Dumper;
+
 # required
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'root'      => ( is => 'ro', required => 1 );
@@ -41,7 +43,7 @@ has 'pathtrack' => ( is => 'ro', required => 1 );
 has 'hierarchy_template' => ( is => 'rw', builder => '_build_hierarchy_template', required => 0 );
 has 'filetype'        => ( is => 'ro', required => 0 );
 has 'type_extensions' => ( is => 'rw', isa      => 'HashRef', required => 0 );
-has 'alt_type'        => ( is => 'ro', isa      => 'Str', required => 0 );
+#has 'alt_type'        => ( is => 'ro', isa      => 'Str', required => 0 );
 has 'qc'              => ( is => 'ro', required => 0 );
 has 'found'           => ( is => 'rw', default  => 0, writer => '_set_found', required => 0 );
 has 'subdirectories' => (
@@ -58,6 +60,7 @@ has 'mapper'    => ( is => 'rw', required => 0 );
 has 'date'      => ( is => 'ro', required => 0 );
 has 'verbose'   => ( is => 'ro', isa      => 'Bool', default => 0, required => 0 );
 has 'stats' => ( is => 'ro', isa => 'ArrayRef', required => 0 );
+has 'search_depth' => ( is =>'ro', isa => 'Int', required => 0, default => 2 );
 
 # end optional
 
@@ -160,22 +163,31 @@ sub find_files {
         return \@matches;
     }
 
+    if(defined $type_extn && $type_extn =~ /fastq/){
+	$type_extn =~ s/\*//;
+        foreach my $f ( @{$lane_obj->files} ){
+            my $file_from_obj = $f->name;
+            push(@matches, "$full_path/$file_from_obj") if ( $file_from_obj =~ /$type_extn/ && -e "$full_path/$file_from_obj");
+        }
+        return \@matches if( @matches );
+    }
+
     my $file_query;
     if ( defined($type_extn) && $type_extn =~ /\*/ ) {
         $file_query = $type_extn;
     }
-    elsif (defined( $self->type_extensions )
-        && defined( $self->alt_type )
-        && defined( $self->type_extensions->{ $self->alt_type } ) )
-    {
-        $file_query = $self->alt_type;
-    }
+    #elsif (defined( $self->type_extensions )
+    #    && defined( $self->alt_type )
+    #    && defined( $self->type_extensions->{ $self->alt_type } ) )
+    #{
+    #    $file_query = $self->alt_type;
+    #}
     elsif ( defined( $self->type_extensions ) && defined( $self->type_extensions->{$type_extn} ) ) {
         $file_query = $self->type_extensions->{$type_extn};
     }
 
     if ( defined($file_query) ) {
-        @matches = File::Find::Rule->file()->extras( { follow => 1 } )->name($file_query)->in($full_path);
+        @matches = File::Find::Rule->file()->extras( { follow => 1 } )->maxdepth($self->search_depth)->name($file_query)->in($full_path);
     }
 
     return \@matches;
@@ -260,6 +272,11 @@ sub _get_stats_paths {
     foreach my $l (@lane_paths) {
         $l =~ s/annotation//;
         foreach my $sf ( @{$stats} ) {
+	    if( $sf =~ /\// ){
+		my @parts = split('/', $sf);
+		$sf = pop(@parts);
+		$l .= "/" . join('/', @parts);
+	    }
             my @stat_files = File::Find::Rule->file()->extras( { follow => 1 } )->name($sf)->in($l);
 
             foreach my $st_file (@stat_files) {

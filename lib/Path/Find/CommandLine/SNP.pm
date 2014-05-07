@@ -183,9 +183,13 @@ sub run {
 
 
     # set file type extension regular expressions
+    #my %type_extensions = (
+    #    vcf          => '*.snp/mpileup.unfilt.vcf.gz',
+    #    pseudogenome => '*.snp/pseudo_genome.fasta'
+    #);
     my %type_extensions = (
-        vcf          => '*.snp/mpileup.unfilt.vcf.gz',
-        pseudogenome => '*.snp/pseudo_genome.fasta'
+        vcf          => '*mpileup.unfilt.vcf.gz',
+        pseudogenome => '*pseudo_genome.fasta'
     );
 
     my ( $lane_filter, $vb );

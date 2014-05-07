@@ -384,7 +384,7 @@ sub stats_name {
         }
         $stats = "$s.annotation_stats.csv";
     }
-    $stats =~ s/[^\w\.]+/_/g;
+    $stats =~ s/[^\w\.\/]+/_/g;
     return $stats;
 }
 
