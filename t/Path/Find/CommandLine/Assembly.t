@@ -11,7 +11,7 @@ BEGIN { unshift( @INC, './lib' ) }
 use Path::Find::Exception;
 
 BEGIN {
-        use Test::Most;
+    use Test::Most;
 	use Test::Output;
 	use Test::Exception;
 }
@@ -674,7 +674,7 @@ sub exp_files {
 		$h.= ".";
 		$h.= $e;
 		if( $h =~ /\./ ){
-			$h =~ s/[^\w\.]+/_/g;
+			#$h =~ s/[^\w\.]+/_/g;
 			push(@ef, $h);
 		}
 		else{
@@ -682,7 +682,7 @@ sub exp_files {
 			foreach my $a ( @all ){
 				my @dirs = split('/', $a);
 				my $fn = pop @dirs;
-				$fn =~ s/[^\w\.]+/_/g;
+				#$fn =~ s/[^\w\.]+/_/g;
 				push( @ef, $fn );
 			}
 		}
