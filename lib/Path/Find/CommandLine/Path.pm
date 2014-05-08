@@ -326,7 +326,8 @@ Usage: $script_name
 		-f|filetype	<fastq>
 		-l|symlink	<create sym links to the data and define output directory>
 		-a|archive	<name for archive containing the data>
-		-s|stats	<output statistics>
+		-r|rename   <replace # in symlinks with _>
+        -s|stats	<output statistics>
 		-q|qc		<passed|failed|pending>    
 
 	Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the data associated with the specified study or lane. 
