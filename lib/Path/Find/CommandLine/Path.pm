@@ -38,11 +38,10 @@ use warnings;
 no warnings 'uninitialized';
 use Moose;
 
-use Data::Dumper;
 use Cwd;
 use Cwd 'abs_path';
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
-#use lib "/software/pathogen/internal/prod/lib";
+use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use Getopt::Long qw(GetOptionsFromArray);
 

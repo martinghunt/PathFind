@@ -42,7 +42,6 @@ use warnings;
 no warnings 'uninitialized';
 use Moose;
 
-use Data::Dumper;
 use Cwd;
 use Cwd 'abs_path';
 use File::chdir;
@@ -50,7 +49,7 @@ use File::Temp;
 use File::Copy qw(move);
 use Getopt::Long qw(GetOptionsFromArray);
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";    #Change accordingly once we have a stable checkout
-#use lib "/software/pathogen/internal/prod/lib";
+use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use File::Basename;
 
@@ -182,11 +181,6 @@ sub run {
       if ( defined $pseudogenome && $pseudogenome ne 'none' && !defined $ref );
 
 
-    # set file type extension regular expressions
-    #my %type_extensions = (
-    #    vcf          => '*.snp/mpileup.unfilt.vcf.gz',
-    #    pseudogenome => '*.snp/pseudo_genome.fasta'
-    #);
     my %type_extensions = (
         vcf          => '*mpileup.unfilt.vcf.gz',
         pseudogenome => '*pseudo_genome.fasta'
