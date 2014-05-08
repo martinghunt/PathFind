@@ -417,15 +417,20 @@ compare_ok("Test_Study_2.annotation_stats.csv", "t/data/annotationfind/annotatio
 unlink("Test_Study_2.annotation_stats.csv");
 
 # test 46
-@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-s', 'studystatsfile.csv', '-a', "$tmp/test_archive" );
+@args = ( '--test', '-t', 'study', '-i', 'Test Study 2', '-s', "$tmp/studystatsfile.csv", '-a', "$tmp/test_archive" );
 $obj =Path::Find::CommandLine::Annotation->new(args => \@args, script_name => 'annotationfind');
 $exp_out = read_file('t/data/annotationfind/46.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check file
-ok( -e "studystatsfile.csv", 'output file exists' );
-compare_ok("studystatsfile.csv", "t/data/annotationfind/annotation_stats_study.exp", "files are identical");
+ok( -e "$tmp/studystatsfile.csv", 'output file exists' );
+#compare_ok("studystatsfile.csv", "t/data/annotationfind/annotation_stats_study.exp", "files are identical");
+is(
+	read_file("$tmp/studystatsfile.csv"),
+	read_file('t/data/annotationfind/annotation_stats_study.exp'),
+	'file contents correct'
+);
 unlink("studystatsfile.csv");
 
 # check stats inside archive
@@ -481,7 +486,6 @@ sub exp_files {
 		my @d = split("/", $f);
 		my $e = pop @d;
 		if( $e =~ /\./ ){
-			$e =~ s/[^\w\.]+/_/g;
 			push(@ef, $e);
 		}
 		else{
@@ -489,7 +493,6 @@ sub exp_files {
 			foreach my $a ( @all ){
 				my @dirs = split('/', $a);
 				my $fn = pop @dirs;
-				$fn =~ s/[^\w\.]+/_/g;
 				push( @ef, $fn );
 			}
 		}

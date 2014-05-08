@@ -43,12 +43,14 @@ use Moose;
 
 use Data::Dumper;
 use Cwd;
+use Cwd 'abs_path';
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use Getopt::Long qw(GetOptionsFromArray);
 
+use File::Basename;
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
@@ -102,7 +104,6 @@ sub BUILD {
 
     $self->type($type)         if ( defined $type );
     $self->id($id)             if ( defined $id );
-    $self->symlink($symlink)   if ( defined $symlink );
     $self->archive($archive)   if ( defined $archive );
     $self->help($help)         if ( defined $help );
     $self->verbose($verbose)   if ( defined $verbose );
@@ -113,6 +114,15 @@ sub BUILD {
     $self->mapper($mapper)     if ( defined $mapper );
     $self->qc($qc)             if ( defined $qc );
     $self->_environment('test') if ( defined $test );
+
+    if ( defined $symlink ){
+        if ($symlink eq ''){
+            $self->symlink($symlink);
+        }
+        else{
+            $self->symlink(abs_path($symlink));
+        }
+    }
 }
 
 sub check_inputs{
@@ -162,13 +172,13 @@ sub run {
       if ( defined $archive && defined $symlink );
 
     # set file type extension regular expressions
-    my %type_extensions = ( bam => '*markdup.bam', 
+    my %type_extensions = ( bam     => '*markdup.bam', 
                             alt_bam => '*raw.sorted.bam');
 
     my $lane_filter;
     my $found = 0;
 
-	$filetype = 'bam' if(!defined $filetype);
+    $filetype = 'bam' if(!defined $filetype);
 
     # Get databases and loop through them
     my $find = Path::Find->new( environment => $self->_environment );
@@ -197,33 +207,38 @@ sub run {
             $filetype = "bam";
             $verbose_info = 1;
         }
-        my @matching_lanes;
-        foreach my $l (@lanes){
-            # add mapstats ID to type_extensions to get files for multiple mappings
-            my @mapstats = @{$l->mappings_excluding_qc};
-            foreach my $ms_obj (@mapstats){
-                my $ms_id = $ms_obj->id;
-                my %ms_types;
-                foreach my $k (keys %type_extensions){
-                    $ms_types{$k} = $ms_id . "." . $type_extensions{$k};
-                }
 
-                $lane_filter = Path::Find::Filter->new(
-                    lanes           => [$l],
-                    filetype        => $filetype,
-                    root            => $root,
-                    pathtrack       => $pathtrack,
-                    type_extensions => \%ms_types,
-                    alt_type        => 'alt_bam',
-                    qc              => $qc,
-                    reference       => $ref,
-                    mapper          => $mapper,
-                    date            => $date,
-                    verbose         => $verbose_info
-                );
-                push( @matching_lanes, $lane_filter->filter);
-            }
-        }
+	$lane_filter = Path::Find::Filter->new(
+	    lanes           => \@lanes,
+            filetype        => 'bam',
+            root            => $root,
+            pathtrack       => $pathtrack,
+            type_extensions => \%type_extensions,
+            qc              => $qc,
+            reference       => $ref,
+            mapper          => $mapper,
+            date            => $date,
+            verbose         => $verbose_info,
+	    search_depth    => 1
+	);
+	my @matching_markdup = $lane_filter->filter;
+	
+	$lane_filter = Path::Find::Filter->new(
+            lanes           => \@lanes,
+            filetype        => 'alt_bam',
+            root            => $root,
+            pathtrack       => $pathtrack,
+            type_extensions => \%type_extensions,
+            qc              => $qc,
+            reference       => $ref,
+            mapper          => $mapper,
+            date            => $date,
+            verbose         => $verbose_info,
+	    search_depth    => 1
+	);
+	my @matching_raw = $lane_filter->filter;
+
+	my @matching_lanes = $self->remove_dups( [@matching_markdup, @matching_raw]);
 
         unless (@matching_lanes) {
             $dbh->disconnect();
@@ -367,6 +382,30 @@ sub set_linker_name {
     else{
         return "$cwd/$name";
     }
+}
+
+sub remove_dups {
+    my( $self, $l) = @_;
+    my @lanes = @{ $l };
+
+    my %exts;
+    foreach my $lane ( @lanes ){
+	my($filename, $directories, $suffix) = fileparse($lane->{path}, ('.markdup.bam', '.raw.sorted.bam'));
+	my $halfpath = $directories . $filename;
+	$exts{$halfpath} = $suffix if ( !$exts{$halfpath} || $suffix eq '.markdup.bam' );
+    }
+
+    my @nodups;
+    foreach my $k ( keys \%exts ){
+	my $fp = $k . $exts{$k};
+	foreach my $lane (@lanes){
+	    if($fp eq $lane->{path}){
+		push(@nodups, $lane);
+		last;
+	    }
+	}
+    }
+    return @nodups;
 }
 
 sub usage_text {

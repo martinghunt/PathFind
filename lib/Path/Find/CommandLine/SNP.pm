@@ -42,8 +42,8 @@ use warnings;
 no warnings 'uninitialized';
 use Moose;
 
-use Data::Dumper;
 use Cwd;
+use Cwd 'abs_path';
 use File::chdir;
 use File::Temp;
 use File::Copy qw(move);
@@ -115,7 +115,7 @@ sub BUILD {
 
     $self->type($type)                 if ( defined $type );
     $self->id($id)                     if ( defined $id );
-    $self->symlink($symlink)           if ( defined $symlink );
+    $self->symlink(abs_path($symlink))           if ( defined $symlink );
     $self->archive($archive)           if ( defined $archive );
     $self->help($help)                 if ( defined $help );
     $self->verbose($verbose)           if ( defined $verbose );
@@ -181,10 +181,9 @@ sub run {
       if ( defined $pseudogenome && $pseudogenome ne 'none' && !defined $ref );
 
 
-    # set file type extension regular expressions
     my %type_extensions = (
-        vcf          => '*.snp/mpileup.unfilt.vcf.gz',
-        pseudogenome => '*.snp/pseudo_genome.fasta'
+        vcf          => '*mpileup.unfilt.vcf.gz',
+        pseudogenome => '*pseudo_genome.fasta'
     );
 
     my ( $lane_filter, $vb );

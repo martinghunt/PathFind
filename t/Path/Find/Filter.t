@@ -42,15 +42,11 @@ $filter = Path::Find::Filter->new(
 
 my $expected_fastq = [
           {
-            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Blautia/producta/TRACKING/1707/TL266/SLX/TL266_1728612/5749_8#1/5749_8#1_1.fastq.gz',
-            'mapstat_id' => undef
-          },
-          {
             'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Blautia/producta/TRACKING/1707/TL266/SLX/TL266_1728612/5749_8#1/5749_8#1_2.fastq.gz',
             'mapstat_id' => undef
           },
           {
-            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Blautia/producta/TRACKING/1707/2950/SLX/2950_1728613/5749_8#2/5749_8#2_1.fastq.gz',
+            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Blautia/producta/TRACKING/1707/TL266/SLX/TL266_1728612/5749_8#1/5749_8#1_1.fastq.gz',
             'mapstat_id' => undef
           },
           {
@@ -58,11 +54,15 @@ my $expected_fastq = [
             'mapstat_id' => undef
           },
           {
-            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Blautia/producta/TRACKING/1707/3507/SLX/3507_1728614/5749_8#3/5749_8#3_1.fastq.gz',
+            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Blautia/producta/TRACKING/1707/2950/SLX/2950_1728613/5749_8#2/5749_8#2_1.fastq.gz',
             'mapstat_id' => undef
           },
           {
             'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Blautia/producta/TRACKING/1707/3507/SLX/3507_1728614/5749_8#3/5749_8#3_2.fastq.gz',
+            'mapstat_id' => undef
+          },
+          {
+            'path' => '/lustre/scratch108/pathogen/pathpipe/prokaryotes/seq-pipelines/Blautia/producta/TRACKING/1707/3507/SLX/3507_1728614/5749_8#3/5749_8#3_1.fastq.gz',
             'mapstat_id' => undef
           }
         ];

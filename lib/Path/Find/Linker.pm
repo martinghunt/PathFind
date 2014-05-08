@@ -66,6 +66,7 @@ has 'rename_links' => ( is => 'ro', isa => 'HashRef', required => 0 );
 has 'script_name'  => ( is => 'ro', isa => 'Str', required => 0, default => $0 );
 has 'index_files'   => ( is => 'rw', isa => 'Maybe[Str]', required => 0 );
 has 'stats' => ( is => 'ro', isa => 'Maybe[Str]', required => 0 );
+has 'replace_hashes' => ( is => 'ro', isa => 'Maybe[Int]', required => 0 );
 
 sub _build__checked_name {
     my ($self) = @_;
@@ -241,7 +242,9 @@ sub _link_names {
             $mf =~ /([^\/]+)$/;
             $lf = $1;
         }
-        $lf =~ s/[^\w\.]+/_/g;
+        
+        $lf =~ s/[^\w\.]+/_/g if($self->replace_hashes);
+        
         push( @files2link, [ $mf, "$destination/$name/$lf" ] );
     }
     

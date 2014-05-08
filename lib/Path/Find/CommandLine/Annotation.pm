@@ -49,8 +49,6 @@ use lib "/software/pathogen/internal/prod/lib";
 use lib "/lustre/scratch108/pathogen/cc21/repos/Bio-AutomatedAnnotation/lib";
 use lib "../lib";
 
-#use File::Temp;
-#use File::Copy qw(move);
 use Getopt::Long qw(GetOptionsFromArray);
 use Bio::AutomatedAnnotation::ParseGenesFromGFFs;
 
@@ -108,7 +106,6 @@ sub BUILD {
 
     $self->type($type)                       if ( defined $type );
     $self->id($id)                           if ( defined $id );
-    $self->symlink($symlink)                 if ( defined $symlink );
     $self->help($help)                       if ( defined $help );
     $self->filetype($filetype)               if ( defined $filetype );
     $self->output($output)                   if ( defined $output );
@@ -118,6 +115,15 @@ sub BUILD {
     $self->archive($archive)                 if ( defined $archive );
     $self->stats($stats)                     if ( defined $stats );
     $self->_environment('test')              if ( defined $test );
+
+    if ( defined $symlink ){
+        if ($symlink eq ''){
+            $self->symlink($symlink);
+        }
+        else{
+            $self->symlink(abs_path($symlink));
+        }
+    }
 }
 
 sub check_inputs{
@@ -376,7 +382,7 @@ sub stats_name {
         }
         $stats = "$s.annotation_stats.csv";
     }
-    $stats =~ s/[^\w\.]+/_/g;
+    $stats =~ s/[^\w\.\/]+/_/g;
     return $stats;
 }
 

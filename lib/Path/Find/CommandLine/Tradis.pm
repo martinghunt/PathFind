@@ -40,6 +40,7 @@ no warnings 'uninitialized';
 use Moose;
 
 use Cwd;
+use Cwd 'abs_path';
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
@@ -96,7 +97,7 @@ sub BUILD {
 
     $self->type($type)         if ( defined $type );
     $self->id($id)             if ( defined $id );
-    $self->symlink($symlink)   if ( defined $symlink );
+    $self->symlink(abs_path($symlink))   if ( defined $symlink );
     $self->archive($archive)   if ( defined $archive );
     $self->help($help)         if ( defined $help );
     $self->verbose($verbose)   if ( defined $verbose );

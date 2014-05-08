@@ -619,6 +619,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check symlinks
+#my $ls = `ls $tmp/valid_dest/`;
+#print STDERR $ls;
 ok( -e "$tmp/valid_dest", 'symlink dir exists' );
 ok( check_links('valid_dest', $exp_out), 'correct files symlinked' );
 
@@ -704,6 +706,17 @@ chdir($owd);
 ok( -e "$tmp/test_stats/stats.csv", 'stats file exists' );
 compare_ok("$tmp/test_stats/stats.csv", "t/data/pathfind/65.stats", "archived stats correct");
 
+# test 82 : test renaming of links
+@args = ( "--test", "-t", "lane", "-i", "5477_6#1", "-l", "$tmp/test82", "-r" );
+$exp_out = read_file('t/data/pathfind/47.txt');
+$obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check links
+ok( -e "$tmp/test82/5477_6_1_1.fastq.gz", 'correct symlink name' );
+ok( -e "$tmp/test82/5477_6_1_2.fastq.gz", 'correct symlink name' );
+
 remove_tree($tmp);
 done_testing();
 
@@ -744,7 +757,7 @@ sub exp_files {
 		my @d = split("/", $f);
 		my $e = pop @d;
 		if( $e =~ /\./ ){
-			$e =~ s/[^\w\.]+/_/g;
+			#$e =~ s/[^\w\.]+/_/g;
 			push(@ef, $e);
 		}
 		else{
@@ -752,10 +765,13 @@ sub exp_files {
 			foreach my $a ( @all ){
 				my @dirs = split('/', $a);
 				my $fn = pop @dirs;
-				$fn =~ s/[^\w\.]+/_/g;
+				#$fn =~ s/[^\w\.]+/_/g;
 				push( @ef, $fn );
 			}
 		}
 	}
+
+
+
 	return @ef;
 }
