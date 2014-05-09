@@ -37,9 +37,6 @@ path-help@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
 
 use Cwd;
@@ -56,8 +53,6 @@ use File::Basename;
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
-use Path::Find::Linker;
-use Path::Find::Stats::Generator;
 use Path::Find::Log;
 use Path::Find::Sort;
 use Path::Find::Exception;
@@ -249,7 +244,7 @@ sub run {
 
             my $index_files;
             $index_files = "tbi" if( $filetype eq 'vcf' );
-
+            eval('use Path::Find::Linker');
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,

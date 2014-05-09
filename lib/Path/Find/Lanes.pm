@@ -25,8 +25,6 @@ Returns an array of matching VRTrack::Lane objects
 
 use Moose;
 use VRTrack::Lane;
-use VRTrack::Individual;
-use Data::Dumper;
 
 use lib "../../";
 use Path::Find::Exception;

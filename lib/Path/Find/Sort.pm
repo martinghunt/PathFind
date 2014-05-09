@@ -13,8 +13,6 @@ Reverts to alphabetic sort if cannot sort numerically
 =cut
 
 use Moose;
-use File::Basename;
-use Data::Dumper;
 
 has 'lanes' => ( is => 'rw', isa => 'ArrayRef', required => 1 );
 
@@ -102,18 +100,6 @@ sub _get_lane_name {
     }
 }
 
-sub _get_lane_name_old {
-    my ($lane) = @_;
-
-    if ($lane =~ /\//){
-	my @dirs = split('/', $lane);
-	my $end = join('/', splice(@dirs, 15));
-	return ($dirs[14], $end);
-    }
-    else {
-	return ($lane, undef);
-    }
-}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

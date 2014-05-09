@@ -36,23 +36,11 @@ use Pathogens::Reports::Mapping::Report;
 use Path::Find::Stats::Row;
 use Path::Find::Exception;
 
-use Data::Dumper;
-
 # lane_hashes || lanes is required
 has 'lane_hashes' => ( is => 'ro', isa => 'ArrayRef', required => 0 );
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef[VRTrack::Lane]', required => 0, );
 
-#has 'output' => ( is => 'ro', isa => 'Str', required => 1 );
 has 'vrtrack' => ( is => 'rw', required => 1 );
-
-#has '_out_filehandle' => (is => 'rw', required => 0, lazy_build => 1);
-
-# sub _build__out_filehandle {
-#     my ($self) = @_;
-#     my $outfile = $self->output;
-#     open(my $fh, ">", $outfile) or Path::Find::Exception::InvalidDestination->throw( error => "Can't open $outfile to write statistics. Error code: $?\n");
-#     return $fh;
-# }
 
 sub pathfind {
     my ($self) = @_;

@@ -36,9 +36,6 @@ path-help@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
 
 use Cwd;
@@ -49,13 +46,9 @@ use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use Getopt::Long qw(GetOptionsFromArray);
 
-use Data::Dumper;
-
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
-use Path::Find::Linker;
-use Path::Find::Stats::Generator;
 use Path::Find::Log;
 use Path::Find::Sort;
 use Path::Find::Exception;
@@ -230,6 +223,7 @@ sub run {
         # stats
         my $stats_output;
         if ( defined $stats || defined $archive ) {
+            eval('use Path::Find::Stats::Generator');
             $stats_output = Path::Find::Stats::Generator->new(
                 lane_hashes => \@matching_lanes,
                 vrtrack     => $pathtrack
@@ -251,7 +245,7 @@ sub run {
 
             my $ind;
             $ind = "bai" if ($filetype eq "bam");
-
+            eval('use Path::Find::Linker');
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,

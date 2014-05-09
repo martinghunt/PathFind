@@ -36,12 +36,8 @@ path-help@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
 
-use Data::Dumper;
 use Cwd;
 use Cwd 'abs_path';
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
@@ -54,8 +50,6 @@ use File::Basename;
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
-use Path::Find::Linker;
-use Path::Find::Stats::Generator;
 use Path::Find::Log;
 use Path::Find::Sort;
 use Path::Find::Exception;
@@ -251,6 +245,7 @@ sub run {
         # generate stats
         my $stats_output;
         if ( defined $stats || defined $archive ) {
+            eval('use Path::Find::Stats::Generator');
             $stats_output = Path::Find::Stats::Generator->new(
                 lane_hashes => \@matching_lanes,
                 vrtrack     => $pathtrack
@@ -272,7 +267,7 @@ sub run {
 
             my $ind;
             $ind = "bai" if ($filetype eq "bam");
-
+            eval('use Path::Find::Linker');
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,
