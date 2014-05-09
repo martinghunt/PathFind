@@ -34,7 +34,6 @@ directory.
 use Moose;
 use File::Temp;
 use Cwd;
-use Data::Dumper;
 use Carp;
 use File::Basename;
 use File::Path qw( remove_tree);

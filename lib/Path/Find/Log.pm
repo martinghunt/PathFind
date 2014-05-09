@@ -31,7 +31,6 @@ package Path::Find::Log;
 use Moose;
 use File::Basename;
 use File::Path qw(make_path);
-use Data::Dumper;
 
 has 'logfile'      => ( is => 'ro', isa => 'Str',       required   => 1 );
 has 'args'         => ( is => 'ro', isa => 'ArrayRef',  required   => 1 );

@@ -14,7 +14,6 @@ Reverts to alphabetic sort if cannot sort numerically
 
 use Moose;
 use File::Basename;
-use Data::Dumper;
 
 has 'lanes' => ( is => 'rw', isa => 'ArrayRef', required => 1 );
 

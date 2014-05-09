@@ -36,8 +36,6 @@ use Pathogens::Reports::Mapping::Report;
 use Path::Find::Stats::Row;
 use Path::Find::Exception;
 
-use Data::Dumper;
-
 # lane_hashes || lanes is required
 has 'lane_hashes' => ( is => 'ro', isa => 'ArrayRef', required => 0 );
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef[VRTrack::Lane]', required => 0, );

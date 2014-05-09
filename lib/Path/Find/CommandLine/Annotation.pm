@@ -35,9 +35,6 @@ path-help@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
 
 #use Cwd;
@@ -51,8 +48,6 @@ use lib "../lib";
 
 use Getopt::Long qw(GetOptionsFromArray);
 use Bio::AutomatedAnnotation::ParseGenesFromGFFs;
-
-use Data::Dumper;
 
 use Path::Find;
 use Path::Find::Lanes;

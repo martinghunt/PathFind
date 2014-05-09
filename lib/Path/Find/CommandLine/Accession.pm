@@ -32,9 +32,6 @@ pathdevg@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
@@ -44,7 +41,6 @@ use lib "../lib";
 
 use Getopt::Long qw(GetOptionsFromArray);
 use WWW::Mechanize;
-use Data::Dumper;
 
 use Path::Find;
 use Path::Find::Lanes;

@@ -30,15 +30,10 @@ path-help@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
 
 use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
-
-use Data::Dumper;
 
 use Cwd;
 use Cwd 'abs_path';

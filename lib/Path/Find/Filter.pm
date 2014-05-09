@@ -30,8 +30,6 @@ use File::Find::Rule;
 use lib "../../";
 use Path::Find::Exception;
 
-use Data::Dumper;
-
 # required
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'root'      => ( is => 'ro', required => 1 );

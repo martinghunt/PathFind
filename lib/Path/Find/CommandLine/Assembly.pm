@@ -34,14 +34,10 @@ path-help@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
 
 use Cwd;
 use Cwd 'abs_path';
-use Data::Dumper;
 
 #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";

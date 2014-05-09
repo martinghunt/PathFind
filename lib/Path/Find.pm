@@ -10,7 +10,6 @@ my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
 =cut
 
 package Path::Find;
-use strict;
 use DBI;
 use VRTrack::VRTrack;
 
@@ -19,8 +18,6 @@ use File::Slurp;
 use YAML::XS;
 use Moose;
 use File::Spec;
-
-use Data::Dumper;
 
 has 'connection'  => ( is => 'ro', isa => 'HashRef',  lazy_build => 1,   required => 0 );
 has 'db_root'     => ( is => 'ro', isa => 'Str',      default => '/lustre/scratch108/pathogen/pathpipe', required => 0 );
