@@ -52,7 +52,6 @@ use Bio::AutomatedAnnotation::ParseGenesFromGFFs;
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
-use Path::Find::Linker;
 use Path::Find::Stats::Generator;
 use Path::Find::Log;
 use Path::Find::Sort;
@@ -272,7 +271,8 @@ sub run {
         $use_default = 1 if ( !defined $filetype );
         if ( $lane_filter->found && ( defined $symlink || defined $archive ) ) {
             my $name = $self->set_linker_name;
-
+            
+            eval('use Path::Find::Linker');
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,

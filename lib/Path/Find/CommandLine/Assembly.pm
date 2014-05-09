@@ -54,7 +54,6 @@ use File::Copy qw(move);
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
-use Path::Find::Linker;
 use Path::Find::Log;
 use Path::Find::Stats::Generator;
 use Path::Find::Sort;
@@ -267,7 +266,7 @@ sub run {
             my $name = $self->set_linker_name;
 
             my %link_names = $self->link_rename_hash( \@matching_lanes );
-
+            eval('use Path::Find::Linker');
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,
