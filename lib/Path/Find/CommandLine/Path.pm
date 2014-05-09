@@ -46,7 +46,6 @@ use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
 use Path::Find::Log;
-use Path::Find::Stats::Generator;
 use Path::Find::Sort;
 use Path::Find::Exception;
 
@@ -213,6 +212,7 @@ sub run {
         # generate stats
         my $stats_output;
         if ( defined $stats || defined $archive ) {
+            eval('use Path::Find::Stats::Generator');
             my $sg = Path::Find::Stats::Generator->new(
                 lane_hashes => \@matching_lanes,
                 vrtrack     => $pathtrack

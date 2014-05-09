@@ -53,7 +53,6 @@ use File::Basename;
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
-use Path::Find::Stats::Generator;
 use Path::Find::Log;
 use Path::Find::Sort;
 use Path::Find::Exception;
