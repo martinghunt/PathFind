@@ -522,12 +522,23 @@ sub _build_is_mapping_complete {
 			my ($self) = @_;
 			my $sf = $self->stats_file;
 			$sf =~ /([^\/]+_assembly[^\/]*)/;
-			my %types = (
-				'velvet_assembly' => 'Velvet + Improvement',
-				'spades_assembly' => 'SPAdes + Improvement',
-				'velvet_assembly_with_reference' => 'Columbus'
-			);
-			return $types{$1};
+            my $t = $1;
+            my %types;
+            if ( $sf =~ /unscaffolded/ ){
+                %types = (
+                    'velvet_assembly' => 'Velvet',
+                    'spades_assembly' => 'SPAdes',
+                    'velvet_assembly_with_reference' => 'Columbus'
+                );
+            }
+            else{
+			    %types = (
+				    'velvet_assembly' => 'Velvet + Improvement',
+				    'spades_assembly' => 'SPAdes + Improvement',
+				    'velvet_assembly_with_reference' => 'Columbus'
+			    );
+            }
+			return $types{$t};
 		}
 
         sub _build_sequences {
@@ -536,9 +547,9 @@ sub _build_is_mapping_complete {
             if ( defined($bc) ) {
                 return $self->_bamcheck_obj->get('sequences');
             }
-	    else{
-		return undef;
-	    }
+	        else{
+		        return undef;
+	        }
         }
 
         sub _build_reads_mapped {
@@ -547,9 +558,9 @@ sub _build_is_mapping_complete {
             if ( defined($bc) ) {
                 return $self->_bamcheck_obj->get('reads_mapped');
             }
-	    else{
-		return undef;
-	    }
+	        else{
+		        return undef;
+	        }
         }
 
         sub _build_reads_unmapped {
