@@ -629,6 +629,19 @@ is(
 	'stats file correct'
 );
 
+# test 60
+@args = ( '--test', '-t', 'lane', '-i', '6578_4#2', '-f', 'contigs', '-s', "$tmp/test.60.stats");
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/60.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+is(
+	read_file("t/data/assemblyfind/60.stats"),
+	read_file("$tmp/test.60.stats"),
+	'stats file correct'
+);
+
 remove_tree($tmp);
 done_testing();
 
