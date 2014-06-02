@@ -682,7 +682,9 @@ sub exp_files {
 	foreach my $f (split( "\n", $fl )){
 		my @d = split("/", $f);
 		my $e = $d[$#d];
-		$e=~s/contigs/contigs_velvet/;
+		my @ass = split('_', $d[$#d-1]);
+		my $assembler = $ass[0];
+		$e=~s/contigs/contigs_$assembler/;
 		my $h=$d[$#d-2];
 		$h.= ".";
 		$h.= $e;

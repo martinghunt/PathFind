@@ -192,8 +192,11 @@ sub run {
     my $found = 0;
 
     # set subdirectories to search for annotations in
-    my @sub_directories =
-      ( '/velvet_assembly/annotation', '/spades_assembly/annotation' );
+    my @sub_directories = ( 
+        '/velvet_assembly/annotation', 
+        '/spades_assembly/annotation', 
+        '/iva_assembly/annotation' 
+    );
 
     # set file type extension wildcard
     my %type_extensions = (
