@@ -230,15 +230,12 @@ sub _lookup_by_file {
         . $self->processed_flag
         . ' order by lane.name asc' );
 
-    print "I'm here\n";
-
-  unless ($lane_names) {
-    print "Looks like you've got samples...\n";
+  unless ( $lane_names->[0] ) {
     my $sample_name_search_query = join('" OR sample.name like "', (keys %lanenames) );
     $sample_name_search_query = ' (sample.name like "' . $sample_name_search_query . '") ';
 
     my $sample_acc_search_query = join ( '" OR individual.acc like "', (keys %lanenames) );
-    $sample_acc_search_query = ' (sample.acc like "' . $sample_acc_search_query . '") ';
+    $sample_acc_search_query = ' (individual.acc like "' . $sample_acc_search_query . '") ';
 
     $lane_names =
       $self->dbh->selectall_arrayref( 'select lane.name from individual as individual
@@ -246,8 +243,8 @@ sub _lookup_by_file {
         inner join latest_library as library on library.sample_id = sample.sample_id
         inner join latest_lane as lane on lane.library_id = library.library_id
         where '
-        . '( ' . $study_name_search_query
-        . ' OR ' . $study_acc_search_query . ' )'
+        . '( ' . $sample_name_search_query
+        . ' OR ' . $sample_acc_search_query . ' )'
         . ' AND lane.processed & '
         . $self->processed_flag . ' = '
         . $self->processed_flag
