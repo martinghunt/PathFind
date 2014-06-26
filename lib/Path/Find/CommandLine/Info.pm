@@ -153,8 +153,8 @@ sub run {
             next;
         }
 
-	my $sorted = Path::Find::Sort->new(lanes => \@unsorted_lanes)->sort_lanes;
-	my @lanes = @{ $sorted };
+	   my $sorted = Path::Find::Sort->new(lanes => \@unsorted_lanes)->sort_lanes;
+	   my @lanes = @{ $sorted };
 
         # open csv file and print column headers
         if ( $output && @lanes ) {
