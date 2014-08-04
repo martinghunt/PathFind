@@ -221,7 +221,6 @@ sub _make_lane_hash {
     }
 
     if ( defined $stats ) {
-        #$lane_hash{stats} = $self->_get_stats_paths($lane_obj, $get_full_paths );
         $lane_hash{stats} = $self->_get_stats_paths( $path );
     }
 
@@ -274,33 +273,6 @@ sub _get_stats_paths {
     }
     return \@stats_paths;
 }
-
-# sub _get_stats_paths_old {
-#     my ( $self, $lane_obj, $get_full_paths) = @_;
-#     my @lane_paths = @{$get_full_paths};
-#     my $stats      = $self->stats;
-
-#     my @stats_paths;
-#     foreach my $l (@lane_paths) {
-#         $l =~ s/annotation//;
-#         foreach my $sf ( @{$stats} ) {
-# 	        if( $sf =~ /\// ){
-# 		        my @parts = split('/', $sf);
-# 		        $sf = pop(@parts);
-# 		        $l .= "/" . join('/', @parts);
-# 	        }
-        
-#             my @stat_files = File::Find::Rule->file()->extras( { follow => 1 } )->name($sf)->in($l);
-#             print Dumper \@stat_files;
-
-#             foreach my $st_file (@stat_files) {
-#                 push( @stats_paths, $st_file );
-#             }
-#         }
-#         return \@stats_paths if (@stats_paths);
-#     }
-#     return undef;
-# }
 
 sub _reference_matches {
     my ( $self, $lane_ref ) = @_;
