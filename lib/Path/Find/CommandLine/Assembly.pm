@@ -64,16 +64,16 @@ use Path::Find::Stats::Generator;
 use Path::Find::Sort;
 use Path::Find::Exception;
 
-has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'symlink'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'stats'       => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has '_environment' => ( is => 'rw', isa => 'Str',     required => 0, default => 'prod' );
+has 'args'         => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'script_name'  => ( is => 'ro', isa => 'Str',      required => 1 );
+has 'type'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'id'           => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'symlink'      => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'stats'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'filetype'     => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'archive'      => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'help'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;

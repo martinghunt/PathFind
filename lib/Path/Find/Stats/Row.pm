@@ -528,6 +528,7 @@ sub _build_is_mapping_complete {
                 %types = (
                     'velvet_assembly' => 'Velvet',
                     'spades_assembly' => 'SPAdes',
+                    'iva_assembly'    => 'IVA',
                     'velvet_assembly_with_reference' => 'Columbus'
                 );
             }
@@ -535,6 +536,7 @@ sub _build_is_mapping_complete {
 			    %types = (
 				    'velvet_assembly' => 'Velvet + Improvement',
 				    'spades_assembly' => 'SPAdes + Improvement',
+                    'iva_assembly'    => 'IVA',
 				    'velvet_assembly_with_reference' => 'Columbus'
 			    );
             }

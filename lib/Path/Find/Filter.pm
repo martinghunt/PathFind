@@ -58,8 +58,8 @@ has 'subdirectories' => (
 has 'reference' => ( is => 'ro', required => 0 );
 has 'mapper'    => ( is => 'rw', required => 0 );
 has 'date'      => ( is => 'ro', required => 0 );
-has 'verbose'   => ( is => 'ro', isa      => 'Bool', default => 0, required => 0 );
-has 'stats' => ( is => 'ro', isa => 'ArrayRef', required => 0 );
+has 'verbose'   => ( is => 'ro', isa => 'Bool', default => 0, required => 0 );
+has 'stats'     => ( is => 'ro', isa => 'ArrayRef', required => 0 );
 has 'search_depth' => ( is =>'ro', isa => 'Int', required => 0, default => 2 );
 
 # end optional
@@ -221,7 +221,8 @@ sub _make_lane_hash {
     }
 
     if ( defined $stats ) {
-        $lane_hash{stats} = $self->_get_stats_paths($lane_obj, $get_full_paths );
+        #$lane_hash{stats} = $self->_get_stats_paths($lane_obj, $get_full_paths );
+        $lane_hash{stats} = $self->_get_stats_paths( $path );
     }
 
     return %lane_hash;
@@ -259,34 +260,47 @@ sub _get_full_path {
         $path_details{$subdir} = "$root/$lane_path";
     }
 
-
     return \%path_details;
 }
 
 sub _get_stats_paths {
-    my ( $self, $lane_obj, $get_full_paths) = @_;
-    my @lane_paths = @{$get_full_paths};
-    my $stats      = $self->stats;
+    my ( $self, $lane_path ) = @_;
+    my @stats = @{ $self->stats };
 
+    $lane_path =~ s/_assembly\/.+$/_assembly/;
     my @stats_paths;
-    foreach my $l (@lane_paths) {
-        $l =~ s/annotation//;
-        foreach my $sf ( @{$stats} ) {
-	    if( $sf =~ /\// ){
-		my @parts = split('/', $sf);
-		$sf = pop(@parts);
-		$l .= "/" . join('/', @parts);
-	    }
-            my @stat_files = File::Find::Rule->file()->extras( { follow => 1 } )->name($sf)->in($l);
-
-            foreach my $st_file (@stat_files) {
-                    push( @stats_paths, $st_file );
-            }
-        }
-        return \@stats_paths if (@stats_paths);
+    foreach my $s ( @stats ){
+        push( @stats_paths, "$lane_path/$s" ) if ( -e "$lane_path/$s" );
     }
-    return undef;
+    return \@stats_paths;
 }
+
+# sub _get_stats_paths_old {
+#     my ( $self, $lane_obj, $get_full_paths) = @_;
+#     my @lane_paths = @{$get_full_paths};
+#     my $stats      = $self->stats;
+
+#     my @stats_paths;
+#     foreach my $l (@lane_paths) {
+#         $l =~ s/annotation//;
+#         foreach my $sf ( @{$stats} ) {
+# 	        if( $sf =~ /\// ){
+# 		        my @parts = split('/', $sf);
+# 		        $sf = pop(@parts);
+# 		        $l .= "/" . join('/', @parts);
+# 	        }
+        
+#             my @stat_files = File::Find::Rule->file()->extras( { follow => 1 } )->name($sf)->in($l);
+#             print Dumper \@stat_files;
+
+#             foreach my $st_file (@stat_files) {
+#                 push( @stats_paths, $st_file );
+#             }
+#         }
+#         return \@stats_paths if (@stats_paths);
+#     }
+#     return undef;
+# }
 
 sub _reference_matches {
     my ( $self, $lane_ref ) = @_;

@@ -275,6 +275,7 @@ sub assemblyfind {
     #loop through lanes and print info to file
     my @all_stats;
     my $vrtrack = $self->vrtrack;
+    #print Dumper \@lanes;
     foreach my $l_h (@lanes) {
         my $l       = $l_h->{lane};
         my ( $stats_file, $bamcheck_file ) = @{ $l_h->{stats} };
