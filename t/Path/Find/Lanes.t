@@ -105,27 +105,6 @@ my @expected_lanes4 = generate_lane_objects( $pathtrack, \@test_lanes4 );
 is_deeply $lanes, \@expected_lanes4, 'correct lanes recovered';
 
 
-# test lanes from library
-ok(
-    $lanes_obj = Path::Find::Lanes->new(
-        search_type    => 'library',
-        search_id      => 'TL266_1728612',
-        pathtrack      => $pathtrack,
-        dbh            => $dbh,
-        processed_flag => 1
-    ),
-    'creating lanes object - search on species name'
-);
-isa_ok $lanes_obj, 'Path::Find::Lanes';
-
-$lanes = $lanes_obj->lanes;
-
-my @test_lanes5 = (
-    '5749_8#1'
-);
-my @expected_lanes5 = generate_lane_objects( $pathtrack, \@test_lanes5 );
-is_deeply $lanes, \@expected_lanes5, 'correct lanes recovered';
-
 # test file of samples
 ok(
     $lanes_obj = Path::Find::Lanes->new(
@@ -144,6 +123,30 @@ $lanes = $lanes_obj->lanes;
 my @test_lanes5 = ( '10660_1#13', '10660_2#13', '10665_2#81' );
 my @expected_lanes5 = generate_lane_objects( $pathtrack, \@test_lanes5 );
 is_deeply $lanes, \@expected_lanes5, 'correct lanes recovered from samples';
+
+
+# test lanes from library
+ok(
+    $lanes_obj = Path::Find::Lanes->new(
+        search_type    => 'library',
+        search_id      => 'TL266_1728612',
+        pathtrack      => $pathtrack,
+        dbh            => $dbh,
+        processed_flag => 1
+    ),
+    'creating lanes object - search on species name'
+);
+isa_ok $lanes_obj, 'Path::Find::Lanes';
+
+$lanes = $lanes_obj->lanes;
+
+my @test_lanes6 = (
+    '5749_8#1'
+);
+my @expected_lanes6 = generate_lane_objects( $pathtrack, \@test_lanes6 );
+is_deeply $lanes, \@expected_lanes6, 'correct lanes recovered';
+
+
 
 done_testing();
 
