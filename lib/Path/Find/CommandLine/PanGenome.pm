@@ -76,6 +76,7 @@ sub BUILD {
             || $type eq 'file'
             || $type eq 'sample'
             || $type eq 'species'
+            || $self->type eq 'library'
             || $type eq 'database' )
     ) or die $self->usage_text;
 
@@ -229,7 +230,7 @@ sub usage_text {
     print <<USAGE;
 Create a pan genome from a set of lanes
 Usage: bacteria_pan_genome
-	-t|type		<study|lane|file|sample|species>
+	-t|type		<study|lane|file|library|sample|species>
 	-i|id		<study id|study name|lane name|file of lane names>
 	-h|help		<this help message>
 
