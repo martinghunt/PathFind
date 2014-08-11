@@ -128,6 +128,34 @@ sub _lookup_by_study {
     return \@lanes;
 }
 
+sub _lookup_by_library {
+    my ($self) = @_;
+    my @lanes;
+
+    my $search_id = $self->search_id;
+
+    my $lane_names = $self->dbh->selectall_arrayref(
+        'select lane.name from latest_library as library
+      inner join latest_lane as lane on lane.library_id = library.library_id
+      where ( library.name like "'
+          . $search_id
+          . '") AND lane.processed & '
+          . $self->processed_flag . ' = '
+          . $self->processed_flag
+          . ' order by lane.name asc'
+    );
+
+    for my $lane_name (@$lane_names) {
+        my $lane =
+          VRTrack::Lane->new_by_name( $self->pathtrack, @$lane_name[0] );
+        if ($lane) {
+            push( @lanes, $lane );
+        }
+    }
+    return \@lanes;
+}
+
+
 sub _lookup_by_species {
     my ($self) = @_;
     my @lanes;
@@ -277,6 +305,9 @@ sub _build_lanes {
     }
     elsif ( $self->search_type eq 'file' ) {
         return $self->_lookup_by_file;
+    }
+    elsif ( $self->search_type eq 'library' ) {
+        return $self->_lookup_by_library;
     }
     elsif ( $self->search_type eq 'species' ) {
         return $self->_lookup_by_species;

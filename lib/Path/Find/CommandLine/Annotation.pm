@@ -130,6 +130,7 @@ sub check_inputs{
           && ( $self->type eq 'study'
             || $self->type eq 'lane'
             || $self->type eq 'file'
+            || $self->type eq 'library'
             || $self->type eq 'sample'
             || $self->type eq 'species'
             || $self->type eq 'database' )
@@ -419,7 +420,7 @@ sub usage_text {
     my $script_name = $self->script_name;
     return <<USAGE;
 Usage: $script_name
-  -t|type            <study|lane|file|sample|species>
+  -t|type            <study|lane|file|library|sample|species>
   -i|id              <study id|study name|lane name|file of lane names>
   -l|symlink         <create a symlink to the data>
   -f|filetype        <gff|faa|ffn|gbk>
