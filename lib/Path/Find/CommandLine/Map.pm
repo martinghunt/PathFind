@@ -276,8 +276,6 @@ sub run {
             my $ind;
             $ind = "bai" if ($filetype eq "bam");
 
-            print STDERR "Linker name : $name\n";
-
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,

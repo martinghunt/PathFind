@@ -585,31 +585,6 @@ sub _build_is_mapping_complete {
 
     # Assembly Cells
     {
-		sub _build_assembly_type_old {
-			my ($self) = @_;
-			my $sf = $self->stats_file;
-			$sf =~ /([^\/]+_assembly[^\/]*)/;
-            my $t = $1;
-            my %types;
-            if ( $sf =~ /unscaffolded/ ){
-                %types = (
-                    'velvet_assembly' => 'Velvet',
-                    'spades_assembly' => 'SPAdes',
-                    'iva_assembly'    => 'IVA',
-                    'velvet_assembly_with_reference' => 'Columbus'
-                );
-            }
-            else{
-			    %types = (
-				    'velvet_assembly' => 'Velvet + Improvement',
-				    'spades_assembly' => 'SPAdes + Improvement',
-                    'iva_assembly'    => 'IVA',
-				    'velvet_assembly_with_reference' => 'Columbus'
-			    );
-            }
-			return $types{$t};
-		}
-
         sub _build_assembly_type {
             my $self = shift;
 
