@@ -27,6 +27,8 @@ path-help@sanger.ac.uk
 package Path::Find::Stats::Row;
 
 use Moose;
+use File::Basename;
+use File::Find::Rule;
 use VRTrack::VRTrack;    # Includes Lane, Mapstats, Etc.
 use VertRes::Parser::bamcheck;
 use Path::Find::Exception;
@@ -49,6 +51,7 @@ has '_vrtrack_assembly'     => ( is => 'ro', isa => 'Maybe[VRTrack::Assembly]', 
 has '_vrtrack_mapper'       => ( is => 'ro', isa => 'Maybe[VRTrack::Mapper]',                  lazy_build => 1 );    # Mapper - from mapstats
 has '_bamcheck_obj'         => ( is => 'ro', isa => 'Maybe[VertRes::Parser::bamcheck]', lazy_build => 1 );    # Bamcheck - for assemblies
 has '_basic_assembly_stats' => ( is => 'ro', isa => 'HashRef',                          lazy_build => 1 );
+has '_pipeline_versions'    => ( is => 'rw', isa => 'HashRef',                          lazy_build => 1 );
 
 # Cells
 # Mapping
@@ -86,6 +89,7 @@ has 'manual_qc'            => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1
 # Assembly
 # REQUIRES: assembly stats file
 has 'assembly_type'         => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+has 'contig_type'           => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
 has 'total_length'          => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'num_contigs'           => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'average_contig_length' => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
@@ -247,6 +251,69 @@ sub _build_is_mapping_complete {
         else{
             return undef;
         }
+    }
+
+    sub _build__pipeline_versions {
+        my $self = shift;
+
+        my %pipe_vs = (
+            '2.0.0' => 'Velvet',
+            '2.0.1' => 'Velvet + Improvement',
+            '2.1.0' => 'Correction, Normalisation, Primer Removal + Velvet',
+            '2.1.1' => 'Correction, Normalisation, Primer Removal + Velvet + Improvement',
+            '2.2.0' => 'Correction, Normalisation + Velvet',
+            '2.2.1' => 'Correction, Normalisation + Velvet + Improvement',
+            '2.3.0' => 'Correction, Primer Removal + Velvet',
+            '2.3.1' => 'Correction, Primer Removal + Velvet + Improvement',
+            '2.4.0' => 'Normalisation, Primer Removal + Velvet',
+            '2.4.1' => 'Normalisation, Primer Removal + Velvet + Improvement',
+            '2.5.0' => 'Correction + Velvet',
+            '2.5.1' => 'Correction + Velvet + Improvement',
+            '2.6.0' => 'Normalisation + Velvet',
+            '2.6.1' => 'Normalisation + Velvet + Improvement',
+            '2.7.0' => 'Primer Removal + Velvet',
+            '2.7.1' => 'Primer Removal + Velvet + Improvement',
+            '3.0.0' => 'SPAdes',
+            '3.0.1' => 'SPAdes + Improvement',
+            '3.1.0' => 'Correction, Normalisation, Primer Removal + SPAdes',
+            '3.1.1' => 'Correction, Normalisation, Primer Removal + SPAdes + Improvement',
+            '3.2.0' => 'Correction, Normalisation + SPAdes',
+            '3.2.1' => 'Correction, Normalisation + SPAdes + Improvement',
+            '3.3.0' => 'Correction, Primer Removal + SPAdes',
+            '3.3.1' => 'Correction, Primer Removal + SPAdes + Improvement',
+            '3.4.0' => 'Normalisation, Primer Removal + SPAdes',
+            '3.4.1' => 'Normalisation, Primer Removal + SPAdes + Improvement',
+            '3.5.0' => 'Correction + SPAdes',
+            '3.5.1' => 'Correction + SPAdes + Improvement',
+            '3.6.0' => 'Normalisation + SPAdes',
+            '3.6.1' => 'Normalisation + SPAdes + Improvement',
+            '3.7.0' => 'Primer Removal + SPAdes',
+            '3.7.1' => 'Primer Removal + SPAdes + Improvement',
+            '5.0.0' => 'IVA',
+            '5.0.1' => 'IVA + Improvement',
+            '5.1.0' => 'Correction, Normalisation, Primer Removal + IVA',
+            '5.1.1' => 'Correction, Normalisation, Primer Removal + IVA + Improvement',
+            '5.2.0' => 'Correction, Normalisation + IVA',
+            '5.2.1' => 'Correction, Normalisation + IVA + Improvement',
+            '5.3.0' => 'Correction, Primer Removal + IVA',
+            '5.3.1' => 'Correction, Primer Removal + IVA + Improvement',
+            '5.4.0' => 'Normalisation, Primer Removal + IVA',
+            '5.4.1' => 'Normalisation, Primer Removal + IVA + Improvement',
+            '5.5.0' => 'Correction + IVA',
+            '5.5.1' => 'Correction + IVA + Improvement',
+            '5.6.0' => 'Normalisation + IVA',
+            '5.6.1' => 'Normalisation + IVA + Improvement',
+            '5.7.0' => 'Primer Removal + IVA',
+            '5.7.1' => 'Primer Removal + IVA + Improvement',
+            '2'     => 'Velvet + Improvement',
+            '2.1'   => 'Velvet + Improvement',
+            '3'     => 'Correction, Normalisation, Primer Removal + SPAdes + Improvement',
+            '3.1'   => 'Correction, Normalisation, Primer Removal + Velvet + Improvement',
+            '3.2'   => 'Normalisation + SPAdes + Improvement',
+            '4'     => 'Correction + Velvet + Improvement',
+            '5'     => 'IVA'
+        );
+        return \%pipe_vs;
     }
 
 }
@@ -518,7 +585,7 @@ sub _build_is_mapping_complete {
 
     # Assembly Cells
     {
-		sub _build_assembly_type {
+		sub _build_assembly_type_old {
 			my ($self) = @_;
 			my $sf = $self->stats_file;
 			$sf =~ /([^\/]+_assembly[^\/]*)/;
@@ -542,6 +609,36 @@ sub _build_is_mapping_complete {
             }
 			return $types{$t};
 		}
+
+        sub _build_assembly_type {
+            my $self = shift;
+
+            my %versions = %{ $self->_pipeline_versions };
+            my $sf = $self->stats_file;
+            my ($name, $path, $suffix) = fileparse($sf, ['.fa']);
+
+            my @files = File::Find::Rule->file()->name('pipeline_version_*')->in($path);
+            my $pipe_v = $files[0];
+            return undef unless ( defined $pipe_v );
+
+            $pipe_v =~ /pipeline_version_([\d\.]+)/;
+            return undef unless ( defined $1 );
+
+            return $self->contig_type . ': ' . $versions{$1} if ( defined $versions{$1} );
+            return undef;
+        }
+
+        sub _build_contig_type {
+            my $self = shift;
+            my $sf   = $self->stats_file;
+
+            if ( $sf =~ /unscaffolded/ ){
+                return 'Contig';
+            }
+            else {
+                return 'Scaffold';
+            }
+        }
 
         sub _build_sequences {
             my ($self) = @_;

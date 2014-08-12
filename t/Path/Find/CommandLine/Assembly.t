@@ -161,8 +161,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check archive
-ok(-e "assemblyfind_assembly_lanes_txt.tar.gz", 'archive exists');
-ok(check_links('assemblyfind_assembly_lanes_txt.tar.gz', $exp_out, 1), 'correct files present');
+ok(-e "assemblyfind_assembly_lanes.txt.tar.gz", 'archive exists');
+ok(check_links('assemblyfind_assembly_lanes.txt.tar.gz', $exp_out, 1), 'correct files present');
 
 
 # test 15
@@ -216,8 +216,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check archive
-ok(-e "assemblyfind_assembly_lanes2_txt.tar.gz", 'archive exists');
-ok(check_links('assemblyfind_assembly_lanes2_txt.tar.gz', $exp_out, 1), 'correct files present');
+ok(-e "assemblyfind_assembly_lanes2.txt.tar.gz", 'archive exists');
+ok(check_links('assemblyfind_assembly_lanes2.txt.tar.gz', $exp_out, 1), 'correct files present');
 
 
 # test 20
@@ -642,7 +642,23 @@ is(
 	'stats file correct'
 );
 
+# test 61
+# check multiple assemblies of different types are dealt with
+# note - replicate on test database
+@args = ( '-t', 'lane', '-i', '12370_1#19', '-f', 'all', '-s', "$tmp/test.61.stats");
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$exp_out = read_file('t/data/assemblyfind/61.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+is(
+	read_file("t/data/assemblyfind/61.stats"),
+	read_file("$tmp/test.61.stats"),
+	'stats file correct'
+);
+
 remove_tree($tmp);
+system("rm -r assemblyfind_*");
 done_testing();
 
 sub check_links {

@@ -103,8 +103,7 @@ sub pathfind {
     my @complete_stats;
 
     #output headers
-    my $header_line = join( "\t", @headers );
-    push( @complete_stats, $header_line );
+    push( @complete_stats, $self->header_line(\@headers) );
 
     #loop through lanes and print info to file
 	my @all_stats;
@@ -179,8 +178,8 @@ sub mapfind {
     my @complete_stats;
 
     #output headers
-    my $header_line = join( "\t", @headers );
-    push( @complete_stats, $header_line );
+    push( @complete_stats, $self->header_line(\@headers) );
+
 
     #loop through lanes and print info to file
 	my @all_stats;
@@ -248,7 +247,7 @@ sub assemblyfind {
         'Insert Size Std Dev'
     );
     my @columns = (
-        'lanename',              'assembly_type',
+        'lanename',              'assembly_type', 
         'total_length',          'num_contigs',
         'average_contig_length', 'largest_contig',
         'n50',                   'n50_n',
@@ -269,32 +268,42 @@ sub assemblyfind {
     my @complete_stats;
 
     #output headers
-    my $header_line = join( "\t", @headers );
-    push( @complete_stats, $header_line );
+    push( @complete_stats, $self->header_line(\@headers) );
 
     #loop through lanes and print info to file
     my @all_stats;
     my $vrtrack = $self->vrtrack;
     #print Dumper \@lanes;
     foreach my $l_h (@lanes) {
-        my $l       = $l_h->{lane};
-        my ( $stats_file, $bamcheck_file ) = @{ $l_h->{stats} };
-        Path::Find::Exception::FileDoesNotExist->throw( error => "Stats file not found at $stats_file") unless ( -e $stats_file );
-        my $row = Path::Find::Stats::Row->new(
-            lane       => $l,
-            mapstats   => undef,
-            vrtrack    => $vrtrack,
-            stats_file => $stats_file,
-            bamcheck   => $bamcheck_file
-        );
+        my $l = $l_h->{lane};
 
-        my @info;
-        foreach my $c (@columns) {
-            my $i = defined( $row->$c ) ? $row->$c : "NA";
-            push( @info, $i );
+        # handle cases for -f all option
+        my ( $scaffolded_file, $bamcheck_file, $unscaffolded_file ) = @{ $l_h->{stats} };
+        my @stats_arrays;
+        if (defined $unscaffolded_file ){
+            @stats_arrays = ( [$scaffolded_file, $bamcheck_file], [$unscaffolded_file, $bamcheck_file] );
         }
-        my $row_joined = join( "\t", @info );
-        push(@all_stats, $row_joined);
+        else{
+            @stats_arrays = ( [$scaffolded_file, $bamcheck_file] );
+        }
+        foreach my $s ( @stats_arrays ){
+            my ( $st_file, $bc_file ) = @{ $s };
+            my $row = Path::Find::Stats::Row->new(
+                lane       => $l,
+                mapstats   => undef,
+                vrtrack    => $vrtrack,
+                stats_file => $st_file,
+                bamcheck   => $bc_file
+            );
+        
+            my @info;
+            foreach my $c (@columns) {
+                my $i = defined( $row->$c ) ? $row->$c : "NA";
+                push( @info, $i );
+            }
+            my $row_joined = join( "\t", @info );
+            push(@all_stats, $row_joined);
+        }
     }
     my @uniq_stats = $self->remove_dups(\@all_stats);
     push(@complete_stats, @uniq_stats);
@@ -347,8 +356,7 @@ sub rnaseqfind {
     my @complete_stats;
 
     #output headers
-    my $header_line = join( "\t", @headers );
-    push( @complete_stats, $header_line );
+    push( @complete_stats, $self->header_line(\@headers) );
 
     #loop through lanes and print info to file
     my @all_stats;
@@ -415,8 +423,7 @@ sub annotationfind {
     my @complete_stats;
 
     #output headers
-    my $header_line = join( "\t", @headers );
-    push( @complete_stats, $header_line );
+    push( @complete_stats, $self->header_line(\@headers) );
 
     #loop through lanes and print info to file
 	my @all_stats;
@@ -484,6 +491,16 @@ sub remove_dups {
         }
     }
     return @uniq;
+}
+
+sub header_line {
+    my ( $self, $headers ) = @_;
+
+    my @quoted_headers;
+    foreach my $h ( @{$headers} ){
+        push( @quoted_headers, '"' . $h . '"' );
+    }
+    return join( "\t", @quoted_headers );
 }
 
 no Moose;

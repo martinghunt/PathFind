@@ -84,7 +84,7 @@ sub _build__checked_name {
         my $current_cwd = getcwd;
         $self->_set__given_destination($current_cwd);
     }
-    $name =~ s/\W+/_/g;
+    $name =~ s/[^\w\.]+/_/g;
     return $name;
 }
 

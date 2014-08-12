@@ -45,7 +45,7 @@ use Cwd qw(abs_path getcwd);
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
-use lib "/software/pathogen/internal/prod/lib";
+#use lib "/software/pathogen/internal/prod/lib";
 use lib "/lustre/scratch108/pathogen/cc21/repos/Bio-AutomatedAnnotation/lib";
 use lib "../lib";
 
@@ -121,7 +121,10 @@ sub BUILD {
             $self->symlink($symlink);
         }
         else{
-            $self->symlink(abs_path($symlink));
+            $symlink =~ s/\/$//;
+            my $ap = abs_path($symlink);
+            if ( defined $ap ){ $self->symlink($ap); }
+            else { $self->symlink($symlink); }
         }
     }
 }

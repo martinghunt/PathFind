@@ -105,7 +105,10 @@ sub BUILD {
             $self->symlink($symlink);
         }
         else{
-            $self->symlink(abs_path($symlink));
+            $symlink =~ s/\/$//;
+            my $ap = abs_path($symlink);
+            if ( defined $ap ){ $self->symlink($ap); }
+            else { $self->symlink($symlink); }
         }
     }
 

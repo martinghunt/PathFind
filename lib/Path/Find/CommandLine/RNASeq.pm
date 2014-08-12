@@ -104,7 +104,6 @@ sub BUILD {
 
     $self->type($type)          if ( defined $type );
     $self->id($id)              if ( defined $id );
-    $self->symlink(abs_path($symlink))    if ( defined $symlink );
     $self->archive($archive)    if ( defined $archive );
     $self->help($help)          if ( defined $help );
     $self->verbose($verbose)    if ( defined $verbose );
@@ -115,6 +114,18 @@ sub BUILD {
     $self->mapper($mapper)      if ( defined $mapper );
     $self->qc($qc)              if ( defined $qc );
     $self->_environment('test') if ( defined $test );
+
+    if ( defined $symlink ){
+        if ($symlink eq ''){
+            $self->symlink($symlink);
+        }
+        else{
+            $symlink =~ s/\/$//;
+            my $ap = abs_path($symlink);
+            if ( defined $ap ){ $self->symlink($ap); }
+            else { $self->symlink($symlink); }
+        }
+    }
 }
 
 sub check_inputs{
