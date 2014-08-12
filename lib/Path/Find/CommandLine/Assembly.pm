@@ -18,7 +18,7 @@ where \@ARGV follows the following parameters:
 
 -t|type            <study|lane|file|sample|species>
 -i|id              <study id|study name|lane name|file of lane names>
--f|filetype        <contigs|scaffold>
+-f|filetype        <contigs|scaffold|all>
 -l|symlink         <create a symlink to the data>
 -a|archive         <create archive of the data>
 -s|stats           <create a CSV file containing assembly stats>
@@ -100,7 +100,10 @@ sub BUILD {
             $self->symlink($symlink);
         }
         else{
-            $self->symlink(abs_path($symlink));
+            $symlink =~ s/\/$//;
+            my $ap = abs_path($symlink);
+            if ( defined $ap ){ $self->symlink($ap); }
+            else { $self->symlink($symlink); }
         }
     }
 }
@@ -125,7 +128,7 @@ sub check_inputs{
                 $self->filetype
                 && (   $self->filetype eq 'contigs'
                     || $self->filetype eq 'scaffold'
-                    || $self->filetype eq 'columbus')
+                    || $self->filetype eq 'all')
             )
           )
           && ( !defined($self->archive)
@@ -164,42 +167,37 @@ sub run {
       if ( defined $archive && defined $symlink );
 
     # Set assembly subdirectories
+    $filetype = 'scaffold' unless ( defined $filetype );
     my @sub_directories;
-    if (defined($filetype) && $filetype eq 'contigs') {
+    if ($filetype eq 'contigs' || $filetype eq 'scaffold') {
         @sub_directories = (
             '/velvet_assembly',  '/spades_assembly', '/iva_assembly'
         );
     }
-    elsif (defined($filetype) && $filetype eq 'columbus') {
-        @sub_directories = (
-            '/velvet_assembly', '/velvet_assembly_with_reference',
-        );
-
-    }
-    
-    else {
-        $filetype = 'scaffold';
+    elsif ($filetype eq 'all') {
         @sub_directories = (
             '/velvet_assembly',
             '/spades_assembly',
-            '/iva_assembly'
+            '/iva_assembly',
+            '/velvet_assembly_with_reference'
         );
+
     }
 
     # set file type extension wildcard
     my %type_extensions = (
         contigs  => 'unscaffolded_contigs.fa',
         scaffold => 'contigs.fa',
-        columbus => 'contigs.fa',
+        all      => '*contigs.fa'
     );
 
     my $lane_filter;
 
     my @req_stats;
     if ( defined $stats || defined $archive ){
-        @req_stats = ( 'contigs.fa.stats', 'contigs.mapped.sorted.bam.bc' );
-        $req_stats[0] = 'unscaffolded_contigs.fa.stats' if ($filetype eq 'contigs');
-        push(@req_stats, 'unscaffolded_contigs.fa.stats') unless ( defined $filetype );
+        @req_stats = ( 'contigs.fa.stats', 'contigs.mapped.sorted.bam.bc' ) if ($filetype eq 'scaffold');
+        @req_stats = ( 'unscaffolded_contigs.fa.stats', 'contigs.mapped.sorted.bam.bc' ) if ($filetype eq 'contigs');
+        @req_stats = ( 'contigs.fa.stats', 'contigs.mapped.sorted.bam.bc', 'unscaffolded_contigs.fa.stats' ) if ( $filetype eq 'all' );
     }
 
     # Get databases
@@ -254,7 +252,7 @@ sub run {
 
             if(defined $stats){
                 my $stats_name = $self->stats_name;
-                open(STATS, ">", $stats_name) or Path::Find::Exception::InvalidDestination->throw( error => "Can't write statistics to archive. Error code: $?\n");
+                open(STATS, ">", $stats_name) or Path::Find::Exception::InvalidDestination->throw( error => "Can't write statistics to $stats_name. Error code: $?\n");
                 print STATS $stats_output;
                 close STATS;
             }
@@ -315,7 +313,7 @@ sub stats_name {
         else{
             $s = $id;
         }
-        $stats = "$s.assembly_stats.csv";
+        $stats = "$s.assembly_stats.tsv";
     }
     $stats =~ s/[^\w\.\/]+/_/g;
     return $stats;
@@ -386,7 +384,7 @@ sub usage_text {
 Usage: $script_name
      -t|type            <study|lane|file|library|sample|species>
      -i|id              <study id|study name|lane name|file of lane names>
-     -f|filetype        <contigs|scaffold|columbus>
+     -f|filetype        <contigs|scaffold|all>
      -l|symlink         <create a symlink to the data>
      -a|archive         <create archive of the data>
      -s|stats           <create a CSV file containing assembly stats>
@@ -398,8 +396,8 @@ Using the option -a|archive will create an archive (.tar.gz) containing the sele
 
 Note: scaffolds are returned as default. -f contigs will return all unscaffolded contigs.
 
-# find an assembly for a given lane
-assemblyfind -t lane -i 1234_5#6
+# find an assembly for a given lane (both contigs and scaffolds)
+assemblyfind -t lane -i 1234_5#6 -f all
 
 # find contigs for a given lane
 assemblyfind -t lane -i 1234_5#6 -f contigs

@@ -71,10 +71,21 @@ sub BUILD {
     $self->type($type)          if ( defined $type );
     $self->id($id)              if ( defined $id );
     $self->filetype($filetype)  if ( defined $filetype );
-    $self->symlink($symlink)    if ( defined $symlink );
     $self->archive($archive)    if ( defined $archive );
     $self->help($help)          if ( defined $help );
     $self->_environment('test') if ( defined $test );
+
+    if ( defined $symlink ){
+        if ($symlink eq ''){
+            $self->symlink($symlink);
+        }
+        else{
+            $symlink =~ s/\/$//;
+            my $ap = abs_path($symlink);
+            if ( defined $ap ){ $self->symlink($ap); }
+            else { $self->symlink($symlink); }
+        }
+    }
 }
 
 sub check_inputs {

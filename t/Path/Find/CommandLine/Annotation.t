@@ -21,7 +21,7 @@ use_ok('Path::Find::CommandLine::Annotation');
 my $script_name = 'annotationfind';
 my $cwd = getcwd();
 
-my $temp_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
+my $temp_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 0 );
 my $tmp = $temp_directory_obj->dirname();
 
 my (@args, $arg_str, $exp_out, $obj);
@@ -438,7 +438,6 @@ ok( -e "$tmp/test_archive.tar.gz", 'archive exists');
 my $owd = getcwd();
 chdir($tmp);
 system("tar xvfz test_archive.tar.gz");
-system("ls");
 chdir($owd);
 ok( -e "$tmp/test_archive/stats.csv", 'stats file exists' );
 compare_ok("$tmp/test_archive/stats.csv", "t/data/annotationfind/annotation_stats_study.exp", "archived stats correct");

@@ -265,7 +265,8 @@ sub _get_stats_paths {
     $lane_path =~ s/_assembly\/.+$/_assembly/;
     my @stats_paths;
     foreach my $s ( @stats ){
-        push( @stats_paths, "$lane_path/$s" ) if ( -e "$lane_path/$s" );
+        my @search = glob "$lane_path/$s";
+        push( @stats_paths, $search[0] ) if ( -e $search[0] );
     }
     return \@stats_paths;
 }
