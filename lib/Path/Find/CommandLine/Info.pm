@@ -36,6 +36,7 @@ use Cwd;
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";
 use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
+use lib './lib';
 
 use Getopt::Long qw(GetOptionsFromArray);
 use DBI;

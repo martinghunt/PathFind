@@ -48,6 +48,7 @@ use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
 use lib "/software/pathogen/internal/prod/lib";
 use lib "/lustre/scratch108/pathogen/cc21/repos/Bio-AutomatedAnnotation/lib";
 use lib "../lib";
+use lib './lib';
 
 use Getopt::Long qw(GetOptionsFromArray);
 use Bio::AutomatedAnnotation::ParseGenesFromGFFs;

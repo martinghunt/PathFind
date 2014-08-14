@@ -270,7 +270,7 @@ sub _get_stats_paths {
     my @stats_paths;
     foreach my $s ( @stats ){
         my @search = glob "$lane_path/$s";
-        push( @stats_paths, $search[0] ) if ( -e $search[0] );
+        push( @stats_paths, $search[0] ) if ( defined $search[0] && -e $search[0] );
     }
     return \@stats_paths;
 }
