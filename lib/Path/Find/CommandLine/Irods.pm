@@ -29,9 +29,6 @@ pathdevg@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";
@@ -83,6 +80,7 @@ sub check_inputs{
           && ( $self->type eq 'study'
             || $self->type eq 'lane'
             || $self->type eq 'file'
+            || $self->type eq 'library'
             || $self->type eq 'sample'
             || $self->type eq 'species'
             || $self->type eq 'database' )
@@ -155,7 +153,7 @@ sub usage_text {
     my $scriptname = $self->script_name;
     return <<USAGE;
 Usage: $scriptname -t <type> -i <id> [options]   
-	 t|type      <study|lane|file|sample|species>
+	 t|type      <study|lane|file|library|sample|species>
 	 i|id        <study id|study name|lane name|file of lane names|lane accession|sample accession>
 	 h|help      <this message>
 USAGE

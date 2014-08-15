@@ -37,9 +37,6 @@ path-help@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
 
 use Cwd;
@@ -58,8 +55,6 @@ use File::Basename;
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
-use Path::Find::Linker;
-use Path::Find::Stats::Generator;
 use Path::Find::Log;
 use Path::Find::Sort;
 use Path::Find::Exception;
@@ -153,6 +148,7 @@ sub check_inputs{
             || $self->type eq 'lane'
             || $self->type eq 'sample'
             || $self->type eq 'file'
+            || $self->type eq 'library'
             || $self->type eq 'species'
             || $self->type eq 'database' )
           && ( !$self->filetype || $self->filetype eq 'vcf' || $self->filetype eq 'pseudogenome' )
@@ -262,7 +258,7 @@ sub run {
 
             my $index_files;
             $index_files = "tbi" if( $filetype eq 'vcf' );
-
+            eval('use Path::Find::Linker');
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,
@@ -445,7 +441,7 @@ sub usage_text {
     my $script_name = $self->script_name;
     return <<USAGE;
 Usage: $script_name
-     -t|type      <study|lane|file|sample|species>
+     -t|type      <study|lane|file|library|sample|species>
      -i|id        <study id|study name|lane name|file of lane names>
      -f|filetype  <vcf|pseudogenome>
      -q|qc        <pass|failed|pending>

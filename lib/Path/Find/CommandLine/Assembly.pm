@@ -34,14 +34,10 @@ path-help@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
 
 use Cwd;
 use Cwd 'abs_path';
-use Data::Dumper;
 
 #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";
@@ -59,9 +55,7 @@ use File::Copy qw(move);
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
-use Path::Find::Linker;
 use Path::Find::Log;
-use Path::Find::Stats::Generator;
 use Path::Find::Sort;
 use Path::Find::Exception;
 
@@ -126,6 +120,7 @@ sub check_inputs{
             || $self->type eq 'lane'
             || $self->type eq 'file'
             || $self->type eq 'sample'
+            || $self->type eq 'library'
             || $self->type eq 'species'
             || $self->type eq 'database' )
           && (
@@ -250,6 +245,7 @@ sub run {
         # stats
         my $stats_output;
         if ( defined $stats || defined $archive ) {
+            eval('use Path::Find::Stats::Generator');
             $stats_output = Path::Find::Stats::Generator->new(
                 lane_hashes => \@matching_lanes,
                 vrtrack     => $pathtrack
@@ -271,7 +267,7 @@ sub run {
             my $name = $self->set_linker_name;
 
             my %link_names = $self->link_rename_hash( \@matching_lanes );
-
+            eval('use Path::Find::Linker');
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,
@@ -387,7 +383,7 @@ sub usage_text {
     my $script_name = $self->script_name;
     return <<USAGE;
 Usage: $script_name
-     -t|type            <study|lane|file|sample|species>
+     -t|type            <study|lane|file|library|sample|species>
      -i|id              <study id|study name|lane name|file of lane names>
      -f|filetype        <contigs|scaffold|all>
      -l|symlink         <create a symlink to the data>

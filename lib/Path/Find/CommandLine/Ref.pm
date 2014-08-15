@@ -30,21 +30,15 @@ path-help@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
 
 use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use lib './lib';
 
-use Data::Dumper;
-
 use Cwd;
 use Cwd 'abs_path';
 use Getopt::Long qw(GetOptionsFromArray);
-use Path::Find::Linker;
 use Path::Find::Log;
 use Path::Find::Exception;
 
@@ -240,6 +234,7 @@ sub sym_archive {
     my $name = $self->set_linker_name;
 
     my $links  = $self->format_for_links($objects_to_link);
+    eval('use Path::Find::Linker');
     my $linker = Path::Find::Linker->new(
         lanes       => $links,
         name        => $name,

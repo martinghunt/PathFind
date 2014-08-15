@@ -10,17 +10,12 @@ my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
 =cut
 
 package Path::Find;
-use strict;
 use DBI;
 use VRTrack::VRTrack;
 
-use Cwd;
 use File::Slurp;
 use YAML::XS;
 use Moose;
-use File::Spec;
-
-use Data::Dumper;
 
 has 'connection'  => ( is => 'ro', isa => 'HashRef',  lazy_build => 1,   required => 0 );
 has 'db_root'     => ( is => 'ro', isa => 'Str',      default => '/lustre/scratch108/pathogen/pathpipe', required => 0 );
@@ -33,7 +28,6 @@ sub _build_connection {
   my $e = $self->environment;
 
   my $config_dir = "/software/pathogen/projects/PathFind/config";
-  #my $config_dir = "/lustre/scratch108/pathogen/cc21/repos/PathFind/config";
 
   my %connect = %{ Load( scalar read_file("$config_dir/$e.yml") ) };
   return \%connect;

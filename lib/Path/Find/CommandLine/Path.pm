@@ -33,9 +33,6 @@ path-help@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
 
 use Cwd;
@@ -51,8 +48,6 @@ use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
 use Path::Find::Log;
-use Path::Find::Linker;
-use Path::Find::Stats::Generator;
 use Path::Find::Sort;
 use Path::Find::Exception;
 
@@ -126,6 +121,7 @@ sub check_inputs {
           && ( $self->type eq 'study'
             || $self->type eq 'lane'
             || $self->type eq 'file'
+            || $self->type eq 'library'
             || $self->type eq 'sample'
             || $self->type eq 'species'
             || $self->type eq 'database' )
@@ -222,6 +218,7 @@ sub run {
         # generate stats
         my $stats_output;
         if ( defined $stats || defined $archive ) {
+            eval('use Path::Find::Stats::Generator');
             my $sg = Path::Find::Stats::Generator->new(
                 lane_hashes => \@matching_lanes,
                 vrtrack     => $pathtrack
@@ -240,7 +237,7 @@ sub run {
         $use_default = 1 if ( !defined $filetype );
         if ( $lane_filter->found && ( defined $symlink || defined $archive ) ) {
             my $name = $self->set_linker_name;
-
+            eval('use Path::Find::Linker');
             my $linker = Path::Find::Linker->new(
                 lanes            => \@matching_lanes,
                 name             => $name,
@@ -325,7 +322,7 @@ sub usage_text {
     my $script_name = $self->script_name;
     return <<USAGE;
 Usage: $script_name
-		-t|type		<study|lane|file|sample|species>
+		-t|type		<study|lane|file|library|sample|species>
 		-i|id		<study id|study name|lane name|file of lane names>
 		-h|help		<this help message>
 		-f|filetype	<fastq>

@@ -32,9 +32,6 @@ pathdevg@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
@@ -45,7 +42,6 @@ use lib './lib';
 
 use Getopt::Long qw(GetOptionsFromArray);
 use WWW::Mechanize;
-use Data::Dumper;
 
 use Path::Find;
 use Path::Find::Lanes;
@@ -100,6 +96,7 @@ sub check_inputs{
           && ( $self->type eq 'study'
             || $self->type eq 'lane'
             || $self->type eq 'file'
+            || $self->type eq 'library'
             || $self->type eq 'sample'
             || $self->type eq 'species'
             || $self->type eq 'database' )
@@ -229,7 +226,7 @@ sub usage_text {
     my $scriptname = $self->script_name;
     return <<USAGE;
 Usage: $scriptname -t <type> -i <id> [options]   
-	 t|type      <study|lane|file|sample|species>
+	 t|type      <study|lane|file|library|sample|species>
 	 i|id        <study id|study name|lane name|file of lane names|lane accession|sample accession>
 	 f|fastq     <generate ftp addresses for fastq file download from ENA>
 	 s|submitted <generate ftp addresses for submitted file download. Format varies>

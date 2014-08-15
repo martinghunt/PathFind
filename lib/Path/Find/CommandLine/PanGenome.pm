@@ -18,12 +18,7 @@ path-help@sanger.ac.uk
 
 =cut
 
-use strict;
-use warnings;
-no warnings 'uninitialized';
 use Moose;
-
-use Data::Dumper;
 use Cwd 'abs_path';
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
@@ -33,13 +28,11 @@ use lib "../lib";
 use lib './lib';
 
 use Getopt::Long qw(GetOptionsFromArray);
-use File::Path qw(make_path);
 use Cwd;
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Filter;
 use Path::Find::Log;
-use Path::Find::Linker;
 use File::Basename;
 
 has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
@@ -85,6 +78,7 @@ sub BUILD {
             || $type eq 'file'
             || $type eq 'sample'
             || $type eq 'species'
+            || $self->type eq 'library'
             || $type eq 'database' )
     ) or die $self->usage_text;
 
@@ -173,7 +167,7 @@ sub run {
 
         # symlink
         my %link_names = $self->link_rename_hash( \@matching_lanes );
-
+        eval('use Path::Find::Linker');
         Path::Find::Linker->new(
             lanes            => \@matching_lanes,
             name             => $output_directory,
@@ -238,7 +232,7 @@ sub usage_text {
     print <<USAGE;
 Create a pan genome from a set of lanes
 Usage: bacteria_pan_genome
-	-t|type		<study|lane|file|sample|species>
+	-t|type		<study|lane|file|library|sample|species>
 	-i|id		<study id|study name|lane name|file of lane names>
 	-h|help		<this help message>
 

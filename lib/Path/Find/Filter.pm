@@ -22,15 +22,11 @@ Returns a list of full paths to lanes that match the given criteria
 =cut
 
 use Moose;
-use VRTrack::Lane;
-use VRTrack::Individual;
 use Path::Find;
 use File::Find::Rule;
 
 use lib "../../";
 use Path::Find::Exception;
-
-use Data::Dumper;
 
 # required
 has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
