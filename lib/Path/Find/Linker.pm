@@ -1,5 +1,5 @@
 package Path::Find::Linker;
-
+use Data::Dumper;
 # ABSTRACT: Logic to create symlinks or archives for a list of lanes
 
 =head1 SYNOPSIS
@@ -34,6 +34,7 @@ directory.
 use Moose;
 use File::Temp;
 use Cwd;
+use File::Copy 'cp';
 use File::Basename;
 use File::Path qw( remove_tree);
 use Path::Find::Exception;
@@ -65,6 +66,7 @@ has 'script_name'  => ( is => 'ro', isa => 'Str', required => 0, default => $0 )
 has 'index_files'   => ( is => 'rw', isa => 'Maybe[Str]', required => 0 );
 has 'stats' => ( is => 'ro', isa => 'Maybe[Str]', required => 0 );
 has 'replace_hashes' => ( is => 'ro', isa => 'Maybe[Int]', required => 0 );
+has 'copy_files' => ( is => 'ro', isa => 'HashRef', required => 0 );
 
 sub _build__checked_name {
     my ($self) = @_;
@@ -139,6 +141,11 @@ sub archive {
         open(STATS, ">", "$dirname/$c_name/stats.csv") or Path::Find::Exception::InvalidDestination->throw( error => "Can't write statistics to archive. Error code: $?\n");
         print STATS $stats;
         close STATS;
+    }
+
+    # copy any other files
+    for my $key (keys %{$self->copy_files}) {
+        cp($key, "$dirname/$c_name/" . $self->copy_files->{$key});
     }
 
     #tar and move to CWD
