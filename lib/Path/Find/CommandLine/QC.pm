@@ -334,10 +334,10 @@ Usage: $script_name
      -l|symlink          <create a symlink to the data>
      -a|archive          <create archive of the data>
      -s|summary          <create a summary TSV file>
-     -level             <D|P|C|O|F|G|S|T>
-     -counts            <Use counts in summary instead of percentages>
+     -level              <D|P|C|O|F|G|S|T>
+     -counts             <Use counts in summary instead of percentages>
      -assigned_directly  <Report reads assigned directly to taxon node>
-     -transpose         <Transpose the summary file>
+     -transpose          <Transpose the summary file>
      -h|help             <print this message>
 
 ***********
