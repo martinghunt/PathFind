@@ -279,8 +279,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check archive
-ok(-e "pathfind_path_lanes_txt.tar.gz", 'archive exists');
-ok(check_links('pathfind_path_lanes_txt.tar.gz', $exp_out, 1), 'correct files present');
+ok(-e "pathfind_path_lanes.txt.tar.gz", 'archive exists');
+ok(check_links('pathfind_path_lanes.txt.tar.gz', $exp_out, 1), 'correct files present');
 
 # test 35
 @args = ( "--test", "-t", "file", "-i", "t/data/pathfind/path_lanes.txt", "-a", "$tmp/valid_dest" );
@@ -301,8 +301,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check symlinks
-ok( -e "pathfind_path_lanes_txt", 'symlink dir exists' );
-ok( check_links('pathfind_path_lanes_txt', $exp_out, 1), 'correct files symlinked' );
+ok( -e "pathfind_path_lanes.txt", 'symlink dir exists' );
+ok( check_links('pathfind_path_lanes.txt', $exp_out, 1), 'correct files symlinked' );
 
 # test 37
 @args = ( "--test", "-t", "file", "-i", "t/data/pathfind/path_lanes.txt", "-l", "$tmp/valid_dest" );
@@ -330,8 +330,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check archive
-ok(-e "pathfind_path_lanes_txt.tar.gz", 'archive exists');
-ok(check_links('pathfind_path_lanes_txt.tar.gz', $exp_out, 1), 'correct files present');
+ok(-e "pathfind_path_lanes.txt.tar.gz", 'archive exists');
+ok(check_links('pathfind_path_lanes.txt.tar.gz', $exp_out, 1), 'correct files present');
 
 # test 40
 @args = ( "--test", "-t", "file", "-i", "t/data/pathfind/path_lanes.txt", "-f", "fastq", "-a", "$tmp/valid_dest" );
@@ -352,8 +352,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check symlinks
-ok( -e "pathfind_path_lanes_txt", 'symlink dir exists' );
-ok( check_links('pathfind_path_lanes_txt', $exp_out, 1), 'correct files symlinked' );
+ok( -e "pathfind_path_lanes.txt", 'symlink dir exists' );
+ok( check_links('pathfind_path_lanes.txt', $exp_out, 1), 'correct files symlinked' );
 
 # test 42
 @args = ( "--test", "-t", "file", "-i", "t/data/pathfind/path_lanes.txt", "-f", "fastq", "-l", "$tmp/valid_dest" );
