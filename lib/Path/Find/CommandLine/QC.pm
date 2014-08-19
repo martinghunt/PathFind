@@ -334,19 +334,19 @@ Usage: $script_name
      -l|symlink          <create a symlink to the data>
      -a|archive          <create archive of the data>
      -s|summary          <create a summary TSV file>
-     -level'             <D|P|C|O|F|G|S|T>
-     -counts'            <Use counts in summary instead of percentages>
+     -level             <D|P|C|O|F|G|S|T>
+     -counts            <Use counts in summary instead of percentages>
      -assigned_directly  <Report reads assigned directly to taxon node>
-     -transpose'         <Transpose the summary file>
+     -transpose         <Transpose the summary file>
      -h|help             <print this message>
 
 ***********
 Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the data associated with the specified study or lane.
-Using the option -l|symlink will create a symlink to the queried data in a default directory created in the current directory, alternativley an output directory can be specified in which the symlinks will be created.
+Using the option -l|symlink will create a symlink to the queried data in a default directory created in the current directory, alternatively an output directory can be specified in which the symlinks will be created.
 Using the option -a|archive will create an archive (.tar.gz) containing the selected kraken reports and a summary TSV file. The -archive option will automatically name the archive file if a name is not supplied.
 
 Using the options -a|archive or -s|summary will create a summary TSV file from the Kraken output of each sample. The following options then apply:
--level D|P|C|O|F|G|S|T (deafult: P)
+-level D|P|C|O|F|G|S|T (default: P)
     Taxonomic level to output. Choose from:
       D (Domain), P (Phylum), C (Class), O (Order),
       F (Family), G (Genus), S (Species), T (Strain)
