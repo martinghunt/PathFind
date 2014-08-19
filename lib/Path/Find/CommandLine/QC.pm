@@ -367,6 +367,22 @@ Using the options -a|archive or -s|summary will create a summary TSV file from t
     Transpose output to have files in rows and matches in columns.
     Default is to have matches in rows and files in columns
 ***********
+
+Examples:
+
+# find a Kraken report for a give lane
+qcfind -t lane -i 1234_5#6
+
+# make summary TSV file for all samples in the given study
+qcfind -t study -i 123 -s summary.tsv
+
+# create symlinks to all kraken reports in the given study
+qcfind -t study -i "My study" -l 
+qcfind -t study -i "My study" -l output_directory
+
+# create a compressed archive of all kraken reports and a summary file
+qcfind -t study -i 123 -a
+qcfind -t study -i 123 -a study_123_reports.tar.gz
 USAGE
 }
 
