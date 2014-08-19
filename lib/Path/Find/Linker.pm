@@ -144,8 +144,10 @@ sub archive {
     }
 
     # copy any other files
-    for my $key (keys %{$self->copy_files}) {
-        cp($key, "$dirname/$c_name/" . $self->copy_files->{$key});
+    if (defined $self->copy_files) {
+        for my $key (keys %{$self->copy_files}) {
+            cp($key, "$dirname/$c_name/" . $self->copy_files->{$key});
+        }
     }
 
     #tar and move to CWD
