@@ -330,7 +330,6 @@ sub usage_text {
 Usage: $script_name
      -t|type             <study|lane|file|library|sample|species>
      -i|id               <study id|study name|lane name|file of lane names>
-     -f|filetype         <contigs|scaffold|all>
      -l|symlink          <create a symlink to the data>
      -a|archive          <create archive of the data>
      -s|summary          <create a summary TSV file>
