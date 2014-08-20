@@ -194,6 +194,15 @@ sub check_inputs {
 sub run {
     my ($self) = @_;
     $self->check_inputs or Path::Find::Exception::InvalidInput->throw( error => $self->usage_text);
+
+    my $logfile = $self->_environment eq 'test' ? '/nfs/pathnfs05/log/pathfindlog/test/qcfind.log' : '/nfs/pathnfs05/log/pathfindlog/qcfind.log';
+    eval {
+        Path::Find::Log->new(
+        logfile => $logfile,
+        args => $self->args
+        )->commandline();
+    };
+
     $self->_get_lanes();
 
     unless (scalar @{$self->_lanes} ) {
