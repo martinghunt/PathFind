@@ -191,21 +191,18 @@ sub print_ftp_url {
     open( OUT, ">> $outfile" );
     my $url;
     if ( $url_type eq "sub" ) {
-        $url =
-          'http://www.ebi.ac.uk/ena/data/view/reports/sra/submitted_files/';
+        $url = "http://www.ebi.ac.uk/ena/data/warehouse/filereport?accession=$acc&result=read_run&fields=submitted_ftp";
     }
     else {
-        $url = 'http://www.ebi.ac.uk/ena/data/view/reports/sra/fastq_files/';
+        $url = "http://www.ebi.ac.uk/ena/data/warehouse/filereport?accession=$acc&result=read_run&fields=fastq_ftp";
     }
-    $url .= $acc;
-    #print "$url\n";
     my $mech = WWW::Mechanize->new;
     $mech->get($url);
     my $down = $mech->content( format => 'text' );
     my @lines = split( /\n/, $down );
     foreach my $x ( 1 .. $#lines ) {
-        my @fields = split( /\t/, $lines[$x] );
-        print OUT "$fields[18]\n";
+        my @fields = split( /;/, $lines[$x] );
+        foreach my $f (@fields){ print OUT "ftp://$f\n"; }
     }
     close OUT;
 }
