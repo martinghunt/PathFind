@@ -95,7 +95,7 @@ sub _build_summary_file {
         return abs_path($self->summary);
     }
     else {
-        return abs_path($self->_outname . '.kraken_summary.tsv');
+        return abs_path($self->_outname . '.kraken_summary.csv');
     }
 }
 
@@ -310,8 +310,8 @@ sub _symlink_or_archive {
     if ($archive) {
         my $tmpdir = $temp_directory_obj->dirname();
         my $original_summary_file = $self->_summary_file;
-        $self->_summary_file(abs_path("$tmpdir/summary.tsv"));
-        $files_to_copy{$self->_summary_file} = 'kraken_summary.tsv';
+        $self->_summary_file(abs_path("$tmpdir/summary.csv"));
+        $files_to_copy{$self->_summary_file} = 'kraken_summary.csv';
         $self->_make_kraken_summary;
         $self->_summary_file($original_summary_file);
     }
@@ -341,7 +341,7 @@ Usage: $script_name
      -i|id               <study id|study name|lane name|file of lane names>
      -l|symlink          <create a symlink to the data>
      -a|archive          <create archive of the data>
-     -s|summary          <create a summary TSV file>
+     -s|summary          <create a summary CSV file>
      -level              <D|P|C|O|F|G|S|T>
      -counts             <Use counts in summary instead of percentages>
      -assigned_directly  <Report reads assigned directly to taxon node>
@@ -351,9 +351,9 @@ Usage: $script_name
 ***********
 Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the data associated with the specified study or lane.
 Using the option -l|symlink will create a symlink to the queried data in a default directory created in the current directory, alternatively an output directory can be specified in which the symlinks will be created.
-Using the option -a|archive will create an archive (.tar.gz) containing the selected kraken reports and a summary TSV file. The -archive option will automatically name the archive file if a name is not supplied.
+Using the option -a|archive will create an archive (.tar.gz) containing the selected kraken reports and a summary CSV file. The -archive option will automatically name the archive file if a name is not supplied.
 
-Using the options -a|archive or -s|summary will create a summary TSV file from the Kraken output of each sample. The following options then apply:
+Using the options -a|archive or -s|summary will create a summary CSV file from the Kraken output of each sample. The following options then apply:
 -level D|P|C|O|F|G|S|T (default: P)
     Taxonomic level to output. Choose from:
       D (Domain), P (Phylum), C (Class), O (Order),
@@ -381,8 +381,8 @@ Examples:
 # find a Kraken report for a give lane
 qcfind -t lane -i 1234_5#6
 
-# make summary TSV file for all samples in the given study
-qcfind -t study -i 123 -s summary.tsv
+# make summary CSV file for all samples in the given study
+qcfind -t study -i 123 -s summary.csv
 
 # create symlinks to all kraken reports in the given study
 qcfind -t study -i "My study" -l 

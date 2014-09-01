@@ -53,9 +53,9 @@ for my $i (0 .. $#ids) {
 
 @ids = ("1234_5#6", "name/of/file.txt", "name/of/file with spaces.txt");
 @expected = (
-    "$cwd/1234_5_6.kraken_summary.tsv",
-    "$cwd/file.txt.kraken_summary.tsv",
-    "$cwd/file_with_spaces.txt.kraken_summary.tsv"
+    "$cwd/1234_5_6.kraken_summary.csv",
+    "$cwd/file.txt.kraken_summary.csv",
+    "$cwd/file_with_spaces.txt.kraken_summary.csv"
 );
 for my $i (0 .. $#ids) {
     @args = ( '--test', '-t', 'species', '-i', $ids[$i]);
@@ -66,12 +66,12 @@ for my $i (0 .. $#ids) {
 
 @args = ( '--test', '-t', 'species', '-i', 'ID');
 $obj = Path::Find::CommandLine::QC->new(args => \@args, script_name => 'qcfind');
-is($obj->_summary_file, "$cwd/ID.kraken_summary.tsv", "_summary_file built OK with default");
+is($obj->_summary_file, "$cwd/ID.kraken_summary.csv", "_summary_file built OK with default");
 
 
-@args = ( '--test', '-t', 'species', '-i', 'ID', '-s', 'summary.tsv');
+@args = ( '--test', '-t', 'species', '-i', 'ID', '-s', 'summary.csv');
 $obj = Path::Find::CommandLine::QC->new(args => \@args, script_name => 'qcfind');
-is($obj->_summary_file, "$cwd/summary.tsv", "_summary_file built OK with -s summary.tsv");
+is($obj->_summary_file, "$cwd/summary.csv", "_summary_file built OK with -s summary.csv");
 
 
 @args = ( '--test', '-t', 'species', '-i', 'ID', '-l');
@@ -105,65 +105,65 @@ ok(check_links($tmpdir, $exp_out), 'correct files symlinked');
 remove_tree($tmpdir);
 
 
-my $tmp_tsv = "$tmp/qcfind_test.csv";
-@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_tsv );
+my $tmp_csv = "$tmp/qcfind_test.csv";
+@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_csv );
 $obj = Path::Find::CommandLine::QC->new(args => \@args, script_name => 'qcfind');
 $exp_out = read_file('t/data/qcfind/shigella.make_summary.-s.qcfind_test.csv.out');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-ok( -e $tmp_tsv, 'csv file exists');
-ok(compare('t/data/qcfind/shigella.summary.default.tsv', $tmp_tsv) == 0, "csv file contents OK '$arg_str'");
-unlink $tmp_tsv;
+ok( -e $tmp_csv, 'csv file exists');
+ok(compare('t/data/qcfind/shigella.summary.default.csv', $tmp_csv) == 0, "csv file contents OK '$arg_str'");
+unlink $tmp_csv;
 
 
-@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_tsv, '-transpose' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_csv, '-transpose' );
 $obj = Path::Find::CommandLine::QC->new(args => \@args, script_name => 'qcfind');
 $exp_out = read_file('t/data/qcfind/shigella.make_summary.-s.qcfind_test.-transpose.csv.out');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-ok( -e $tmp_tsv, 'csv file exists');
-ok(compare('t/data/qcfind/shigella.summary.-transpose.tsv', $tmp_tsv) == 0, "csv file contents OK '$arg_str'");
-unlink $tmp_tsv;
+ok( -e $tmp_csv, 'csv file exists');
+ok(compare('t/data/qcfind/shigella.summary.-transpose.csv', $tmp_csv) == 0, "csv file contents OK '$arg_str'");
+unlink $tmp_csv;
 
 
-@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_tsv, '-level', 'D' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_csv, '-level', 'D' );
 $obj = Path::Find::CommandLine::QC->new(args => \@args, script_name => 'qcfind');
 $exp_out = read_file('t/data/qcfind/shigella.make_summary.-s.qcfind_test.-level_D.csv.out');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-ok( -e $tmp_tsv, 'csv file exists');
-ok(compare('t/data/qcfind/shigella.summary.-level_D.tsv', $tmp_tsv) == 0, "csv file contents OK '$arg_str'");
-unlink $tmp_tsv;
+ok( -e $tmp_csv, 'csv file exists');
+ok(compare('t/data/qcfind/shigella.summary.-level_D.csv', $tmp_csv) == 0, "csv file contents OK '$arg_str'");
+unlink $tmp_csv;
 
 
-@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_tsv, '-counts');
+@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_csv, '-counts');
 $obj = Path::Find::CommandLine::QC->new(args => \@args, script_name => 'qcfind');
 $exp_out = read_file('t/data/qcfind/shigella.make_summary.-s.qcfind_test.-counts.csv.out');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-ok( -e $tmp_tsv, 'csv file exists');
-ok(compare('t/data/qcfind/shigella.summary.-counts.tsv', $tmp_tsv) == 0, "csv file contents OK '$arg_str'");
-unlink $tmp_tsv;
+ok( -e $tmp_csv, 'csv file exists');
+ok(compare('t/data/qcfind/shigella.summary.-counts.csv', $tmp_csv) == 0, "csv file contents OK '$arg_str'");
+unlink $tmp_csv;
 
 
-@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_tsv, '-min_cutoff', '20');
+@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_csv, '-min_cutoff', '20');
 $obj = Path::Find::CommandLine::QC->new(args => \@args, script_name => 'qcfind');
 $exp_out = read_file('t/data/qcfind/shigella.make_summary.-s.qcfind_test.-min_cutoff.20.csv.out');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-ok( -e $tmp_tsv, 'csv file exists');
-ok(compare('t/data/qcfind/shigella.make_summary.-min_cutoff.20.csv', $tmp_tsv) == 0, "csv file contents OK '$arg_str'");
-unlink $tmp_tsv;
+ok( -e $tmp_csv, 'csv file exists');
+ok(compare('t/data/qcfind/shigella.make_summary.-min_cutoff.20.csv', $tmp_csv) == 0, "csv file contents OK '$arg_str'");
+unlink $tmp_csv;
 
 
-@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_tsv, '-assigned_directly');
+@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_csv, '-assigned_directly');
 $obj = Path::Find::CommandLine::QC->new(args => \@args, script_name => 'qcfind');
 $exp_out = read_file('t/data/qcfind/shigella.make_summary.-s.qcfind_test.-assigned_directly.csv.out');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
-ok( -e $tmp_tsv, 'csv file exists');
-ok(compare('t/data/qcfind/shigella.summary.-assigned_directly.tsv', $tmp_tsv) == 0, "csv file contents OK '$arg_str'");
-unlink $tmp_tsv;
+ok( -e $tmp_csv, 'csv file exists');
+ok(compare('t/data/qcfind/shigella.summary.-assigned_directly.csv', $tmp_csv) == 0, "csv file contents OK '$arg_str'");
+unlink $tmp_csv;
 
 
 $tmpdir = "qcfind_archive";
@@ -205,6 +205,6 @@ sub check_archive {
         return 0;
     }
     system("tar -zxf $archive") and return 0;
-    return 0 unless (-e "$dir/kraken_summary.tsv");
+    return 0 unless (-e "$dir/kraken_summary.csv");
     return check_links($dir, $expected_links);
 }
