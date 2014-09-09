@@ -43,7 +43,6 @@ use Cwd qw(abs_path getcwd);
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
 use lib "/software/pathogen/internal/prod/lib";
-use lib "/lustre/scratch108/pathogen/cc21/repos/Bio-AutomatedAnnotation/lib";
 use lib "../lib";
 use lib './lib';
 
