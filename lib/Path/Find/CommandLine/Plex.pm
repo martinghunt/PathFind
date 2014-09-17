@@ -127,7 +127,7 @@ sub run {
 
     #my $port = defined $test ? 3346:3347;
     #my %connection_details = (
-    #    host     => "mcs6",
+    #    host     => "mcs15",
     #    port     => $port,
     #    user     => "pathpipe_ro",
     #    password => ""
