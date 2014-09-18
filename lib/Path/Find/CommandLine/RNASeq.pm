@@ -208,7 +208,7 @@ sub run {
 
         # filter lanes
         my $verbose_info = 0;
-        $filetype = "bam" unless(defined $filetype);
+        $filetype = "spreadsheet" unless(defined $filetype);
         if ( $verbose || $date || $ref || $mapper ){
             $verbose_info = 1;
         }
