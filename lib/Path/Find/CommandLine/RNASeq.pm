@@ -176,6 +176,7 @@ sub run {
         intergenic  => '*tab.gz',
         bam         => '*corrected.bam',
         spreadsheet => '*expression.csv',
+        featurecounts => '*featurecounts.csv',
     );
 
     my $lane_filter;
@@ -380,7 +381,7 @@ sub usage_text {
 Usage: $script_name
      -t|type      <study|lane|file|library|sample|species>
      -i|id        <study id|study name|lane name|file of lane names>
-     -f|filetype  <bam|coverage|intergenic|spreadsheet>
+     -f|filetype  <bam|coverage|intergenic|spreadsheet|featurecounts>
      -q|qc        <pass|failed|pending>
      -l|symlink   <create a symlink to the data>
      -a|arvhive   <archive the data>
@@ -399,6 +400,7 @@ files within the result set. For a single RNA seq experiment you will have:
 - a spreadsheet with RPKM and read counts for each CDS/polypeptide
 - coverage plots for each sequence which can be opened in Artemis
 - tab files for each sequence with intergenic regions marked up, which can be opened in Artemis.
+- a spreadsheet of reads per gene model from FeatureCounts (Mouse and Human)
 
 Using the option -l|symlink will create a symlink to the queried data in the given directory (this will be created if it does not already exist). 
 Similarly, using the -a|archive option will create an archive of the results with the given filename. 
