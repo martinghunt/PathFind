@@ -340,6 +340,13 @@ $exp_out = read_file('t/data/rnaseqfind/41.txt');
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# test 49
+@args = ( '--test', '-t', 'file', '-i', 't/data/rnaseqfind/rnaseq_lanes.txt', '-f', 'featurecounts' );
+$obj = Path::Find::CommandLine::RNASeq->new(args => \@args, script_name => 'rnaseqfind');
+$exp_out = read_file('t/data/rnaseqfind/49.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
 # check stats inside archive
 ok( -e "$tmp/test_stats.tar.gz", 'archive exists');
 my $owd = getcwd();
