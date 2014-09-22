@@ -166,7 +166,8 @@ sub run {
     # set file type extension regular expressions
     my %type_extensions = (
         fastq => '.fastq.gz',
-        bam   => '.bam'
+        bam   => '.bam',
+        pacbio   => '.h5'
     );
 
     my $lane_filter;
@@ -325,7 +326,7 @@ Usage: $script_name
 		-t|type		<study|lane|file|library|sample|species>
 		-i|id		<study id|study name|lane name|file of lane names>
 		-h|help		<this help message>
-		-f|filetype	<fastq>
+		-f|filetype	<fastq|bam|pacbio>
 		-l|symlink	<create sym links to the data and define output directory>
 		-a|archive	<name for archive containing the data>
 		-r|rename   <replace # in symlinks with _>
@@ -334,7 +335,7 @@ Usage: $script_name
 
 	Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the data associated with the specified study or lane. 
 	Using the option -qc (passed|failed|pending) will limit the results to data of the specified qc status. 
-	Using the option -filetype (fastq or bam) will return the path to the files of this type for the given data. 
+	Using the option -filetype (fastq, bam or pacbio) will return the path to the files of this type for the given data. 
 	Using the option -symlink will create a symlink to the queried data in the current directory, alternativley an output directory can be specified in which the symlinks will be created.
 	Similarly, the archive option will create and archive (.tar.gz) of the data under a default file name unless one is specified.
 USAGE
