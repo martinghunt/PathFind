@@ -131,7 +131,7 @@ sub check_inputs {
                 && ( $self->qc eq 'passed' || $self->qc eq 'failed' || $self->qc eq 'pending' ) )
           )
           && ( !$self->filetype
-            || ( $self->filetype && ( $self->filetype eq 'fastq' ) ) )
+            || ( $self->filetype && ( $self->filetype eq 'fastq' ||  $self->filetype eq 'pacbio') ) )
     );
 }
 
