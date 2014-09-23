@@ -167,7 +167,7 @@ sub run {
     my %type_extensions = (
         fastq => '.fastq.gz',
         bam   => '.bam',
-        pacbio   => '.h5'
+        pacbio   => '*.h5'
     );
 
     my $lane_filter;
