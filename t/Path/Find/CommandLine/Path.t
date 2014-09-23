@@ -717,6 +717,16 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 ok( -e "$tmp/test82/5477_6_1_1.fastq.gz", 'correct symlink name' );
 ok( -e "$tmp/test82/5477_6_1_2.fastq.gz", 'correct symlink name' );
 
+
+# test 83 : test renaming of links
+@args = ( "--test", "-t", "lane", "-i", "6578_4#4", "-f", "pacbio");
+$exp_out = read_file('t/data/pathfind/83.txt');
+$obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
+
 remove_tree($tmp);
 done_testing();
 
