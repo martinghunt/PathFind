@@ -311,7 +311,8 @@ sub _build_is_mapping_complete {
             '3.1'   => 'Correction, Normalisation, Primer Removal + Velvet + Improvement',
             '3.2'   => 'Normalisation + SPAdes + Improvement',
             '4'     => 'Correction + Velvet + Improvement',
-            '5'     => 'IVA'
+            '5'     => 'IVA',
+            '6'     => 'SMRT analysis 2.2.0'
         );
         return \%pipe_vs;
     }
