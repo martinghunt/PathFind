@@ -199,7 +199,8 @@ sub run {
     my @sub_directories = ( 
         '/velvet_assembly/annotation', 
         '/spades_assembly/annotation', 
-        '/iva_assembly/annotation' 
+        '/iva_assembly/annotation',
+        '/pacbio_assembly/annotation'
     );
 
     # set file type extension wildcard

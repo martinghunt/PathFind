@@ -172,7 +172,7 @@ sub run {
     my @sub_directories;
     if ($filetype eq 'contigs' || $filetype eq 'scaffold') {
         @sub_directories = (
-            '/velvet_assembly',  '/spades_assembly', '/iva_assembly'
+            '/velvet_assembly',  '/spades_assembly', '/iva_assembly','/pacbio_assembly'
         );
     }
     elsif ($filetype eq 'all') {
@@ -180,6 +180,7 @@ sub run {
             '/velvet_assembly',
             '/spades_assembly',
             '/iva_assembly',
+            '/pacbio_assembly',
             '/velvet_assembly_with_reference'
         );
 
@@ -359,7 +360,8 @@ sub link_rename_hash {
         'velvet_assembly_with_reference' => '_columbus.fa',
         'spades_assembly'                => '_spades.fa',
         'scaffolding_results'            => '_scaffolded.fa',
-        'iva_assembly'                   => '_iva.fa'
+        'iva_assembly'                   => '_iva.fa',
+        'pacbio_assembly'                => '_pacbio.fa'
     );
 
     my %link_names;
