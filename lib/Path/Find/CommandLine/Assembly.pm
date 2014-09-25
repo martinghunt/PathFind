@@ -289,10 +289,9 @@ sub run {
 
         $dbh->disconnect();
 
-        #no need to look in the next database if relevant data has been found
         if ( $lane_filter->found ) {
 	        $found = 1;
-            return 1;
+          last if($database ne 'pathogen_pacbio_track');
         }
     }
 
