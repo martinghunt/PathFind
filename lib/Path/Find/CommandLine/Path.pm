@@ -257,11 +257,11 @@ sub run {
 		      my $l = $ml->{path};
 		      print "$l\n";
 	        }
-	       $found = 1;
+	       $found++;
 	   }
 
         $dbh->disconnect();
-        return 1;  
+        last if($database ne 'pathogen_pacbio_track');
     }
     unless ( $found ) {
         Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");

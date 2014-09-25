@@ -96,7 +96,7 @@ sub _move_production_databases_to_the_front
    my @reordered_db_list;
    my %db_list_lookup = map { $_ => 1 } @{$db_list};
 
-   for my $db_name (qw(pathogen_prok_track pathogen_euk_track pathogen_virus_track pathogen_helminth_track))   
+   for my $db_name (qw(pathogen_pacbio_track pathogen_prok_track pathogen_euk_track pathogen_virus_track pathogen_helminth_track))   
    {
      if($db_list_lookup{$db_name})
      {
