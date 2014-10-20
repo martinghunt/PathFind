@@ -772,5 +772,13 @@ throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown'
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
+# test 86
+@args = ( '--test', '-t', 'file', '-i', 't/data/accessionfind/empty_file.txt' );
+$obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
+$exp_out = read_file('t/data/accessionfind/86.txt');
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+
 remove_tree($tmp);
 done_testing();
