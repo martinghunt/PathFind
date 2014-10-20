@@ -772,5 +772,11 @@ throws_ok {$obj->run} 'Path::Find::Exception::NoMatches', 'correct error thrown'
 $obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
 throws_ok {$obj->run} 'Path::Find::Exception::InvalidInput', 'correct error thrown';
 
+# test 86
+@args = ( '--test', '-t', 'file', '-i', 't/data/accessionfind/empty_file.txt' );
+$obj = Path::Find::CommandLine::Accession->new(args => \@args, script_name => 'accessionfind');
+throws_ok { $obj->run } 'Path::Find::Exception::NoMatches', 'No lanes should be returned if the file is empty';
+
+
 remove_tree($tmp);
 done_testing();

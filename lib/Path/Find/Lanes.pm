@@ -215,14 +215,18 @@ sub _lookup_by_file {
   my ($self) = @_;
   my @lanes;
 
+  my $lane_count = 0;
   my %lanenames;
   open( my $fh, $self->search_id ) || Path::Find::Exception::FileDoesNotExist->throw( error => "Error: Could not open file '" . $self->search_id . "'\n");
   foreach my $lane_id (<$fh>) {
       chomp $lane_id;
       next if $lane_id eq '';
       $lanenames{$lane_id} = 1;
+      $lane_count++;
   }
   close $fh;
+  
+  return \@lanes if($lane_count == 0);
 
   my @all_lane_names = keys %lanenames;
   my $contains_names_which_might_be_accessions = 0;

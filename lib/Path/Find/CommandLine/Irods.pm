@@ -32,7 +32,6 @@ pathdevg@sanger.ac.uk
 use Moose;
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";
-use lib "/software/pathogen/internal/prod/lib";
 use lib "../lib";
 use lib './lib';
 
