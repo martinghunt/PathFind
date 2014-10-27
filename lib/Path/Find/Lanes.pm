@@ -274,7 +274,6 @@ sub _lookup_by_file {
         . $self->processed_flag . ' = '
         . $self->processed_flag
         . ' order by lane.name asc';
-    print "$sql_query\n";
     $lane_names = $self->dbh->selectall_arrayref( $sql_query );
   }
 
