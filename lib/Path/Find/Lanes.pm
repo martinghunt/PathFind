@@ -166,7 +166,7 @@ sub _lookup_by_species {
         inner join latest_sample as sample on sample.individual_id = individual.individual_id
         inner join latest_library as library on library.sample_id = sample.sample_id
         inner join latest_lane as lane on lane.library_id = library.library_id
-      where species.name like "'
+      where species.name like "%'
           . $self->search_id
           . '%" AND lane.processed & '
           . $self->processed_flag . ' = '
@@ -263,8 +263,7 @@ sub _lookup_by_file {
     my $sample_acc_search_query = join ( '" OR individual.acc like "', (keys %lanenames) );
     $sample_acc_search_query = ' (individual.acc like "' . $sample_acc_search_query . '") ';
 
-    $lane_names =
-      $self->dbh->selectall_arrayref( 'select lane.name from individual as individual
+    my $sql_query = 'select lane.name from individual as individual
         inner join latest_sample as sample on sample.individual_id = individual.individual_id
         inner join latest_library as library on library.sample_id = sample.sample_id
         inner join latest_lane as lane on lane.library_id = library.library_id
@@ -274,7 +273,9 @@ sub _lookup_by_file {
         . ' AND lane.processed & '
         . $self->processed_flag . ' = '
         . $self->processed_flag
-        . ' order by lane.name asc' );
+        . ' order by lane.name asc';
+    print "$sql_query\n";
+    $lane_names = $self->dbh->selectall_arrayref( $sql_query );
   }
 
   for my $lane_name (@$lane_names) {
