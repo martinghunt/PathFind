@@ -198,10 +198,10 @@ sub _create_symlinks {
         my $l = $lane->{path};
         my @files2link;
 		if(defined $default_type){
-			@files2link = $self->_link_names( $l, $default_type );
+			@files2link = $self->_link_names( $l, $default_type,$lane );
 		}
 		else {
-			@files2link = $self->_link_names( $l, undef );
+			@files2link = $self->_link_names( $l, undef,$lane );
 		}
         foreach my $linkf (@files2link) {
             my ( $source, $dest ) = @{$linkf};
@@ -227,10 +227,10 @@ sub _check_dest {
 }
 
 sub _link_names {
-    my ( $self, $lane, $dt ) = @_;
+    my ( $self, $lane, $dt,$vlane ) = @_;
     my $destination = $self->destination;
     my $name        = $self->_checked_name;
-    my $linknames   = $self->rename_links;
+    my $linknames   = $self->rename_links;    
 
     my @files2link;
 	my @matching_files;
@@ -254,9 +254,9 @@ sub _link_names {
         
         $lf =~ s/[^\w\.]+/_/g if($self->replace_hashes);
  
-        if($self->prefix_with_library_name && defined($lane))
+        if($self->prefix_with_library_name && defined($vlane))
         {
-            my $library  = VRTrack::Library->new( $vrtrack, $lane->library_id );
+            my $library  = VRTrack::Library->new( $vlane->{_dbh}, $vlane->library_id );
             if(defined($library) && defined($library->name))
             {
               $lf = $library->name.'_'.$lf;
