@@ -256,7 +256,7 @@ sub _link_names {
  
         if($self->prefix_with_library_name && defined($vlane))
         {
-            my $library  = VRTrack::Library->new( $vlane->{_dbh}, $vlane->library_id );
+            my $library  = VRTrack::Library->new( $vlane->{vrtrack}, $vlane->library_id );
             if(defined($library) && defined($library->name))
             {
               $lf = $library->name.'_'.$lf;
