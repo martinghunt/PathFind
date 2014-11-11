@@ -727,7 +727,7 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # test 84: prefix the symlinks with the sample name
 @args = ( "--test", "-t", "lane", "-i", "5477_6#1", "-f", "fastq", '-l',"$tmp/test84",'--prefix_with_library_name');
-$exp_out = read_file('t/data/pathfind/47.txt');
+$exp_out = read_file('t/data/pathfind/84.txt');
 $obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
