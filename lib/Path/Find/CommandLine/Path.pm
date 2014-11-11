@@ -50,25 +50,26 @@ use Path::Find::Log;
 use Path::Find::Sort;
 use Path::Find::Exception;
 
-has 'args'         => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has 'script_name'  => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'type'         => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'id'           => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'qc'           => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'filetype'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'archive'      => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'stats'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'symlink'      => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'output'       => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'help'         => ( is => 'rw', isa => 'Str',      required => 0 );
-has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
-has 'rename'       => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'args'                    => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'script_name'             => ( is => 'ro', isa => 'Str',      required => 1 );
+has 'type'                    => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'id'                      => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'qc'                      => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'filetype'                => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'archive'                 => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'stats'                   => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'symlink'                 => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'output'                  => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'help'                    => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment'            => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
+has 'rename'                  => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'prefix_with_library_name' => ( is => 'rw', isa => 'Bool',     required => 0 );
 
 sub BUILD {
     my ($self) = @_;
 
     my ( $type, $id, $qc, $filetype, $archive, $stats, $symlink, $output,
-        $rename, $help, $test );
+        $rename, $help, $test,$prefix_with_library_name );
 
     my @args = @{ $self->args };
 	GetOptionsFromArray(
@@ -82,6 +83,7 @@ sub BUILD {
         'q|qc=s'       => \$qc,
         'r|rename'     => \$rename,
         'test'         => \$test,
+        'prefix_with_library_name' => \$prefix_with_library_name,
         'h|help'       => \$help
     );
 
@@ -95,6 +97,8 @@ sub BUILD {
     $self->help($help)          if ( defined $help );
     $self->_environment('test') if ( defined $test );
     $self->rename($rename)      if ( defined $rename ); 
+    $self->prefix_with_library_name($prefix_with_library_name) if ( defined $prefix_with_library_name );
+
 
     if ( defined $symlink ){
         if ($symlink eq ''){
@@ -239,12 +243,13 @@ sub run {
             my $name = $self->set_linker_name;
             eval('use Path::Find::Linker');
             my $linker = Path::Find::Linker->new(
-                lanes            => \@matching_lanes,
-                name             => $name,
-                use_default_type => $use_default,
-				script_name      => $self->script_name,
-                stats            => $stats_output,
-                replace_hashes   => $self->rename
+                lanes                   => \@matching_lanes,
+                name                    => $name,
+                use_default_type        => $use_default,
+                script_name             => $self->script_name,
+                stats                   => $stats_output,
+                replace_hashes          => $self->rename,
+                prefix_with_library_name => $self->prefix_with_library_name
             );
 
             $linker->sym_links if ( defined $symlink );
@@ -329,8 +334,9 @@ Usage: $script_name
 		-l|symlink	<create sym links to the data and define output directory>
 		-a|archive	<name for archive containing the data>
 		-r|rename   <replace # in symlinks with _>
-        -s|stats	<output statistics>
-		-q|qc		<passed|failed|pending>    
+		-s|stats	<output statistics>
+		-q|qc		<passed|failed|pending>
+		--prefix_with_library_name <prefix the symlink with the sample name>
 
 	Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the data associated with the specified study or lane. 
 	Using the option -qc (passed|failed|pending) will limit the results to data of the specified qc status. 

@@ -38,8 +38,9 @@ use File::Copy 'cp';
 use File::Basename;
 use File::Path qw( remove_tree);
 use Path::Find::Exception;
+use VRTrack::Library;
 
-has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'lanes'    => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has '_tmp_dir' => ( is => 'rw', lazy => 1, builder  => '_build__tmp_dir' );
 has 'name'     => ( is => 'ro', isa => 'Str', required => 1 );
 has '_checked_name' =>
@@ -61,12 +62,13 @@ has '_given_destination' => (
     required => 0,
     writer   => '_set__given_destination'
 );
-has 'rename_links' => ( is => 'ro', isa => 'HashRef', required => 0 );
-has 'script_name'  => ( is => 'ro', isa => 'Str', required => 0, default => $0 );
-has 'index_files'   => ( is => 'rw', isa => 'Maybe[Str]', required => 0 );
-has 'stats' => ( is => 'ro', isa => 'Maybe[Str]', required => 0 );
-has 'replace_hashes' => ( is => 'ro', isa => 'Maybe[Int]', required => 0 );
-has 'copy_files' => ( is => 'ro', isa => 'HashRef', required => 0 );
+has 'rename_links'             => ( is => 'ro', isa => 'HashRef',    required => 0 );
+has 'script_name'              => ( is => 'ro', isa => 'Str',        required => 0, default => $0 );
+has 'index_files'              => ( is => 'rw', isa => 'Maybe[Str]', required => 0 );
+has 'stats'                    => ( is => 'ro', isa => 'Maybe[Str]', required => 0 );
+has 'replace_hashes'           => ( is => 'ro', isa => 'Maybe[Int]', required => 0 );
+has 'copy_files'               => ( is => 'ro', isa => 'HashRef',    required => 0 );
+has 'prefix_with_library_name' => ( is => 'rw', isa => 'Bool',       default  => 0 );
 
 sub _build__checked_name {
     my ($self) = @_;
@@ -196,10 +198,10 @@ sub _create_symlinks {
         my $l = $lane->{path};
         my @files2link;
 		if(defined $default_type){
-			@files2link = $self->_link_names( $l, $default_type );
+			@files2link = $self->_link_names( $l, $default_type,$lane->{lane} );
 		}
 		else {
-			@files2link = $self->_link_names( $l, undef );
+			@files2link = $self->_link_names( $l, undef,$lane->{lane} );
 		}
         foreach my $linkf (@files2link) {
             my ( $source, $dest ) = @{$linkf};
@@ -225,10 +227,10 @@ sub _check_dest {
 }
 
 sub _link_names {
-    my ( $self, $lane, $dt ) = @_;
+    my ( $self, $lane, $dt,$vlane ) = @_;
     my $destination = $self->destination;
     my $name        = $self->_checked_name;
-    my $linknames   = $self->rename_links;
+    my $linknames   = $self->rename_links;    
 
     my @files2link;
 	my @matching_files;
@@ -251,6 +253,15 @@ sub _link_names {
         }
         
         $lf =~ s/[^\w\.]+/_/g if($self->replace_hashes);
+ 
+        if($self->prefix_with_library_name && defined($vlane))
+        {
+            my $library  = VRTrack::Library->new( $vlane->{vrtrack}, $vlane->library_id );
+            if(defined($library) && defined($library->name))
+            {
+              $lf = $library->name.'_'.$lf;
+            }
+        }
         
         push( @files2link, [ $mf, "$destination/$name/$lf" ] );
     }
