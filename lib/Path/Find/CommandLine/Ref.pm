@@ -34,6 +34,7 @@ use Moose;
 
 use lib "../lib";
 use lib './lib';
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";  
 
 use Cwd;
 use Cwd 'abs_path';
