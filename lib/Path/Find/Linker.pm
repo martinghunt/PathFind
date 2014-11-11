@@ -198,10 +198,10 @@ sub _create_symlinks {
         my $l = $lane->{path};
         my @files2link;
 		if(defined $default_type){
-			@files2link = $self->_link_names( $l, $default_type,$lane );
+			@files2link = $self->_link_names( $l, $default_type,$lane->{lane} );
 		}
 		else {
-			@files2link = $self->_link_names( $l, undef,$lane );
+			@files2link = $self->_link_names( $l, undef,$lane->{lane} );
 		}
         foreach my $linkf (@files2link) {
             my ( $source, $dest ) = @{$linkf};
