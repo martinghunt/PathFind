@@ -38,8 +38,9 @@ use File::Copy 'cp';
 use File::Basename;
 use File::Path qw( remove_tree);
 use Path::Find::Exception;
+use VRTrack::Library;
 
-has 'lanes' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'lanes'    => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has '_tmp_dir' => ( is => 'rw', lazy => 1, builder  => '_build__tmp_dir' );
 has 'name'     => ( is => 'ro', isa => 'Str', required => 1 );
 has '_checked_name' =>
@@ -61,12 +62,13 @@ has '_given_destination' => (
     required => 0,
     writer   => '_set__given_destination'
 );
-has 'rename_links' => ( is => 'ro', isa => 'HashRef', required => 0 );
-has 'script_name'  => ( is => 'ro', isa => 'Str', required => 0, default => $0 );
-has 'index_files'   => ( is => 'rw', isa => 'Maybe[Str]', required => 0 );
-has 'stats' => ( is => 'ro', isa => 'Maybe[Str]', required => 0 );
-has 'replace_hashes' => ( is => 'ro', isa => 'Maybe[Int]', required => 0 );
-has 'copy_files' => ( is => 'ro', isa => 'HashRef', required => 0 );
+has 'rename_links'             => ( is => 'ro', isa => 'HashRef',    required => 0 );
+has 'script_name'              => ( is => 'ro', isa => 'Str',        required => 0, default => $0 );
+has 'index_files'              => ( is => 'rw', isa => 'Maybe[Str]', required => 0 );
+has 'stats'                    => ( is => 'ro', isa => 'Maybe[Str]', required => 0 );
+has 'replace_hashes'           => ( is => 'ro', isa => 'Maybe[Int]', required => 0 );
+has 'copy_files'               => ( is => 'ro', isa => 'HashRef',    required => 0 );
+has 'prefix_with_library_name' => ( is => 'rw', isa => 'Bool',       default  => 0 );
 
 sub _build__checked_name {
     my ($self) = @_;
@@ -251,6 +253,15 @@ sub _link_names {
         }
         
         $lf =~ s/[^\w\.]+/_/g if($self->replace_hashes);
+ 
+        if($self->prefix_with_library_name && defined($lane))
+        {
+            my $library  = VRTrack::Library->new( $vrtrack, $lane->library_id );
+            if(defined($library) && defined($library->name))
+            {
+              $lf = $library->name.'_'.$lf;
+            }
+        }
         
         push( @files2link, [ $mf, "$destination/$name/$lf" ] );
     }
