@@ -733,8 +733,8 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check links
-ok( -e "$tmp/test84/test1_1_5477_6_1_1.fastq.gz", 'correct symlink name prefixed with sample name' );
-ok( -e "$tmp/test84/test1_1_5477_6_1_2.fastq.gz", 'correct symlink name prefixed with sample name' );
+ok( -e "$tmp/test84/test1_1_5477_6#1_1.fastq.gz", 'correct symlink name prefixed with sample name' );
+ok( -e "$tmp/test84/test1_1_5477_6#1_2.fastq.gz", 'correct symlink name prefixed with sample name' );
 
 
 remove_tree($tmp);
