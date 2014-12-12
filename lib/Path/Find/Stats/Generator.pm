@@ -70,7 +70,14 @@ sub pathfind {
         'Duplication Rate',
         'Error Rate',
         'NPG QC',
-        'Manual QC'
+        'Manual QC',
+        'QC Pipeline',
+        'Mapping Pipeline',
+        'Archiving Pipeline',
+        'SNP Calling Pipeline',
+        'RNASeq Pipeline',
+        'Assembly Pipeline',
+        'Annotation Pipeline', 
     );
 
     my @columns = (
@@ -85,7 +92,10 @@ sub pathfind {
         'adapter_perc',      'transposon_perc',
         'genome_covered',    'duplication_rate',
         'error_rate',        'npg_qc',
-        'manual_qc'
+        'manual_qc',
+        'qc', 'mapped', 'stored', 
+        'snp_called', 'rna_seq_expression', 
+        'assembled', 'annotated',          
     );
 
     my @complete_stats;

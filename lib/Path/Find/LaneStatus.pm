@@ -30,7 +30,7 @@ has 'lane' => ( is => 'ro', isa => 'VRTrack::Lane', required => 1 );
 
 has '_pipeline_names_to_flags' => ( is => 'rw', isa => 'HashRef', builder => '_build__pipeline_names_to_flags', lazy => 1 );
 
-has 'imported'             => ( is => 'rw', isa => 'Str', builder => '_build_imported',             lazy => 1 );
+has 'imported'           => ( is => 'rw', isa => 'Str', builder => '_build_imported',             lazy => 1 );
 has 'qc'                 => ( is => 'rw', isa => 'Str', builder => '_build_qc',                 lazy => 1 );
 has 'mapped'             => ( is => 'rw', isa => 'Str', builder => '_build_mapped',                 lazy => 1 );
 has 'stored'             => ( is => 'rw', isa => 'Str', builder => '_build_stored',             lazy => 1 );
