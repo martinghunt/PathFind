@@ -25,10 +25,14 @@ package Path::Find::LaneStatus;
 use Moose;
 use VRTrack::Lane;
 use VRTrack::Core_obj;
+use Path::Find::LaneJobStatusFiles;
 
 has 'lane' => ( is => 'ro', isa => 'VRTrack::Lane', required => 1 );
+has 'path' => ( is => 'ro', isa => 'Str', required => 1 );
 
 has '_pipeline_names_to_flags' => ( is => 'rw', isa => 'HashRef', builder => '_build__pipeline_names_to_flags', lazy => 1 );
+
+has '_lane_job_status_files'   => ( is => 'rw', isa => 'HashRef', builder => '_build__lane_job_status_files', lazy => 1 );
 
 has 'imported'           => ( is => 'rw', isa => 'Str', builder => '_build_imported',             lazy => 1 );
 has 'qc'                 => ( is => 'rw', isa => 'Str', builder => '_build_qc',                 lazy => 1 );
@@ -39,6 +43,12 @@ has 'snp_called'         => ( is => 'rw', isa => 'Str', builder => '_build_snp_c
 has 'rna_seq_expression' => ( is => 'rw', isa => 'Str', builder => '_build_rna_seq_expression', lazy => 1 );
 has 'assembled'          => ( is => 'rw', isa => 'Str', builder => '_build_assembled',          lazy => 1 );
 has 'annotated'          => ( is => 'rw', isa => 'Str', builder => '_build_annotated',          lazy => 1 );
+
+sub _build__lane_job_status_files
+{
+  my ($self) = @_;
+	return Path::Find::LaneJobStatusFiles->new(directory => $self->path);
+}
 
 sub _build__pipeline_names_to_flags {
     my ($self) = @_;
@@ -60,6 +70,10 @@ sub _get_status_of_pipeline {
     my ( $self, $pipeline_name ) = @_;
     if ( $self->_check_processed_flag( $self->_pipeline_names_to_flags()->{$pipeline_name} ) ) {
         return 'Done';
+    }
+    if(defined($obj->_lane_job_status_files->pipeline_status) && defined($obj->_lane_job_status_files->pipeline_status->{$pipeline_name}))
+    {
+      return $obj->_lane_job_status_files->pipeline_status->{$pipeline_name}->current_status.'('.$obj->_lane_job_status_files->pipeline_status->{$pipeline_name}->time_stamp.')';
     }
     return '-';
 }

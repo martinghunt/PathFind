@@ -113,7 +113,8 @@ sub pathfind {
             my $row     = Path::Find::Stats::Row->new(
                 lane     => $l,
                 mapstats => $m,
-                vrtrack  => $vrtrack
+                vrtrack  => $vrtrack,
+                path     => $l_h->{path}
             );
 
             my @info;

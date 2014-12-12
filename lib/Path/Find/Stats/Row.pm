@@ -40,6 +40,7 @@ has 'mapstats'   => ( is => 'ro', isa => 'Maybe[VRTrack::Mapstats]', required =>
 has 'stats_file' => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );    # assembly stats file
 has 'bamcheck'   => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );    # assembly bamcheck file
 has 'gff_file'	 => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );
+has 'path'	     => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );
 
 # Checks
 has 'is_qc_mapstats'      => ( is => 'ro', isa => 'Bool',        lazy_build => 1 );    # qc or mapping mapstats.
@@ -334,7 +335,7 @@ sub _build_is_mapping_complete {
     
     sub _build__lane_status {
         my $self = shift;
-        return Path::Find::LaneStatus->new(lane => $self->lane);
+        return Path::Find::LaneStatus->new(lane => $self->lane, path => $self->path);
     }
     
 
