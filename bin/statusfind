@@ -16,4 +16,4 @@ BEGIN { unshift( @INC, './lib' ) }
 
 use Path::Find::CommandLine::Status;
 
-Path::Find::CommandLine::Path->new(args => \@ARGV, script_name => $0)->run;
+Path::Find::CommandLine::Status->new(args => \@ARGV, script_name => $0)->run;
