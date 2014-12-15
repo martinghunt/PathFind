@@ -7,8 +7,8 @@ Path::Find::LaneStatus
 =head1 SYNOPSIS
 
 	use Path::Find::LaneStatus;
-	my $obj = Path::Find::LaneStatus->new(lane => $vlane);
-	$obj->import
+	my $obj = Path::Find::LaneStatus->new(lane => $vlane, path => '/path/to/dir');
+	$obj->imported
 	> Done
 	$obj->qc
 	> Failed
