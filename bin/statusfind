@@ -1,0 +1,19 @@
+#!/usr/bin/env perl
+
+package Path::Find::Bin::StatusFind;
+
+# ABSTRACT: 
+# PODNAME: 
+
+=head1 SYNOPSIS
+
+
+=cut
+
+BEGIN { unshift( @INC, '/software/pathogen/internal/prod/lib/' ) }
+BEGIN { unshift( @INC, '../lib' ) }
+BEGIN { unshift( @INC, './lib' ) }
+
+use Path::Find::CommandLine::Status;
+
+Path::Find::CommandLine::Path->new(args => \@ARGV, script_name => $0)->run;
