@@ -36,7 +36,9 @@ use lib "../lib";
 use lib './lib';
 
 use Getopt::Long qw(GetOptionsFromArray);
-
+use Path::Find::Filter;
+use Path::Find::Sort;
+use Path::Find::LaneStatus;
 use Path::Find;
 use Path::Find::Lanes;
 use Path::Find::Log;

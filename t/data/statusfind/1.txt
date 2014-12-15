@@ -1,0 +1,5 @@
+Name	Imported	QC	Mapped	Archived	BAM Improved	SNP called	RNASeq	Assembled	Annotated
+6578_4#1	Done	Done	Done	Done	-	Done	Done	-	-
+6578_4#2	Done	Done	Done	Done	-	Done	-	Done	Done
+6578_4#3	Done	Done	Done	Done	-	Done	-	Done	Done
+6578_4#4	Done	Done	Done	Done	-	Done	Done	-	-

@@ -1,0 +1,2 @@
+Name	Imported	QC	Mapped	Archived	BAM Improved	SNP called	RNASeq	Assembled	Annotated
+5477_6#1	Done	Done	Done	Done	-	Done	Done	-	-
