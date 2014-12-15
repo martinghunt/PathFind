@@ -32,6 +32,7 @@ use File::Find::Rule;
 use VRTrack::VRTrack;    # Includes Lane, Mapstats, Etc.
 use VertRes::Parser::bamcheck;
 use Path::Find::Exception;
+use Path::Find::LaneStatus;
 
 has 'vrtrack'    => ( is => 'ro', isa => 'VRTrack::VRTrack',         required => 1 );    # database
 has 'lane'       => ( is => 'ro', isa => 'VRTrack::Lane',            required => 1 );    # lane
@@ -39,6 +40,7 @@ has 'mapstats'   => ( is => 'ro', isa => 'Maybe[VRTrack::Mapstats]', required =>
 has 'stats_file' => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );    # assembly stats file
 has 'bamcheck'   => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );    # assembly bamcheck file
 has 'gff_file'	 => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );
+has 'path'	     => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );
 
 # Checks
 has 'is_qc_mapstats'      => ( is => 'ro', isa => 'Bool',        lazy_build => 1 );    # qc or mapping mapstats.
@@ -52,6 +54,7 @@ has '_vrtrack_mapper'       => ( is => 'ro', isa => 'Maybe[VRTrack::Mapper]',   
 has '_bamcheck_obj'         => ( is => 'ro', isa => 'Maybe[VertRes::Parser::bamcheck]', lazy_build => 1 );    # Bamcheck - for assemblies
 has '_basic_assembly_stats' => ( is => 'ro', isa => 'HashRef',                          lazy_build => 1 );
 has '_pipeline_versions'    => ( is => 'rw', isa => 'HashRef',                          lazy_build => 1 );
+has '_lane_status'          => ( is => 'rw', isa => 'Path::Find::LaneStatus',   builder => '_build__lane_status', lazy => 1 );
 
 # Cells
 # Mapping
@@ -130,6 +133,19 @@ has 'sd_insert_size'     => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 )
 has 'gene_n' => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 has 'cds_n'  => ( is => 'ro', isa => 'Maybe[Num]', lazy_build => 1 );
 # END: GFF file
+
+# Pipeline status
+has 'imported'           => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+has 'qc'                 => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+has 'mapped'             => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+has 'stored'             => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+has 'improved'           => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+has 'snp_called'         => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+has 'rna_seq_expression' => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+has 'assembled'          => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+has 'annotated'          => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+# END Pipeline status
+
 
 # Is mapstats entry from QC or Mapping
 sub _build_is_qc_mapstats {
@@ -316,6 +332,12 @@ sub _build_is_mapping_complete {
         );
         return \%pipe_vs;
     }
+    
+    sub _build__lane_status {
+        my $self = shift;
+        return Path::Find::LaneStatus->new(lane => $self->lane, path => $self->path);
+    }
+    
 
 }
 
@@ -889,6 +911,46 @@ sub _build_is_mapping_complete {
 		}
 		
 	}
+	
+	
+	{
+	  sub _build_imported{
+	    my ($self) = @_;
+	    return $self->_lane_status->imported;
+	  }
+	  sub _build_qc{
+	    my ($self) = @_;
+	    return $self->_lane_status->qc;
+	  }
+	  sub _build_mapped{
+	    my ($self) = @_;
+	    return $self->_lane_status->mapped;
+	  }
+	  sub _build_stored{
+	    my ($self) = @_;
+	    return $self->_lane_status->stored;
+	  }
+	  sub _build_improved{
+	    my ($self) = @_;
+	    return $self->_lane_status->improved;
+	  }
+	  sub _build_snp_called{
+	    my ($self) = @_;
+	    return $self->_lane_status->snp_called;
+	  }
+	  sub _build_rna_seq_expression{
+	    my ($self) = @_;
+	    return $self->_lane_status->rna_seq_expression;
+	  }
+	  sub _build_assembled {
+	    my ($self) = @_;
+	    return $self->_lane_status->assembled;
+	  }
+	  sub _build_annotated{
+	    my ($self) = @_;
+	    return $self->_lane_status->annotated;
+	  }
+  }
 }
 
 #End Build Cells
