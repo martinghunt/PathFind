@@ -32,7 +32,7 @@ has 'path' => ( is => 'ro', isa => 'Str', required => 1 );
 
 has '_pipeline_names_to_flags' => ( is => 'rw', isa => 'HashRef', builder => '_build__pipeline_names_to_flags', lazy => 1 );
 
-has '_lane_job_status_files'   => ( is => 'rw', isa => 'HashRef', builder => '_build__lane_job_status_files', lazy => 1 );
+has '_lane_job_status_files'   => ( is => 'rw', isa => 'Path::Find::LaneJobStatusFiles', builder => '_build__lane_job_status_files', lazy => 1 );
 
 has 'imported'           => ( is => 'rw', isa => 'Str', builder => '_build_imported',             lazy => 1 );
 has 'qc'                 => ( is => 'rw', isa => 'Str', builder => '_build_qc',                 lazy => 1 );
@@ -71,9 +71,9 @@ sub _get_status_of_pipeline {
     if ( $self->_check_processed_flag( $self->_pipeline_names_to_flags()->{$pipeline_name} ) ) {
         return 'Done';
     }
-    if(defined($obj->_lane_job_status_files->pipeline_status) && defined($obj->_lane_job_status_files->pipeline_status->{$pipeline_name}))
+    if(defined($self->_lane_job_status_files->pipeline_status) && defined($self->_lane_job_status_files->pipeline_status->{$pipeline_name}))
     {
-      return $obj->_lane_job_status_files->pipeline_status->{$pipeline_name}->current_status.'('.$obj->_lane_job_status_files->pipeline_status->{$pipeline_name}->time_stamp.')';
+      return ucfirst($self->_lane_job_status_files->pipeline_status->{$pipeline_name}->current_status).' ('.$self->_lane_job_status_files->pipeline_status->{$pipeline_name}->time_stamp.')';
     }
     return '-';
 }

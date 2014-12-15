@@ -35,6 +35,8 @@ sub BUILD {
 
 sub parse_job_status_files {
     my ($self) = @_;
+    return undef unless (-d $self->directory);
+    
     my @files  = read_dir( $self->directory );
     my $regex  = $self->job_status_file_suffix;
     my @job_status_files = grep { $_ =~ /$regex/ } @files;
