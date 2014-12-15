@@ -36,6 +36,7 @@ use lib "../lib";
 use lib './lib';
 
 use Getopt::Long qw(GetOptionsFromArray);
+use Text::Table;
 use Path::Find::Filter;
 use Path::Find::Sort;
 use Path::Find::LaneStatus;
@@ -145,11 +146,10 @@ sub run {
           my $sorted_ml = Path::Find::Sort->new(lanes => \@matching_lanes)->sort_lanes;
           @matching_lanes = @{ $sorted_ml };
 
-        my @header = ('Name','Imported','QC','Mapped','Archived','BAM Improved','SNP called','RNASeq','Assembled','Annotated');
-        print join("\t",@header)."\n";
+        my $tb = Text::Table->new('Name','Import','QC','Mapping','Archive','Improve','SNP call','RNASeq','Assemble','Annotate');
         for my $lane (@matching_lanes) {
             my $lane_status = Path::Find::LaneStatus->new(lane => $lane->{lane}, path => $lane->{path});
-            my @row = (
+            $tb->add(
               $lane->{lane}->name,
               $lane_status->imported,
               $lane_status->qc,           
@@ -161,8 +161,9 @@ sub run {
               $lane_status->assembled,        
               $lane_status->annotated,        
               );
-            print join("\t",@row)."\n";
         }
+        print $tb;
+        
         $lanes_found = scalar @lanes;
         return 1 if $lanes_found;    # Stop looking if lanes found.
     }

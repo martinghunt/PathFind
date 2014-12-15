@@ -1,5 +1,5 @@
-Name	Imported	QC	Mapped	Archived	BAM Improved	SNP called	RNASeq	Assembled	Annotated
-5477_6#1	Done	Done	Done	Done	-	Done	Done	-	-
-5477_6#2	Done	Done	Done	Done	-	Done	-	Done	Done
-6578_4#3	Done	Done	Done	Done	-	Done	-	Done	Done
-6578_4#4	Done	Done	Done	Done	-	Done	Done	-	-
+Name     Import QC   Mapping Archive Improve SNP call RNASeq Assemble Annotate
+5477_6#1 Done   Done Done    Done    -       Done     Done   -        -       
+5477_6#2 Done   Done Done    Done    -       Done     -      Done     Done    
+6578_4#3 Done   Done Done    Done    -       Done     -      Done     Done    
+6578_4#4 Done   Done Done    Done    -       Done     Done   -        -       
