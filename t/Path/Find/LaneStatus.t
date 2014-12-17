@@ -56,11 +56,11 @@ ok(  $obj = Path::Find::LaneStatus->new( lane => VRTrack::Lane->new(), path => '
 is( $obj->imported(),           '-'  , 'no flags set Imported not done' );
 is( $obj->qc(),                 '-'  , 'no flags set some job status, qc not done' );
 is( $obj->mapped(),             '-'  , 'no flags set some job status, mapped not done' );
-is( $obj->stored(),             'Running (05-07-2014)'  , 'no flags set some job status, stored not done' );
+ok( $obj->stored() =~           /Running \(\d\d-\d\d-\d\d\d\d\)/ , 'no flags set some job status, stored not done' );
 is( $obj->improved(),           '-'  , 'no flags set some job status, improved not done' );
 is( $obj->snp_called(),         '-'  , 'no flags set some job status, snp_called not done' );
 is( $obj->rna_seq_expression(), '-'  , 'no flags set some job status, rna_seq_expression not done' );
-is( $obj->assembled(),          'Failed (11-21-2014)'  , 'no flags set some job status, assembled not done' );
+ok( $obj->assembled() =~        /Failed \(\d\d-\d\d-\d\d\d\d\)/  , 'no flags set some job status, assembled not done' );
 is( $obj->annotated(),          '-'  , 'no flags set some job status, annotated not done' );
 
 
