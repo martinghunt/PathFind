@@ -65,7 +65,7 @@ sub time_stamp
 {
   my ($self) = @_;
   return unless defined($self->unix_time_of_last_update);
-  return localtime($self->unix_time_of_last_update)->mdy();
+  return localtime($self->unix_time_of_last_update)->dmy();
 }
 
 sub parse_job_status_file
@@ -76,7 +76,7 @@ sub parse_job_status_file
    if(@file_contents == 4)
    {
      $self->config_file($file_contents[0]);
-     $self->unix_time_of_last_update($file_contents[1]);
+     $self->unix_time_of_last_update((stat($self->filename))[9]);
      $self->current_status($file_contents[2]);
      $self->number_of_attempts($file_contents[3]);
    }
