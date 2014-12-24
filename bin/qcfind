@@ -16,4 +16,4 @@ BEGIN { unshift( @INC, '/software/pathogen/internal/prod/lib/' ) }
 
 use Path::Find::CommandLine::QC;
 
-Path::Find::CommandLine::QC->new(args => \@ARGV, script_name => $0)->run;
+Path::Find::CommandLine::QC->new(args => \@ARGV, script_name => 'qcfind')->run;
