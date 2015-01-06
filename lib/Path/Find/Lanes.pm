@@ -284,7 +284,7 @@ sub _sample_file {
         . $self->processed_flag . ' = '
         . $self->processed_flag
         . ' order by lane.name asc';
-    $lane_names = $self->dbh->selectall_arrayref( $sql_query );
+    my $lane_names = $self->dbh->selectall_arrayref( $sql_query );
 
     return $lane_names; 
 }

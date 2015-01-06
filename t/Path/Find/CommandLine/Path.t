@@ -736,6 +736,13 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 ok( -e "$tmp/test84/test1_1_5477_6#1_1.fastq.gz", 'correct symlink name prefixed with sample name' );
 ok( -e "$tmp/test84/test1_1_5477_6#1_2.fastq.gz", 'correct symlink name prefixed with sample name' );
 
+# test 85: test file of sample IDs
+@args = ( "--test", "-t", "file", "-i", "t/data/pathfind/path_samples.txt", "--file_id_type", "sample");
+$exp_out = read_file('t/data/pathfind/85.txt');
+$obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
 
 remove_tree($tmp);
 done_testing();
