@@ -62,6 +62,7 @@ has 'args'              => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name'       => ( is => 'ro', isa => 'Str', required => 1 );
 has 'type'              => ( is => 'rw', isa => 'Str', required => 0 );
 has 'id'                => ( is => 'rw', isa => 'Str', required => 0 );
+has 'file_id_type'      => ( is => 'rw', isa => 'Str', required => 0, default => 'lane' );
 has 'symlink'           => ( is => 'rw', isa => 'Str', required => 0 );
 has 'archive'           => ( is => 'rw', isa => 'Str', required => 0 );
 has 'summary'           => ( is => 'rw', isa => 'Str', required => 0 );
@@ -128,6 +129,7 @@ sub BUILD {
     my $script_name;
     my $type;
     my $id;
+    my $file_id_type;
     my $symlink;
     my $archive;
     my $summary;
@@ -144,6 +146,7 @@ sub BUILD {
         \@args,
         't|type=s'             => \$type,
         'i|id=s'               => \$id,
+        'file_id_type=s'       => \$file_id_type,
         'l|symlink:s'          => \$symlink,
         'a|archive:s'          => \$archive,
         's|summary:s'          => \$summary,
@@ -158,6 +161,7 @@ sub BUILD {
 
     $self->type($type)         if ( defined $type );
     $self->id($id)             if ( defined $id );
+    $self->file_id_type($file_id_type) if ( defined $file_id_type );
     $self->symlink($symlink)   if ( defined $symlink );
     $self->archive($archive)   if ( defined $archive );
     $self->help($help)         if ( defined $help );
@@ -179,6 +183,7 @@ sub check_inputs {
         &&  $self->id
         &&  $self->id ne ''
         &&  !$self->help
+        && ( $self->file_id_type eq 'lane' || $self->file_id_type eq 'sample' )
         &&  ( $self->type eq 'study'
            ||  $self->type eq 'lane'
            ||  $self->type eq 'file'
@@ -238,10 +243,11 @@ sub _get_lanes {
 
         # find matching lanes - must have been QC'd
         my $find_lanes = Path::Find::Lanes->new(
-                search_type => $self->type,
-                search_id => $self->id,
-                pathtrack => $pathtrack,
-                dbh => $dbh,
+                search_type    => $self->type,
+                search_id      => $self->id,
+                file_id_type   => $self->file_id_type,
+                pathtrack      => $pathtrack,
+                dbh            => $dbh,
                 processed_flag => 2,
                 );
         my @lanes = @{ $find_lanes->lanes };
@@ -338,6 +344,7 @@ sub usage_text {
 Usage: $script_name
      -t|type             <study|lane|file|library|sample|species>
      -i|id               <study id|study name|lane name|file of lane names>
+     --file_id_type     <lane|sample> define ID types contained in file. default = lane
      -l|symlink          <create a symlink to the data>
      -a|archive          <create archive of the data>
      -s|summary          <create a summary CSV file>
@@ -348,7 +355,7 @@ Usage: $script_name
      -h|help             <print this message>
 
 ***********
-Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the data associated with the specified study or lane.
+Given a study, lane or a file containing a list of lanes or samples, this script will output the path (on pathogen disk) to the data associated with the specified study or lane.
 Using the option -l|symlink will create a symlink to the queried data in a default directory created in the current directory, alternatively an output directory can be specified in which the symlinks will be created.
 Using the option -a|archive will create an archive (.tar.gz) containing the selected kraken reports and a summary CSV file. The -archive option will automatically name the archive file if a name is not supplied.
 

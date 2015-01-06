@@ -44,27 +44,29 @@ use Path::Find::Log;
 use Path::Find::Sort;
 use Path::Find::Exception;
 
-has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'output'      => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has '_environment' => ( is => 'rw', isa => 'Str',     required => 0, default => 'prod' );
+has 'args'         => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'script_name'  => ( is => 'ro', isa => 'Str',      required => 1 );
+has 'type'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'id'           => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'file_id_type' => ( is => 'rw', isa => 'Str',      required => 0, default => 'lane' );
+has 'output'       => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'help'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
 
-    my ( $type, $id, $output, $help, $test );
+    my ( $type, $id, $file_id_type, $output, $help, $test );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
         \@args,
-        't|type=s'   => \$type,
-        'i|id=s'     => \$id,
-        'o|output=s' => \$output,
-        'h|help'     => \$help,
-        'test'         => \$test,
+        't|type=s'       => \$type,
+        'i|id=s'         => \$id,
+        'file_id_type=s' => \$file_id_type,
+        'o|output=s'     => \$output,
+        'h|help'         => \$help,
+        'test'           => \$test,
     );
 
     $self->type($type)     if ( defined $type );
@@ -72,6 +74,7 @@ sub BUILD {
     $self->output($output) if ( defined $output );
     $self->help($help)     if ( defined $help );
     $self->_environment('test') if ( defined $test );
+    $self->file_id_type($file_id_type) if ( defined $file_id_type );
 }
 
 sub check_inputs{
@@ -88,6 +91,7 @@ sub check_inputs{
             || $self->type eq 'sample'
             || $self->type eq 'species'
             || $self->type eq 'database' )
+          && ( $self->file_id_type eq 'lane' || $self->file_id_type eq 'sample' )
           && ( !defined($self->output) || ( defined($self->output) && $self->output ne '' ) )
     );
 }
@@ -140,6 +144,7 @@ sub run {
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
             search_id      => $id,
+            file_id_type   => $self->file_id_type,
             pathtrack      => $pathtrack,
             dbh            => $dbh,
             processed_flag => 0
@@ -222,6 +227,7 @@ sub usage_text {
 Usage: $script_name
      -t|type            <study|lane|file|library|sample|species>
      -i|id              <study id|study name|lane name|file of lane names>
+     --file_id_type     <lane|sample> define ID types contained in file. default = lane
      -o|output          <output results to CSV file>
      -h|help            <print this message>
 

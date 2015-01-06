@@ -62,6 +62,7 @@ has 'args'         => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name'  => ( is => 'ro', isa => 'Str',      required => 1 );
 has 'type'         => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'id'           => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'file_id_type' => ( is => 'rw', isa => 'Str',      required => 0, default => 'lane' );
 has 'symlink'      => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'stats'        => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'filetype'     => ( is => 'rw', isa => 'Str',      required => 0 );
@@ -72,13 +73,14 @@ has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default =>
 sub BUILD {
     my ($self) = @_;
 
-    my ( $type, $id, $symlink, $stats, $filetype, $archive, $help, $test );
+    my ( $type, $id, $file_id_type, $symlink, $stats, $filetype, $archive, $help, $test );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
         \@args,
         't|type=s'     => \$type,
         'i|id=s'       => \$id,
+        'file_id_type=s' => \$file_id_type,
         'h|help'       => \$help,
         'f|filetype=s' => \$filetype,
         'l|symlink:s'  => \$symlink,
@@ -87,13 +89,14 @@ sub BUILD {
         'test'         => \$test,
     );
 
-    $self->type($type)         if ( defined $type );
-    $self->id($id)             if ( defined $id );
-    $self->stats($stats)       if ( defined $stats );
-    $self->filetype($filetype) if ( defined $filetype );
-    $self->archive($archive)   if ( defined $archive );
-    $self->help($help)         if ( defined $help );
-    $self->_environment('test') if ( defined $test );
+    $self->type($type)                 if ( defined $type );
+    $self->id($id)                     if ( defined $id );
+    $self->stats($stats)               if ( defined $stats );
+    $self->filetype($filetype)         if ( defined $filetype );
+    $self->archive($archive)           if ( defined $archive );
+    $self->help($help)                 if ( defined $help );
+    $self->_environment('test')        if ( defined $test );
+    $self->file_id_type($file_id_type) if ( defined $file_id_type );
 
     if ( defined $symlink ){
         if ($symlink eq ''){
@@ -131,6 +134,7 @@ sub check_inputs{
                     || $self->filetype eq 'all')
             )
           )
+          && ( $self->file_id_type eq 'lane' || $self->file_id_type eq 'sample' )
           && ( !defined($self->archive)
             || $self->archive eq ''
             || ( $self->archive && !( $self->stats || $self->symlink ) ) )
@@ -212,6 +216,7 @@ sub run {
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
             search_id      => $id,
+            file_id_type   => $self->file_id_type,
             pathtrack      => $pathtrack,
             dbh            => $dbh,
             processed_flag => 1024
@@ -385,6 +390,7 @@ sub usage_text {
 Usage: $script_name
      -t|type            <study|lane|file|library|sample|species>
      -i|id              <study id|study name|lane name|file of lane names>
+     --file_id_type     <lane|sample> define ID types contained in file. default = lane
      -f|filetype        <contigs|scaffold|all>
      -l|symlink         <create a symlink to the data>
      -a|archive         <create archive of the data>

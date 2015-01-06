@@ -62,6 +62,7 @@ has 'args'         => ( is => 'ro', isa => 'ArrayRef',   required => 1 );
 has 'script_name'  => ( is => 'ro', isa => 'Str',        required => 1 );
 has 'type'         => ( is => 'rw', isa => 'Str',        required => 0 );
 has 'id'           => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'file_id_type' => ( is => 'rw', isa => 'Str',        required => 0, default => 'lane' );
 has 'symlink'      => ( is => 'rw', isa => 'Str',        required => 0 );
 has 'archive'      => ( is => 'rw', isa => 'Str',        required => 0 );
 has 'help'         => ( is => 'rw', isa => 'Str',        required => 0 );
@@ -74,7 +75,7 @@ has 'mapper'       => ( is => 'rw', isa => 'Str',        required => 0 );
 has 'pseudogenome' => ( is => 'rw', isa => 'Str',        required => 0 );
 has 'qc'           => ( is => 'rw', isa => 'Str',        required => 0 );
 has '_ref_path'    => ( is => 'rw', isa => 'Maybe[Str]', required => 0, lazy_build => 1 );
-has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
+has '_environment' => ( is => 'rw', isa => 'Str',        required => 0, default => 'prod' );
 
 sub _build__ref_path {
     my ($self) = @_;
@@ -85,7 +86,7 @@ sub BUILD {
     my ($self) = @_;
 
     my (
-        $type,    $id,           $symlink,  $archive, $help,
+        $type,    $id, $file_id_type, $symlink,  $archive, $help,
         $verbose, $stats,        $filetype, $ref,     $date,
         $mapper,  $pseudogenome, $qc, $test
     );
@@ -93,24 +94,26 @@ sub BUILD {
     my @args = @{ $self->args };
     GetOptionsFromArray(
         \@args,
-        't|type=s'      => \$type,
-        'i|id=s'        => \$id,
-        'h|help'        => \$help,
-        'f|filetype=s'  => \$filetype,
-        'l|symlink:s'   => \$symlink,
-        'a|archive:s'   => \$archive,
-        's|stats:s'     => \$stats,
-        'v|verbose'     => \$verbose,
-        'r|reference=s' => \$ref,
-        'd|date=s'      => \$date,
-        'm|mapper=s'    => \$mapper,
-        'p|pseudo:s'    => \$pseudogenome,
-        'q|qc=s'        => \$qc,
-        'test'         => \$test,
+        't|type=s'       => \$type,
+        'i|id=s'         => \$id,
+        'file_id_type=s' => \$file_id_type,
+        'h|help'         => \$help,
+        'f|filetype=s'   => \$filetype,
+        'l|symlink:s'    => \$symlink,
+        'a|archive:s'    => \$archive,
+        's|stats:s'      => \$stats,
+        'v|verbose'      => \$verbose,
+        'r|reference=s'  => \$ref,
+        'd|date=s'       => \$date,
+        'm|mapper=s'     => \$mapper,
+        'p|pseudo:s'     => \$pseudogenome,
+        'q|qc=s'         => \$qc,
+        'test'           => \$test,
     );
 
     $self->type($type)                 if ( defined $type );
     $self->id($id)                     if ( defined $id );
+    $self->file_id_type($file_id_type) if ( defined $file_id_type );
     $self->archive($archive)           if ( defined $archive );
     $self->help($help)                 if ( defined $help );
     $self->verbose($verbose)           if ( defined $verbose );
@@ -150,6 +153,7 @@ sub check_inputs{
             || $self->type eq 'library'
             || $self->type eq 'species'
             || $self->type eq 'database' )
+          && ( $self->file_id_type eq 'lane' || $self->file_id_type eq 'sample' )
           && ( !$self->filetype || $self->filetype eq 'vcf' || $self->filetype eq 'pseudogenome' )
     );
 }
@@ -208,6 +212,7 @@ sub run {
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
             search_id      => $id,
+            file_id_type   => $self->file_id_type,
             pathtrack      => $pathtrack,
             dbh            => $dbh,
             processed_flag => 256
@@ -440,21 +445,22 @@ sub usage_text {
     my $script_name = $self->script_name;
     return <<USAGE;
 Usage: $script_name
-     -t|type      <study|lane|file|library|sample|species>
-     -i|id        <study id|study name|lane name|file of lane names>
-     -f|filetype  <vcf|pseudogenome>
-     -q|qc        <pass|failed|pending>
-     -l|symlink   <create a symlink to the data>
-     -a|arvhive   <archive the data>
-     -v|verbose   <display reference, mapper and date>
-     -r|reference <filter results based on reference>
-     -m|mapper    <filter results based on mapper>
-     -d|date      <show only results produced after a given date>
-     -p|pseudo    <generate a pseudogenome based on this reference. Pass 'none' to exclude reference from pseudogenome>
-     -h|help      <print this message>
+     -t|type          <study|lane|file|library|sample|species>
+     -i|id            <study id|study name|lane name|file of IDs>
+     --file_id_type   <lane|sample> define ID types contained in file. default = lane
+     -f|filetype      <vcf|pseudogenome>
+     -q|qc            <pass|failed|pending>
+     -l|symlink       <create a symlink to the data>
+     -a|arvhive       <archive the data>
+     -v|verbose       <display reference, mapper and date>
+     -r|reference     <filter results based on reference>
+     -m|mapper        <filter results based on mapper>
+     -d|date          <show only results produced after a given date>
+     -p|pseudo        <generate a pseudogenome based on this reference. Pass 'none' to exclude reference from pseudogenome>
+     -h|help          <print this message>
 
-Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the VCF files with the specified study or lane. Using the option -qc (passed|failed|pending) will limit the 
-results to data of the specified qc status. Using the option -symlink will create a symlink to the queried data in the current 
+Given a study, lane or a file containing a list of lanes or samples, this script will output the path (on pathogen disk) to the VCF files with the specified study or lane. Using the option -qc (passed|failed|pending) 
+will limit the results to data of the specified qc status. Using the option -symlink will create a symlink to the queried data in the current 
 directory, alternativley an output directory can be specified in which the symlinks will be created.
 Using the option -archive will create an archive (.tar.gz) containing the VCF and index files.
 

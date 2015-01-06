@@ -59,6 +59,7 @@ has 'args'            => ( is => 'ro', isa => 'ArrayRef',   required => 1 );
 has 'script_name'     => ( is => 'ro', isa => 'Str',        required => 1 );
 has 'type'            => ( is => 'rw', isa => 'Str',        required => 0 );
 has 'id'              => ( is => 'rw', isa => 'Str',        required => 0 );
+has 'file_id_type'    => ( is => 'rw', isa => 'Str',        required => 0, default => 'lane' );
 has 'symlink'         => ( is => 'rw', isa => 'Str',        required => 0 );
 has 'help'            => ( is => 'rw', isa => 'Str',        required => 0 );
 has 'filetype'        => ( is => 'rw', isa => 'Str',        required => 0 );
@@ -74,30 +75,32 @@ sub BUILD {
     my ($self) = @_;
 
     my (
-        $type,        $id,      $symlink, $help,
+        $type,        $id,      $file_id_type, $symlink,
         $filetype,    $output,  $gene,    $product,
-        $nucleotides, $archive, $stats, $test
+        $nucleotides, $archive, $stats, $test,  $help
     );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
         \@args,
-        't|type=s'       => \$type,
-        'i|id=s'         => \$id,
-        'h|help'         => \$help,
-        'f|filetype=s'   => \$filetype,
-        'l|symlink:s'    => \$symlink,
-        'a|archive:s'    => \$archive,
-        'g|gene=s'       => \$gene,
-        'p|product:s'    => \$product,
-        'n|nucleotides'  => \$nucleotides,
-        'o|output=s'     => \$output,
-        's|stats:s'      => \$stats,
-        'test'           => \$test,
+        't|type=s'         => \$type,
+        'i|id=s'           => \$id,
+        'file_id_type=s'   => \$file_id_type,
+        'h|help'           => \$help,
+        'f|filetype=s'     => \$filetype,
+        'l|symlink:s'      => \$symlink,
+        'a|archive:s'      => \$archive,
+        'g|gene=s'         => \$gene,
+        'p|product:s'      => \$product,
+        'n|nucleotides'    => \$nucleotides,
+        'o|output=s'       => \$output,
+        's|stats:s'        => \$stats,
+        'test'             => \$test,
 	) or return;
 
     $self->type($type)                       if ( defined $type );
     $self->id($id)                           if ( defined $id );
+    $self->file_id_type($file_id_type)       if ( defined $file_id_type );
     $self->help($help)                       if ( defined $help );
     $self->filetype($filetype)               if ( defined $filetype );
     $self->output($output)                   if ( defined $output );
@@ -137,6 +140,7 @@ sub check_inputs{
             || $self->type eq 'species'
             || $self->type eq 'database' )
       )
+      && ( $self->file_id_type eq 'lane' || $self->file_id_type eq 'sample' )
       && (
         !$self->filetype
         || (
@@ -224,6 +228,7 @@ sub run {
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
             search_id      => $id,
+            file_id_type   => $self->file_id_type,
             pathtrack      => $pathtrack,
             dbh            => $dbh,
             processed_flag => 2048
@@ -424,6 +429,7 @@ sub usage_text {
 Usage: $script_name
   -t|type            <study|lane|file|library|sample|species>
   -i|id              <study id|study name|lane name|file of lane names>
+  --file_id_type     <lane|sample> define ID types contained in file. default = lane
   -l|symlink         <create a symlink to the data>
   -f|filetype        <gff|faa|ffn|gbk>
   -g|gene            <gene name|gene ID>
