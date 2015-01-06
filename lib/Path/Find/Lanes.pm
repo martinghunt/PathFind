@@ -33,6 +33,8 @@ has 'search_type'    => ( is => 'ro', isa => 'Str', required => 1 );
 has 'search_id'      => ( is => 'ro', isa => 'Str', required => 1 );
 has 'processed_flag' => ( is => 'ro', isa => 'Int', required => 1 );
 
+has 'file_id_type'   => ( is => 'ro', isa => 'Str', required => 0, default => 'lane' );
+
 has 'pathtrack' => ( is => 'rw', required => 1 );
 has 'dbh'       => ( is => 'rw', required => 1 );
 
@@ -215,41 +217,40 @@ sub _lookup_by_file {
   my ($self) = @_;
   my @lanes;
 
-  my $lane_count = 0;
-  my %lanenames;
   open( my $fh, $self->search_id ) || Path::Find::Exception::FileDoesNotExist->throw( error => "Error: Could not open file '" . $self->search_id . "'\n");
-  foreach my $lane_id (<$fh>) {
-      chomp $lane_id;
-      next if $lane_id eq '';
-      $lanenames{$lane_id} = 1;
-      $lane_count++;
-  }
+  my @file_ids = <$fh>;
   close $fh;
-  
-  return \@lanes if($lane_count == 0);
+  chomp @file_ids;
 
-  my @all_lane_names = keys %lanenames;
-  my $contains_names_which_might_be_accessions = 0;
-  for ( my $i = 0 ; $i < @all_lane_names ; $i++ ) {
-      unless ( $all_lane_names[$i] =~ /\#/ ) {
-          $all_lane_names[$i] .= '%';
-      }
-      if($all_lane_names[$i]  =~ /^[A-Za-z]/)
-      {
-         $contains_names_which_might_be_accessions = 1;
+  return \@lanes if ( scalar @file_ids == 0 );
+
+  my $lane_names;
+  if ( $self->file_id_type eq 'lane' ){
+    $lane_names = $self->_lane_file( \@file_ids );
+  }
+  elsif ( $self->file_id_type eq 'sample' ){
+    $lane_names = $self->_sample_file( \@file_ids );
+  }
+
+  for my $lane_name (@$lane_names) {
+      my $lane = VRTrack::Lane->new_by_name( $self->pathtrack, @$lane_name[0] );
+      if ($lane) {
+          push( @lanes, $lane );
       }
   }
 
-  my $lane_name_search_query = join( '" OR lane.name like "', @all_lane_names );
+  return \@lanes;
+}
+
+sub _lane_file {
+  my ( $self, $lanes ) = @_;
+
+  my $lane_name_search_query = join( '" OR lane.name like "', @{ $lanes } );
   $lane_name_search_query = ' (lane.name like "' . $lane_name_search_query . '") ';
-  
-  my $lane_acc_search_query = '';
-  if( $contains_names_which_might_be_accessions == 1) 
-  {
-    $lane_acc_search_query = join( '" OR lane.acc = "', (keys %lanenames) );
-    $lane_acc_search_query = ' OR (lane.acc = "' . $lane_acc_search_query . '") ';
-  }
 
+  my $lane_acc_search_query = '';
+  $lane_acc_search_query = join( '" OR lane.acc = "', @{ $lanes } );
+  $lane_acc_search_query = ' OR (lane.acc = "' . $lane_acc_search_query . '") ';
 
   my $lane_names =
     $self->dbh->selectall_arrayref( 'select lane.name from latest_lane as lane where '
@@ -260,11 +261,16 @@ sub _lookup_by_file {
         . $self->processed_flag
         . ' order by lane.name asc' );
 
-  unless ( $lane_names->[0] ) {
-    my $sample_name_search_query = join('" OR sample.name like "', (keys %lanenames) );
+  return $lane_names;
+}
+
+sub _sample_file {
+  my ( $self, $samples ) = @_;
+ 
+  my $sample_name_search_query = join('" OR sample.name like "', @{ $samples } );
     $sample_name_search_query = ' (sample.name like "' . $sample_name_search_query . '") ';
 
-    my $sample_acc_search_query = join ( '" OR individual.acc like "', (keys %lanenames) );
+    my $sample_acc_search_query = join ( '" OR individual.acc like "', @{ $samples } );
     $sample_acc_search_query = ' (individual.acc like "' . $sample_acc_search_query . '") ';
 
     my $sql_query = 'select lane.name from individual as individual
@@ -278,17 +284,9 @@ sub _lookup_by_file {
         . $self->processed_flag . ' = '
         . $self->processed_flag
         . ' order by lane.name asc';
-    $lane_names = $self->dbh->selectall_arrayref( $sql_query );
-  }
+    my $lane_names = $self->dbh->selectall_arrayref( $sql_query );
 
-  for my $lane_name (@$lane_names) {
-      my $lane = VRTrack::Lane->new_by_name( $self->pathtrack, @$lane_name[0] );
-      if ($lane) {
-          push( @lanes, $lane );
-      }
-  }
-
-  return \@lanes;
+    return $lane_names; 
 }
 
 sub _build_lanes {

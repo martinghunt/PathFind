@@ -59,6 +59,7 @@ has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
 has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'file_id_type' => ( is => 'rw', isa => 'Str',      required => 0, default => 'lane' );
 has 'symlink'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
@@ -75,26 +76,27 @@ sub BUILD {
     my ($self) = @_;
 
     my (
-        $type,  $id,       $symlink, $archive, $help,   $verbose,
+        $type,  $id, $file_id_type, $symlink, $archive, $help,   $verbose,
         $stats, $filetype, $ref,     $date,    $mapper, $qc, $test
     );
 
     my @args = @{ $self->args };
     GetOptionsFromArray(
         \@args,
-        't|type=s'      => \$type,
-        'i|id=s'        => \$id,
-        'h|help'        => \$help,
-        'f|filetype=s'  => \$filetype,
-        'l|symlink:s'   => \$symlink,
-        'a|archive:s'   => \$archive,
-        's|stats:s'     => \$stats,
-        'v|verbose'     => \$verbose,
-        'r|reference=s' => \$ref,
-        'd|date=s'      => \$date,
-        'm|mapper=s'    => \$mapper,
-        'q|qc=s'        => \$qc,
-        'test'         => \$test
+        't|type=s'       => \$type,
+        'i|id=s'         => \$id,
+        'file_id_type=s' => \$file_id_type,
+        'h|help'         => \$help,
+        'f|filetype=s'   => \$filetype,
+        'l|symlink:s'    => \$symlink,
+        'a|archive:s'    => \$archive,
+        's|stats:s'      => \$stats,
+        'v|verbose'      => \$verbose,
+        'r|reference=s'  => \$ref,
+        'd|date=s'       => \$date,
+        'm|mapper=s'     => \$mapper,
+        'q|qc=s'         => \$qc,
+        'test'           => \$test
     );
 
     $self->type($type)         if ( defined $type );
@@ -109,6 +111,7 @@ sub BUILD {
     $self->mapper($mapper)     if ( defined $mapper );
     $self->qc($qc)             if ( defined $qc );
     $self->_environment('test') if ( defined $test );
+    $self->file_id_type($file_id_type) if ( defined $file_id_type );
 
     if ( defined $symlink ){
         if ($symlink eq ''){
@@ -130,6 +133,7 @@ sub check_inputs{
         && $self->id 
         && $self->id ne '' 
         && !$self->help
+        && ( $self->file_id_type eq 'lane' || $self->file_id_type eq 'sample' )
         && ( $self->type eq 'study'
             || $self->type eq 'lane'
             || $self->type eq 'sample'
@@ -189,6 +193,7 @@ sub run {
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
             search_id      => $id,
+            file_id_type   => $self->file_id_type,
             pathtrack      => $pathtrack,
             dbh            => $dbh,
             processed_flag => 4
@@ -415,6 +420,7 @@ sub usage_text {
 Usage: $script_name
      -t|type      <study|lane|file|library|sample|species>
      -i|id        <study id|study name|lane name|file of lane names>
+     --file_id_type     <lane|sample> define ID types contained in file. default = lane
      -f|filetype  <bam>
      -q|qc        <pass|failed|pending>
      -l|symlink   <create a symlink to the data>

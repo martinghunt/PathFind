@@ -54,6 +54,7 @@ has 'args'                    => ( is => 'ro', isa => 'ArrayRef', required => 1 
 has 'script_name'             => ( is => 'ro', isa => 'Str',      required => 1 );
 has 'type'                    => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'id'                      => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'file_id_type'            => ( is => 'rw', isa => 'Str',      required => 0, default => 'lane' );
 has 'qc'                      => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'filetype'                => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'archive'                 => ( is => 'rw', isa => 'Str',      required => 0 );
@@ -68,27 +69,29 @@ has 'prefix_with_library_name' => ( is => 'rw', isa => 'Bool',     required => 0
 sub BUILD {
     my ($self) = @_;
 
-    my ( $type, $id, $qc, $filetype, $archive, $stats, $symlink, $output,
+    my ( $type, $id, $file_id_type, $qc, $filetype, $archive, $stats, $symlink, $output,
         $rename, $help, $test,$prefix_with_library_name );
 
     my @args = @{ $self->args };
 	GetOptionsFromArray(
 	    \@args,
-        't|type=s'     => \$type,
-        'i|id=s'       => \$id,
-        'f|filetype=s' => \$filetype,
-        'l|symlink:s'  => \$symlink,    # ':' means arg is optional
-        'a|archive:s'  => \$archive,
-        's|stats:s'    => \$stats,
-        'q|qc=s'       => \$qc,
-        'r|rename'     => \$rename,
-        'test'         => \$test,
+        't|type=s'       => \$type,
+        'i|id=s'         => \$id,
+        'file_id_type=s' => \$file_id_type,
+        'f|filetype=s'   => \$filetype,
+        'l|symlink:s'    => \$symlink,    # ':' means arg is optional
+        'a|archive:s'    => \$archive,
+        's|stats:s'      => \$stats,
+        'q|qc=s'         => \$qc,
+        'r|rename'       => \$rename,
+        'test'           => \$test,
         'prefix_with_library_name' => \$prefix_with_library_name,
-        'h|help'       => \$help
+        'h|help'         => \$help
     );
 
     $self->type($type)          if ( defined $type );
     $self->id($id)              if ( defined $id );
+    $self->file_id_type($file_id_type) if ( defined $file_id_type );
     $self->qc($qc)              if ( defined $qc );
     $self->filetype($filetype)  if ( defined $filetype );
     $self->archive($archive)    if ( defined $archive );
@@ -133,6 +136,7 @@ sub check_inputs {
             || ( $self->qc
                 && ( $self->qc eq 'passed' || $self->qc eq 'failed' || $self->qc eq 'pending' ) )
           )
+          && ( $self->file_id_type eq 'lane' || $self->file_id_type eq 'sample' )
           && ( !$self->filetype
             || ( $self->filetype && ( $self->filetype eq 'fastq' ||  $self->filetype eq 'pacbio') ) )
     );
@@ -187,6 +191,7 @@ sub run {
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
             search_id      => $id,
+            file_id_type   => $self->file_id_type,
             pathtrack      => $pathtrack,
             dbh            => $dbh,
             processed_flag => 1
@@ -329,6 +334,7 @@ sub usage_text {
 Usage: $script_name
 		-t|type		<study|lane|file|library|sample|species>
 		-i|id		<study id|study name|lane name|file of lane names>
+        --file_id_type     <lane|sample> define ID types contained in file. default = lane
 		-h|help		<this help message>
 		-f|filetype	<fastq|bam|pacbio>
 		-l|symlink	<create sym links to the data and define output directory>
@@ -338,7 +344,7 @@ Usage: $script_name
 		-q|qc		<passed|failed|pending>
 		--prefix_with_library_name <prefix the symlink with the sample name>
 
-	Given a study, lane or a file containing a list of lanes, this script will output the path (on pathogen disk) to the data associated with the specified study or lane. 
+	Given a study, lane or a file containing a list of lanes or samples, this script will output the path (on pathogen disk) to the data associated with the specified study or lane. 
 	Using the option -qc (passed|failed|pending) will limit the results to data of the specified qc status. 
 	Using the option -filetype (fastq, bam or pacbio) will return the path to the files of this type for the given data. 
 	Using the option -symlink will create a symlink to the queried data in the current directory, alternativley an output directory can be specified in which the symlinks will be created.

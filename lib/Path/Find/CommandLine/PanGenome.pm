@@ -34,11 +34,12 @@ use Path::Find::Filter;
 use Path::Find::Log;
 use File::Basename;
 
-has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'args'          => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'script_name'   => ( is => 'ro', isa => 'Str',      required => 1 );
+has 'type'          => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'id'            => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'file_id_type'  => ( is => 'rw', isa => 'Str',      required => 0, default => 'lane' );
+has 'help'          => ( is => 'rw', isa => 'Str',      required => 0 );
 has 'perc_identity' => ( is => 'rw', isa => 'Num',  default  => 98 );
 has '_job_runner' =>
   ( is => 'rw', isa => 'Str', required => 0, default => 'LSF' );
@@ -49,12 +50,13 @@ has 'user_gff_files'         => ( is => 'rw', isa => 'ArrayRef', default => sub 
 
 sub BUILD {
     my ($self) = @_;
-    my ( $type, $id, $job_runner,$perc_identity, $help );
+    my ( $type, $id, $file_id_type, $job_runner,$perc_identity, $help );
 
     GetOptionsFromArray(
         $self->args,
         't|type=s'       => \$type,
         'i|id=s'         => \$id,
+        'file_id_type=s' => \$file_id_type,
         'j|job_runner=s' => \$job_runner,
         'perc_identity=i' => \$perc_identity,
         'h|help'         => \$help
@@ -62,6 +64,7 @@ sub BUILD {
 
     $self->type($type)              if ( defined $type );
     $self->id($id)                  if ( defined $id );
+    $self->file_id_type($file_id_type) if ( defined $file_id_type );
     $self->_job_runner($job_runner) if ( defined $job_runner );
     $self->help($help)              if ( defined $help );
     $self->perc_identity($perc_identity) if ( defined $perc_identity );
@@ -79,6 +82,7 @@ sub BUILD {
             || $type eq 'species'
             || $self->type eq 'library'
             || $type eq 'database' )
+        && ( $self->file_id_type eq 'lane' || $self->file_id_type eq 'sample' )
     ) or die $self->usage_text;
 
     for my $filename ( @{ $self->args } ) {
@@ -136,6 +140,7 @@ sub run {
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
             search_id      => $id,
+            file_id_type   => $self->file_id_type,
             pathtrack      => $pathtrack,
             dbh            => $dbh,
             processed_flag => 2048
@@ -233,6 +238,7 @@ Create a pan genome from a set of lanes
 Usage: bacteria_pan_genome
 	-t|type		<study|lane|file|library|sample|species>
 	-i|id		<study id|study name|lane name|file of lane names>
+    --file_id_type     <lane|sample> define ID types contained in file. default = lane
 	-h|help		<this help message>
 
 # On all lanes in a study

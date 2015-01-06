@@ -55,27 +55,28 @@ use Path::Find::Log;
 use Path::Find::Sort;
 use Path::Find::Exception;
 
-has 'args'        => ( is => 'ro', isa => 'ArrayRef', required => 1 );
-has 'script_name' => ( is => 'ro', isa => 'Str',      required => 1 );
-has 'type'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'id'          => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'symlink'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'archive'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'help'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'verbose'     => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'stats'       => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'filetype'    => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'ref'         => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'date'        => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'mapper'      => ( is => 'rw', isa => 'Str',      required => 0 );
-has 'qc'          => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'args'         => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+has 'script_name'  => ( is => 'ro', isa => 'Str',      required => 1 );
+has 'type'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'id'           => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'file_id_type' => ( is => 'rw', isa => 'Str',      required => 0, default => 'lane' );
+has 'symlink'      => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'archive'      => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'help'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'verbose'      => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'stats'        => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'filetype'     => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'ref'          => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'date'         => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'mapper'       => ( is => 'rw', isa => 'Str',      required => 0 );
+has 'qc'           => ( is => 'rw', isa => 'Str',      required => 0 );
 has '_environment' => ( is => 'rw', isa => 'Str',      required => 0, default => 'prod' );
 
 sub BUILD {
     my ($self) = @_;
 
     my (
-        $type,  $id,       $symlink, $archive, $help,   $verbose,
+        $type,  $id, $file_id_type, $symlink, $archive, $help,   $verbose,
         $stats, $filetype, $ref,     $date,    $mapper, $qc, $test
     );
 
@@ -84,6 +85,7 @@ sub BUILD {
         \@args,
         't|type=s'      => \$type,
         'i|id=s'        => \$id,
+        'file_id_type=s' => \$file_id_type,
         'h|help'        => \$help,
         'f|filetype=s'  => \$filetype,
         'l|symlink:s'   => \$symlink,
@@ -99,6 +101,7 @@ sub BUILD {
 
     $self->type($type)          if ( defined $type );
     $self->id($id)              if ( defined $id );
+    $self->file_id_type($file_id_type) if ( defined $file_id_type );
     $self->archive($archive)    if ( defined $archive );
     $self->help($help)          if ( defined $help );
     $self->verbose($verbose)    if ( defined $verbose );
@@ -130,6 +133,7 @@ sub check_inputs{
         && $self->id 
         && $self->id ne '' 
         && !$self->help
+        && ( $self->file_id_type eq 'lane' || $self->file_id_type eq 'sample' )
         && ( $self->type eq 'study'
             || $self->type eq 'lane'
             || $self->type eq 'sample'
@@ -192,6 +196,7 @@ sub run {
         my $find_lanes = Path::Find::Lanes->new(
             search_type    => $type,
             search_id      => $id,
+            file_id_type   => $self->file_id_type,
             pathtrack      => $pathtrack,
             dbh            => $dbh,
             processed_flag => 512
@@ -378,18 +383,19 @@ sub usage_text {
     my $script_name = $self->script_name;
     return <<USAGE;
 Usage: $script_name
-     -t|type      <study|lane|file|library|sample|species>
-     -i|id        <study id|study name|lane name|file of lane names>
-     -f|filetype  <bam|coverage|intergenic|spreadsheet|featurecounts>
-     -q|qc        <pass|failed|pending>
-     -l|symlink   <create a symlink to the data>
-     -a|arvhive   <archive the data>
-     -v|verbose   <display reference, mapper and date>
-     -s|stats     <output file for summary of mapping results in CSV format>
-     -r|reference <filter results based on reference>
-     -m|mapper    <filter results based on mapper>
-     -d|date      <show only results produced after a given date>
-     -h|help      <print this message>
+     -t|type          <study|lane|file|library|sample|species>
+     -i|id            <study id|study name|lane name|file of IDs>
+     --file_id_type   <lane|sample> define ID types contained in file. default = lane
+     -f|filetype      <bam|coverage|intergenic|spreadsheet|featurecounts>
+     -q|qc            <pass|failed|pending>
+     -l|symlink       <create a symlink to the data>
+     -a|arvhive       <archive the data>
+     -v|verbose       <display reference, mapper and date>
+     -s|stats         <output file for summary of mapping results in CSV format>
+     -r|reference     <filter results based on reference>
+     -m|mapper        <filter results based on mapper>
+     -d|date          <show only results produced after a given date>
+     -h|help          <print this message>
 
 ***********
 Given a study or lane this will give you the location of the RNA Seq results. By default it provides the directory, but by specifiying a 'file_type' you can narrow it down to particular 
