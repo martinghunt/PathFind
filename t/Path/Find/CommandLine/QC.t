@@ -106,7 +106,7 @@ remove_tree($tmpdir);
 
 
 my $tmp_csv = "$tmp/qcfind_test.csv";
-@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_csv );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-level', 'P', '-s', $tmp_csv );
 $obj = Path::Find::CommandLine::QC->new(args => \@args, script_name => 'qcfind');
 $exp_out = read_file('t/data/qcfind/shigella.make_summary.-s.qcfind_test.csv.out');
 $arg_str = join(" ", @args);
@@ -116,7 +116,7 @@ ok(compare('t/data/qcfind/shigella.summary.default.csv', $tmp_csv) == 0, "csv fi
 unlink $tmp_csv;
 
 
-@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_csv, '-transpose' );
+@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-level', 'P', '-s', $tmp_csv, '-transpose' );
 $obj = Path::Find::CommandLine::QC->new(args => \@args, script_name => 'qcfind');
 $exp_out = read_file('t/data/qcfind/shigella.make_summary.-s.qcfind_test.-transpose.csv.out');
 $arg_str = join(" ", @args);
@@ -136,7 +136,7 @@ ok(compare('t/data/qcfind/shigella.summary.-level_D.csv', $tmp_csv) == 0, "csv f
 unlink $tmp_csv;
 
 
-@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_csv, '-counts');
+@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-level', 'P', '-s', $tmp_csv, '-counts');
 $obj = Path::Find::CommandLine::QC->new(args => \@args, script_name => 'qcfind');
 $exp_out = read_file('t/data/qcfind/shigella.make_summary.-s.qcfind_test.-counts.csv.out');
 $arg_str = join(" ", @args);
@@ -146,7 +146,7 @@ ok(compare('t/data/qcfind/shigella.summary.-counts.csv', $tmp_csv) == 0, "csv fi
 unlink $tmp_csv;
 
 
-@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_csv, '-min_cutoff', '20');
+@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-level', 'P', '-s', $tmp_csv, '-min_cutoff', '20');
 $obj = Path::Find::CommandLine::QC->new(args => \@args, script_name => 'qcfind');
 $exp_out = read_file('t/data/qcfind/shigella.make_summary.-s.qcfind_test.-min_cutoff.20.csv.out');
 $arg_str = join(" ", @args);
@@ -156,7 +156,7 @@ ok(compare('t/data/qcfind/shigella.make_summary.-min_cutoff.20.csv', $tmp_csv) =
 unlink $tmp_csv;
 
 
-@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-s', $tmp_csv, '-assigned_directly');
+@args = ( '--test', '-t', 'species', '-i', 'Shigella', '-level', 'P', '-s', $tmp_csv, '-assigned_directly');
 $obj = Path::Find::CommandLine::QC->new(args => \@args, script_name => 'qcfind');
 $exp_out = read_file('t/data/qcfind/shigella.make_summary.-s.qcfind_test.-assigned_directly.csv.out');
 $arg_str = join(" ", @args);

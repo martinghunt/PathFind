@@ -66,7 +66,7 @@ has 'file_id_type'      => ( is => 'rw', isa => 'Str', required => 0, default =>
 has 'symlink'           => ( is => 'rw', isa => 'Str', required => 0 );
 has 'archive'           => ( is => 'rw', isa => 'Str', required => 0 );
 has 'summary'           => ( is => 'rw', isa => 'Str', required => 0 );
-has 'level'             => ( is => 'rw', isa => 'Str', required => 0, default => 'P' );
+has 'level'             => ( is => 'rw', isa => 'Str', required => 0, default => 'S' );
 has 'counts'            => ( is => 'rw', isa => 'Bool', required => 0 );
 has 'assigned_directly' => ( is => 'rw', isa => 'Bool', required => 0 );
 has 'min_cutoff'        => ( is => 'rw', isa => 'Num', required => 0, default => 0 );
@@ -360,7 +360,7 @@ Using the option -l|symlink will create a symlink to the queried data in a defau
 Using the option -a|archive will create an archive (.tar.gz) containing the selected kraken reports and a summary CSV file. The -archive option will automatically name the archive file if a name is not supplied.
 
 Using the options -a|archive or -s|summary will create a summary CSV file from the Kraken output of each sample. The following options then apply:
--level D|P|C|O|F|G|S|T (default: P)
+-level D|P|C|O|F|G|S|T (default: S)
     Taxonomic level to output. Choose from:
       D (Domain), P (Phylum), C (Class), O (Order),
       F (Family), G (Genus), S (Species), T (Strain)
