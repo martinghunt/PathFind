@@ -1,4 +1,4 @@
-host:     mcs15
+host:     patp-db
 port:     3347
 user:     pathpipe_rw
 password:	********
