@@ -112,6 +112,7 @@ ok(
     $lanes_obj = Path::Find::Lanes->new(
         search_type    => 'file',
         search_id      => 't/data/Lanes/test_sample.txt',
+        file_id_type   => 'sample',
         pathtrack      => $pathtrack,
         dbh            => $dbh,
         processed_flag => 0
