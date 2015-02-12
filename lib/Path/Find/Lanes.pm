@@ -50,9 +50,9 @@ sub _lookup_by_lane {
           . ' ( lane.name = "'
           . $search_id . '"'
           . ' OR lane.name like "'
-          . $search_id . '#%"'
+          . escaped($search_id) . '#%"'
           . ' OR lane.acc like "'
-          . $search_id . '" )'
+          . escaped($search_id) . '" )'
           . ' AND lane.processed & '
           . $self->processed_flag . ' = '
           . $self->processed_flag
@@ -81,9 +81,9 @@ sub _lookup_by_sample {
         inner join latest_lane as lane on lane.library_id = library.library_id
         where'
           . '( individual.acc like "'
-          . $self->search_id . '"'
+          . escaped($self->search_id) . '"'
           . ' OR sample.name like "'
-          . $self->search_id . '" )'
+          . escaped($self->search_id) . '" )'
           . ' AND lane.processed & '
           . $self->processed_flag . ' = '
           . $self->processed_flag
@@ -110,10 +110,10 @@ sub _lookup_by_study {
       inner join latest_sample as sample on sample.project_id = project.project_id
       inner join latest_library as library on library.sample_id = sample.sample_id
       inner join latest_lane as lane on lane.library_id = library.library_id
-      where (project.ssid = "'
-          . $search_id
+      where (project.ssid like "'
+          . escaped($search_id)
           . '" OR  project.name like "'
-          . $search_id
+          . escaped($search_id)
           . '") AND lane.processed & '
           . $self->processed_flag . ' = '
           . $self->processed_flag
@@ -140,7 +140,7 @@ sub _lookup_by_library {
         'select lane.name from latest_library as library
       inner join latest_lane as lane on lane.library_id = library.library_id
       where ( library.name like "'
-          . $search_id
+          . escaped($search_id)
           . '") AND lane.processed & '
           . $self->processed_flag . ' = '
           . $self->processed_flag
@@ -169,7 +169,7 @@ sub _lookup_by_species {
         inner join latest_library as library on library.sample_id = sample.sample_id
         inner join latest_lane as lane on lane.library_id = library.library_id
       where species.name like "%'
-          . $self->search_id
+          . escaped($self->search_id)
           . '%" AND lane.processed & '
           . $self->processed_flag . ' = '
           . $self->processed_flag
@@ -316,6 +316,13 @@ sub _build_lanes {
     }
 
     return \@lanes;
+}
+
+sub escaped {
+  my ($str) = @_;
+  $str =~ s/_/[_]/g;
+  $str =~ s/%/[%]/g;
+  return $str;
 }
 
 no Moose;
