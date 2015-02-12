@@ -54,7 +54,7 @@ sub BUILD {
     my ($self) = @_;
 
 
-    my ( $type, $id, $help, $test );
+    my ( $type, $id, $file_id_type, $help, $test );
 
     my @args = @{ $self->args };
 
