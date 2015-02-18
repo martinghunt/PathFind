@@ -275,7 +275,7 @@ sub _get_lanes {
             next;
         }
         $dbh->disconnect();
-        last;
+        last if($database ne 'pathogen_pacbio_track');
     }
 
     $self->_lanes(\@matching_lanes);

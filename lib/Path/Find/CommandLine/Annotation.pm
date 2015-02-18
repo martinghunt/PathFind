@@ -40,7 +40,7 @@ use Moose;
 #use Cwd;
 use Cwd qw(abs_path getcwd);
 
-use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
+#use lib "/software/pathogen/internal/pathdev/vr-codebase/modules"
   ;    #Change accordingly once we have a stable checkout
 use lib "../lib";
 use lib './lib';
