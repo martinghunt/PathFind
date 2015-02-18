@@ -23,6 +23,8 @@ Returns an array of matching VRTrack::Lane objects
 
 =cut
 
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";
+
 use Moose;
 use VRTrack::Lane;
 
