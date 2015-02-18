@@ -122,11 +122,6 @@ sub run {
         "warehouse_ro", undef, { 'RaiseError' => 1, 'PrintError' => 0 } )
       or Path::Find::Exception::ConnectionFail->throw( error => "Failed to create connect to warehouse.\n");
 
-    # CSV output
-    my $csv_out;
-    my $csv_fh;
-    $output .= $output && ( $output =~ m/\.csv$/ ) ? '' : '.csv';
-
     # Get pathogen databases
     my $find = Path::Find->new( environment => $self->_environment );
     my @pathogen_databases = $find->pathogen_databases;
@@ -136,6 +131,7 @@ sub run {
     my $found = 0;    #assume nothing found
 
     # Find lanes in pathogen tracking databases
+    my @full_info;
     for my $database (@pathogen_databases) {
         # Connect to database and get info
         ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
@@ -156,26 +152,9 @@ sub run {
         }
 
 	   my $sorted = Path::Find::Sort->new(lanes => \@unsorted_lanes)->sort_lanes;
-	   my @lanes = @{ $sorted };
+	   my @lanes = @{ $sorted };        
 
-        # open csv file and print column headers
-        if ( $output && @lanes ) {
-            $csv_out =
-              Text::CSV->new(
-                { binary => 1, always_quote => 1, eol => "\r\n" } );
-            open( $csv_fh, ">$output" )
-              or Path::Find::Exception::FileDoesNotExist->throw( error => "Cannot open output file '$output'\n");
-            $csv_out->print( $csv_fh,
-                [ 'Lane', 'Sample', 'Supplier Name', 'Public Name', 'Strain' ]
-            );
-        }
-
-        # print column headers to screen
-        printf "%-15s %-25s %-25s %-25s %-20s\n",
-          ( 'Lane', 'Sample', 'Supplier Name', 'Public Name', 'Strain' )
-          if @lanes;
-
-        # Output sample data
+        # Prepare sample data output
         for my $lane (@lanes) {
 
             # get sample object
@@ -193,14 +172,10 @@ qq[select supplier_name, public_name, strain from current_samples where internal
             }
 
             # results to screen and csv file
-            printf "%-15s %-25s %-25s %-25s %-20s\n",
-              ( $lane->name(), $sample->name(), @sample_data );
-            $csv_out->print( $csv_fh,
-                [ $lane->name(), $sample->name(), @sample_data ] )
-              if $output;
+            push( @full_info, [ $lane->name(), $sample->name(), @sample_data ] );
+            
 
         }
-        close($csv_fh) if ( $output && @lanes );
         $dbh->disconnect();
 
         $found = 1 if ( @lanes );
@@ -209,6 +184,28 @@ qq[select supplier_name, public_name, strain from current_samples where internal
 
     unless ($found) {
         Path::Find::Exception::NoMatches->throw( error => "Could not find lanes or files for input data \n");
+    }
+
+    # print output
+    # to screen
+    printf "%-15s %-25s %-25s %-25s %-20s\n", ( 'Lane', 'Sample', 'Supplier Name', 'Public Name', 'Strain' );
+    for my $i ( @full_info ){
+        printf "%-15s %-25s %-25s %-25s %-20s\n", @{$i};
+    }
+
+    # to file
+    # open csv file and print column headers
+    if ( defined $output ) {
+        $output .= '.csv' unless ( $output =~ m/\.csv$/ );
+        my $csv_out = Text::CSV->new(
+                { binary => 1, always_quote => 1, eol => "\r\n" } 
+        );
+        open( my $csv_fh, ">$output" ) or Path::Find::Exception::FileDoesNotExist->throw( error => "Cannot open output file '$output'\n");
+        $csv_out->print( $csv_fh, [ 'Lane', 'Sample', 'Supplier Name', 'Public Name', 'Strain' ] );
+        for my $i ( @full_info ){
+            $csv_out->print( $csv_fh, $i );
+        }
+        close($csv_fh);
     }
 
     $warehouse_dbh->disconnect();
