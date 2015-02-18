@@ -137,7 +137,6 @@ sub run {
 
     # Find lanes in pathogen tracking databases
     for my $database (@pathogen_databases) {
-
         # Connect to database and get info
         ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
@@ -204,12 +203,8 @@ qq[select supplier_name, public_name, strain from current_samples where internal
         close($csv_fh) if ( $output && @lanes );
         $dbh->disconnect();
 
-        if ( @lanes
-          ) #no need to look in the next database if relevant data has been found
-        {
-            $found = 1;
-            last;
-        }
+        $found = 1 if ( @lanes );
+        last if($database ne 'pathogen_pacbio_track');
     }
 
     unless ($found) {
