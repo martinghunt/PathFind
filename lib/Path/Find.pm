@@ -9,6 +9,8 @@ $database  = shift @databases;
 my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
 =cut
 
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";
+
 package Path::Find;
 use DBI;
 use VRTrack::VRTrack;
