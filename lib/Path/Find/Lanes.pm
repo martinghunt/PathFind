@@ -119,7 +119,7 @@ sub _lookup_by_study {
           . $self->processed_flag . ' = '
           . $self->processed_flag
           . ' order by lane.name asc';
-    print "SQL: $sql_query\n";
+    
     my $lane_names = $self->dbh->selectall_arrayref( $sql_query );
 
     for my $lane_name (@$lane_names) {
