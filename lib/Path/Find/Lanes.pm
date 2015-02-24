@@ -107,8 +107,7 @@ sub _lookup_by_study {
 
     my $search_id = $self->search_id;
 
-    my $lane_names = $self->dbh->selectall_arrayref(
-        'select lane.name from latest_project as project
+    my $sql_query = 'select lane.name from latest_project as project
       inner join latest_sample as sample on sample.project_id = project.project_id
       inner join latest_library as library on library.sample_id = sample.sample_id
       inner join latest_lane as lane on lane.library_id = library.library_id
@@ -119,8 +118,9 @@ sub _lookup_by_study {
           . '") AND lane.processed & '
           . $self->processed_flag . ' = '
           . $self->processed_flag
-          . ' order by lane.name asc'
-    );
+          . ' order by lane.name asc';
+    
+    my $lane_names = $self->dbh->selectall_arrayref( $sql_query );
 
     for my $lane_name (@$lane_names) {
         my $lane =
@@ -322,8 +322,8 @@ sub _build_lanes {
 
 sub escaped {
   my ($str) = @_;
-  $str =~ s/_/[_]/g;
-  $str =~ s/%/[%]/g;
+  $str =~ s/_/\\_/g;
+  $str =~ s/%/\\%/g;
   return $str;
 }
 
