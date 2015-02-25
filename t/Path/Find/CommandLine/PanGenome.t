@@ -1,18 +1,19 @@
-# #!/usr/bin/env perl
-# use Moose;
-# use Data::Dumper;
+#!/usr/bin/env perl
+use Moose;
+
 # use File::Slurp;
 # use File::Path qw( remove_tree);
 # use Cwd;
 # use File::Temp;
 
-# BEGIN { unshift( @INC, './lib' ) }
+BEGIN { unshift( @INC, './lib' ) }
 
-# BEGIN {
-#     use Test::Most;
-#     use Test::Output;
-#     use_ok('Path::Find::CommandLine::PanGenome');
-# }
+BEGIN {
+    use Test::Most;
+    use Test::Output;
+    use_ok('Path::Find::CommandLine::PanGenome');
+}
+
 # my $script_name = 'Path::Find::CommandLine::PanGenome';
 # my $cwd = getcwd();
 
@@ -41,5 +42,5 @@
 
 # remove_tree('output_file_t_data_pangenome_pangenome_lanes_txt');
 
-# done_testing();
+done_testing();
 

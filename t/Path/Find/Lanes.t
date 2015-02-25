@@ -132,7 +132,7 @@ is_deeply $lanes, \@expected_lanes5, 'correct lanes recovered from samples';
 ok(
     $lanes_obj = Path::Find::Lanes->new(
         search_type    => 'library',
-        search_id      => 'TL266_1728612',
+        search_id      => 'TL266 1728612',
         pathtrack      => $pathtrack,
         dbh            => $dbh,
         processed_flag => 1

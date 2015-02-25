@@ -27,7 +27,7 @@ use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";
 
 use Moose;
 use VRTrack::Lane;
-
+use Data::Dumper;
 use lib "../../";
 use Path::Find::Exception;
 
@@ -137,17 +137,15 @@ sub _lookup_by_library {
     my @lanes;
 
     my $search_id = $self->search_id;
-
-    my $lane_names = $self->dbh->selectall_arrayref(
-        'select lane.name from latest_library as library
+    my $sql_query = 'select lane.name from latest_library as library
       inner join latest_lane as lane on lane.library_id = library.library_id
       where ( library.name like "'
           . escaped($search_id)
           . '") AND lane.processed & '
           . $self->processed_flag . ' = '
           . $self->processed_flag
-          . ' order by lane.name asc'
-    );
+          . ' order by lane.name asc';
+    my $lane_names = $self->dbh->selectall_arrayref( $sql_query );
 
     for my $lane_name (@$lane_names) {
         my $lane =

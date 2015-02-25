@@ -22,6 +22,8 @@ pathdevg@sanger.ac.uk
 =cut
 
 package Path::Find::LaneStatus;
+use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";
+
 use Moose;
 use VRTrack::Lane;
 use VRTrack::Core_obj;
