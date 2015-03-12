@@ -128,6 +128,7 @@ sub pathfind {
     }
 	my @uniq_stats = $self->remove_dups(\@all_stats);
     push(@complete_stats, @uniq_stats);
+    push( @complete_stats, '' ); # add extra newline to end of stats
     return join( "\n", @complete_stats );
 }
 
@@ -204,6 +205,7 @@ sub mapfind {
     }
     my @uniq_stats = $self->remove_dups(\@all_stats);
     push(@complete_stats, @uniq_stats);
+    push( @complete_stats, '' ); # add extra newline to end of stats
     return join( "\n", @complete_stats);
 }
 
@@ -306,6 +308,7 @@ sub assemblyfind {
     }
     my @uniq_stats = $self->remove_dups(\@all_stats);
     push(@complete_stats, @uniq_stats);
+    push( @complete_stats, '' ); # add extra newline to end of stats
     return join( "\n", @complete_stats );
 }
 
@@ -382,6 +385,7 @@ sub rnaseqfind {
     }
 	my @uniq_stats = $self->remove_dups(\@all_stats);
     push(@complete_stats, @uniq_stats);
+    push( @complete_stats, '' ); # add extra newline to end of stats
     return join( "\n", @complete_stats );
 }
 
@@ -452,6 +456,7 @@ sub annotationfind {
     }
     my @uniq_stats = $self->remove_dups(\@all_stats);
     push(@complete_stats, @uniq_stats);
+    push( @complete_stats, '' ); # add extra newline to end of stats
     return join( "\n", @complete_stats );
 }
 
