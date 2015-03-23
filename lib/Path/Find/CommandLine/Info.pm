@@ -118,7 +118,7 @@ sub run {
 
     # Connect to warehouse database
     my $warehouse_dbh = DBI->connect(
-        "DBI:mysql:host=mcs7:port=3379;database=sequencescape_warehouse",
+        "DBI:mysql:host=mcs7:port=3379;database=seqw-db",
         "warehouse_ro", undef, { 'RaiseError' => 1, 'PrintError' => 0 } )
       or Path::Find::Exception::ConnectionFail->throw( error => "Failed to create connect to warehouse.\n");
 
