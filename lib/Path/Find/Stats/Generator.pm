@@ -289,20 +289,28 @@ sub assemblyfind {
         }
         foreach my $s ( @stats_arrays ){
             my ( $st_file, $bc_file ) = @{ $s };
-            my $row = Path::Find::Stats::Row->new(
-                lane       => $l,
-                mapstats   => undef,
-                vrtrack    => $vrtrack,
-                stats_file => $st_file,
-                bamcheck   => $bc_file
-            );
-        
-            my @info;
-            foreach my $c (@columns) {
-                my $i = defined( $row->$c ) ? $row->$c : "NA";
-                push( @info, $i );
+            my $row_joined;
+            if ( (defined $st_file && -e $st_file) && ( defined $bc_file && -e $bc_file ) ) {
+                my $row = Path::Find::Stats::Row->new(
+                    lane       => $l,
+                    mapstats   => undef,
+                    vrtrack    => $vrtrack,
+                    stats_file => $st_file,
+                    bamcheck   => $bc_file
+                );
+
+                my @info;
+                foreach my $c (@columns) {
+                    my $i = defined( $row->$c ) ? $row->$c : "NA";
+                    push( @info, $i );
+                }
+                $row_joined = join( "\t", @info );
             }
-            my $row_joined = join( "\t", @info );
+            else {
+                $row_joined = $l->name() . "\trun not complete";
+            }
+
+            
             push(@all_stats, $row_joined);
         }
     }
