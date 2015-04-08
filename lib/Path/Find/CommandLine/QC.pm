@@ -287,7 +287,7 @@ sub _make_kraken_summary {
     my $summary_file = $self->_summary_file;
 
     # make tmp dir of links to reports so summary file nicer to read
-    my $temp_directory_obj = File::Temp->newdir("tmp.qcfind.XXXXXXXX",  CLEANUP => 1);
+    my $temp_directory_obj = File::Temp->newdir("tmp.qcfind.XXXXXXXX",  CLEANUP => 0);
     my $tmpdir = $temp_directory_obj->dirname();
     $self->_symlink_or_archive($tmpdir, "", 0);
     my @reports = map { $_->{lane}{name} } @{$self->_lanes};
@@ -304,6 +304,8 @@ sub _make_kraken_summary {
     );
     $obj->run();
     chdir $cwd;
+    File::Temp::cleanup();
+    1;
 }
 
 
