@@ -85,11 +85,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/10.out'),
-	read_file("accessionfind.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/10.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 11
@@ -100,11 +96,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/11.out'),
-	read_file("$tmp/test.11.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/11.out', "$tmp/test.11.out" );
 
 # test 12
 @args = ( '--test', '-t', 'study', '-i', '3', '-s', '-o', "not/really/a/file.txt" );
@@ -119,11 +111,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/13.out'),
-	read_file("accessionfind.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/13.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 14
@@ -134,11 +122,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/14.out'),
-	read_file("$tmp/test.14.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/14.out', "$tmp/test.14.out" );
 
 # test 15
 @args = ( '--test', '-t', 'study', '-i', '3', '-f', '-o', "not/really/a/file.txt" );
@@ -153,11 +137,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/16.out'),
-	read_file("accessionfind.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/16.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 17
@@ -168,11 +148,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/17.out'),
-	read_file("$tmp/test.17.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/17.out', "$tmp/test.17.out" );
 
 # test 18
 @args = ( '--test', '-t', 'study', '-i', '3', '-f', '-s', '-o', "not/really/a/file.txt" );
@@ -229,11 +205,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/26.out'),
-	read_file("accessionfind.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/26.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 27
@@ -244,11 +216,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/27.out'),
-	read_file("$tmp/test.27.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/27.out', "$tmp/test.27.out" );
 
 # test 28
 @args = ( '--test', '-t', 'lane', '-i', '5477_6#4', '-s', '-o', "not/really/a/file.txt" );
@@ -263,11 +231,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/29.out'),
-	read_file("accessionfind.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/29.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 30
@@ -278,11 +242,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/30.out'),
-	read_file("$tmp/test.30.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/30.out', "$tmp/test.30.out" );
 
 # test 31
 @args = ( '--test', '-t', 'lane', '-i', '5477_6#4', '-f', '-o', "not/really/a/file.txt" );
@@ -297,11 +257,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/32.out'),
-	read_file("accessionfind.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/32.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 33
@@ -312,11 +268,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/33.out'),
-	read_file("$tmp/test.33.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/33.out', "$tmp/test.33.out" );
 
 # test 34
 @args = ( '--test', '-t', 'lane', '-i', '5477_6#4', '-f', '-s', '-o', "not/really/a/file.txt" );
@@ -375,11 +327,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/42.out'),
-	read_file("accessionfind.out"),          
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/42.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 43
@@ -390,11 +338,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/43.out'),
-	read_file("$tmp/test.43.out"),          
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/43.out', "$tmp/test.43.out" );
 
 # test 44
 @args = ( '--test', '-t', 'file', '-i', 't/data/accessionfind/acc_lanes.txt', '-s', '-o', "not/really/a/file.txt" );
@@ -409,11 +353,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/45.out'),
-	read_file("accessionfind.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/45.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 46
@@ -424,11 +364,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/46.out'),
-	read_file("$tmp/test.46.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/46.out', "$tmp/test.46.out" );
 
 # test 47
 @args = ( '--test', '-t', 'file', '-i', 't/data/accessionfind/acc_lanes.txt', '-f', '-o', "not/really/a/file.txt" );
@@ -443,11 +379,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/48.out'),
-	read_file("accessionfind.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/48.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 49
@@ -458,11 +390,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/49.out'),
-	read_file("$tmp/test.49.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/49.out', "$tmp/test.49.out" );
 
 # test 50
 @args = ( '--test', '-t', 'file', '-i', 't/data/accessionfind/acc_lanes.txt', '-f', '-s', '-o', "not/really/a/file.txt" );
@@ -519,11 +447,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-    read_file('t/data/accessionfind/58.out'),
-    read_file("accessionfind.out"),
-    'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/58.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 59
@@ -534,11 +458,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-    read_file('t/data/accessionfind/59.out'),
-    read_file("$tmp/test.59.out"),
-    'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/59.out', "$tmp/test.59.out" );
 
 # test 60
 @args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-s', '-o', "not/really/a/file.txt" );
@@ -553,11 +473,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-    read_file('t/data/accessionfind/61.out'),
-    read_file("accessionfind.out"),
-    'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/61.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 62
@@ -568,11 +484,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-    read_file('t/data/accessionfind/62.out'),
-    read_file("$tmp/test.62.out"),
-    'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/62.out', "$tmp/test.62.out" );
 
 # test 63
 @args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-f', '-o', "not/really/a/file.txt" );
@@ -587,11 +499,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-    read_file('t/data/accessionfind/64.out'),
-    read_file("accessionfind.out"),
-    'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/64.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 65
@@ -602,11 +510,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-    read_file('t/data/accessionfind/65.out'),
-    read_file("$tmp/test.65.out"),
-    'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/65.out', "$tmp/test.65.out" );
 
 # test 66
 @args = ( '--test', '-t', 'sample', '-i', 'test2_1', '-f', '-s', '-o', "not/really/a/file.txt" );
@@ -663,11 +567,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/74.out'),
-	read_file("accessionfind.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/74.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 75
@@ -678,11 +578,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/75.out'),
-	read_file("$tmp/test.75.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/75.out', "$tmp/test.75.out" );
 
 # test 76
 @args = ( '--test', '-t', 'species', '-i', 'shigella', '-s', '-o', "not/really/a/file.txt" );
@@ -697,11 +593,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/77.out'),
-	read_file("accessionfind.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/77.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 78
@@ -712,11 +604,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/78.out'),
-	read_file("$tmp/test.78.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/78.out', "$tmp/test.78.out" );
 
 # test 79
 @args = ( '--test', '-t', 'species', '-i', 'shigella', '-f', '-o', "not/really/a/file.txt" );
@@ -731,11 +619,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/80.out'),
-	read_file("accessionfind.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/80.out', "accessionfind.out" );
 unlink('accessionfind.out');
 
 # test 81
@@ -746,11 +630,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check FTP file
-is(
-	read_file('t/data/accessionfind/81.out'),
-	read_file("$tmp/test.81.out"),
-	'FTP file correct'
-);
+check_ftp_file( 't/data/accessionfind/81.out', "$tmp/test.81.out" );
 
 # test 82
 @args = ( '--test', '-t', 'species', '-i', 'shigella', '-f', '-s', '-o', "not/really/a/file.txt" );
@@ -780,3 +660,11 @@ throws_ok { $obj->run } 'Path::Find::Exception::NoMatches', 'No lanes should be 
 
 remove_tree($tmp);
 done_testing();
+
+sub check_ftp_file {
+	my ( $got_file, $exp_file ) = @_;
+	my @got = sort( read_file($got_file) );
+	my @exp = sort( read_file($exp_file) );
+
+	is_deeply( \@got, \@exp, 'FTP file correct' )
+}
