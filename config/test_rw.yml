@@ -1,4 +1,4 @@
-host:     mcs11
+host:     patt-db
 port:     3346
 user:     pathpipe_rw
 password:	********
