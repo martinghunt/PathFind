@@ -3,6 +3,7 @@ use Moose;
 use Data::Dumper;
 use File::Slurp;
 use File::Path qw( remove_tree);
+use File::Copy;
 use Cwd;
 use File::Temp;
 no warnings qw{qw};
@@ -659,6 +660,25 @@ is(
 # 	'stats file correct'
 # );
 # 
+
+# test 62 - test stats file when assembly run is not complete
+my $assembly_dir = "/lustre/scratch108/pathogen/pathpipe/pathogen_test_pathfind/seq-pipelines/Streptococcus/pneumoniae/TRACKING/3/test1_2/SLX/test1_2/5477_6#2/velvet_assembly";
+move( "$assembly_dir/contigs.fa.stats",
+	  "$assembly_dir/statsfile"
+	);
+@args = ( '--test', '-t', 'lane', '-i', '5477_6#2', '-s', "$tmp/test.62.stats");
+$obj = Path::Find::CommandLine::Assembly->new(args => \@args, script_name => 'assemblyfind');
+$obj->run;
+
+is(
+	read_file("t/data/assemblyfind/62.stats"),
+	read_file("$tmp/test.62.stats"),
+	'stats file correct'
+);
+move( "$assembly_dir/statsfile",
+	  "$assembly_dir/contigs.fa.stats"
+	);
+
 remove_tree($tmp);
 system("rm -r assemblyfind_*");
 done_testing();
