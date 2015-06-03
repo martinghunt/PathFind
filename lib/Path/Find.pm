@@ -71,7 +71,7 @@ sub _build_db_sub {
 sub pathogen_databases
 {
     my ($self) = @_;
-    #print "Running Path::Find locally\n";
+
     my %CONNECT = %{ $self->connection };
 
     my $dbi_t = DBI->data_sources("mysql", \%CONNECT);
