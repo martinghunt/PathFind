@@ -23,7 +23,7 @@ use_ok('Path::Find::CommandLine::Path');
 my $script_name = 'pathfind';
 my $cwd = getcwd();
 
-my $temp_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 0 );
+my $temp_directory_obj = File::Temp->newdir(DIR => getcwd, CLEANUP => 1 );
 my $tmp = $temp_directory_obj->dirname();
 
 my (@args, $arg_str, $exp_out, $obj);
@@ -738,7 +738,6 @@ stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 # check  stats file
 is( compare( 't/data/pathfind/86.stats', "$tmp/test.86.stats" ), 0, 'stats file correct' );
 
-
 remove_tree($tmp);
 done_testing();
 
@@ -771,7 +770,7 @@ sub check_links {
 
 sub exp_files {
 	my $fl = shift;
-	
+
 	my $default_type = "*.fastq.gz";
 	my @ef;
 
