@@ -3,11 +3,15 @@
 =head1 NAME
 Path::Find
 
+
 =head1 SYNOPSIS
+
 @databases = Path::Find->pathogen_databases;
 $database  = shift @databases;
 my ( $pathtrack, $dbh, $root ) = Path::Find->get_db_info($database);
+
 =cut
+
 
 use lib "/software/pathogen/internal/pathdev/vr-codebase/modules";
 
@@ -32,6 +36,7 @@ sub _build_connection {
   my $config_dir = "/software/pathogen/projects/PathFind/config";
 
   my %connect = %{ Load( scalar read_file("$config_dir/$e.yml") ) };
+
   return \%connect;
 }
 
@@ -66,15 +71,19 @@ sub _build_db_sub {
 sub pathogen_databases
 {
     my ($self) = @_;
+    #print "Running Path::Find locally\n";
     my %CONNECT = %{ $self->connection };
 
+    my $dbi_t = DBI->data_sources("mysql", \%CONNECT);
+
     my @db_list_all = grep(s/^DBI:mysql://, DBI->data_sources("mysql", \%CONNECT));
-    
+
+
     my @db_list = (); # tracking and external databases
     if($self->environment eq 'prod'){
       push @db_list, grep (/^pathogen_.+_track$/,   @db_list_all); # pathogens_..._track
       push @db_list, grep (/^pathogen_.+_external$/,@db_list_all); # pathogens_..._external
-      
+
       @db_list = @{$self->_move_production_databases_to_the_front(\@db_list)};
     }
     elsif($self->environment eq 'test'){
@@ -141,7 +150,7 @@ sub hierarchy_root_dir
 
     my $sub_dir = exists $DB_SUB{$database} ? $DB_SUB{$database}:$database;
     my $root_dir = "$DB_ROOT/$sub_dir/seq-pipelines";
-  
+
     return -d $root_dir ? $root_dir : undef;
 }
 
@@ -155,7 +164,7 @@ sub lookup_tracking_name_from_database
 =begin nd
 
   Method: hierarchy_template
-    
+
   Description:
     Returns hierarchy template for pathogen tracking database.
 
@@ -179,7 +188,7 @@ sub hierarchy_template
 =begin nd
 
   Method: instantiate_vrtrack
-    
+
   Description:
     Instantiates a VRTrack object for a pathogen database. Returns undef on error.
 
@@ -244,11 +253,10 @@ sub dbi
 
 sub get_db_info{
 	my ($self, $db) = @_;
-	
+
 	my $vr = $self->vrtrack($db) or die "Failed to create VRTrack object for '$db'\n";
 	my $dbh = $self->dbi($db) or die "Failed to create DBI object for '$db'\n";
 	my $root = $self->hierarchy_root_dir($db) or die "Failed to find root directory for '$db'\n";
-	
 	return ($vr, $dbh, $root);
 }
 
