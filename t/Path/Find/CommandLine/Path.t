@@ -3,6 +3,7 @@ use Moose;
 use Data::Dumper;
 use File::Slurp;
 use File::Path qw( remove_tree);
+use File::Compare;
 use Cwd;
 use File::Temp;
 no warnings qw{qw};
@@ -106,11 +107,7 @@ $obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-is(
-	read_file('t/data/pathfind/15.stats'),
-	read_file("$tmp/test.15.stats"),
-	'stats file correct'
-);
+is ( compare( 't/data/pathfind/15.stats',"$tmp/test.15.stats" ), 0, 'stats file correct' );
 
 # test 16
 @args = ( "--test", "-t", "species", "-i", "shigella", "-qc", "passed" );
@@ -244,11 +241,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check  stats file
-is(
-	read_file('t/data/pathfind/30.stats'),
-	read_file("$tmp/test.30.stats"),
-	'stats file correct'
-);
+is( compare( 't/data/pathfind/30.stats',"$tmp/test.30.stats" ), 0, 'stats file correct' );
 
 # test 31
 @args = ( "--test", "-t", "file", "-i", "t/data/pathfind/path_lanes.txt", "-qc", "passed" );
@@ -403,11 +396,7 @@ $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
 # check  stats file
-is(
-	read_file('t/data/pathfind/48.stats'),
-	read_file("$tmp/test.48.stats"),
-	'stats file correct'
-);
+is( compare( 't/data/pathfind/48.stats', "$tmp/test.48.stats" ), 0, 'stats file correct' );
 
 # test 49
 @args = ( "--test", "-t", "lane", "-i", "5477_6#1", "-qc", "passed" );
@@ -550,12 +539,8 @@ $obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
-# check  stats file
-is(
-	read_file('t/data/pathfind/65.stats'),
-	read_file("$tmp/test.65.stats"),
-	'stats file correct'
-);
+# check stats file
+is ( compare( 't/data/pathfind/65.stats',"$tmp/test.65.stats" ), 0, 'stats file correct');
 
 # test 66
 @args = ( "--test", "-t", "study", "-i", "3", "-qc", "passed" );
@@ -743,6 +728,15 @@ $obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# test 86
+@args = ( "--test", "-t", "file", "-i", "t/data/pathfind/path_lane_het_snp.txt", "-s", "$tmp/test.86.stats" );
+$exp_out = read_file('t/data/pathfind/86.txt');
+$obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
+# check  stats file
+is( compare( 't/data/pathfind/86.stats', "$tmp/test.86.stats" ), 0, 'stats file correct' );
 
 remove_tree($tmp);
 done_testing();
@@ -776,7 +770,7 @@ sub check_links {
 
 sub exp_files {
 	my $fl = shift;
-	
+
 	my $default_type = "*.fastq.gz";
 	my @ef;
 

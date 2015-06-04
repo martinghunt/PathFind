@@ -14,7 +14,7 @@ package Path::Find::Filter;
        pathtrack => $pathtrack
    );
    my @matching_paths = $lane_filter->filter;
-   
+
 =method filter
 
 Returns a list of full paths to lanes that match the given criteria
@@ -97,18 +97,17 @@ sub filter {
 
         if ( !$qc || ( defined( $l->qc_status() ) && ( $qc && $qc eq $l->qc_status() ) ) ) {
             my $sub_dir_paths = $self->_get_full_path($l);
-            
+
             my @paths;
             for my $subdir (keys %{$sub_dir_paths})
             {
               push(@paths, $sub_dir_paths->{$subdir}.$subdir);
             }
 
-
             for my $subdir (keys %{$sub_dir_paths}) {
               my $full_path = $sub_dir_paths->{$subdir}.$subdir;
-                if ($filetype) {
 
+                if ($filetype) {
                     #my $search_path = "$full_path/$type_extn";
                     next unless my $mfiles = $self->find_files( $full_path, $type_extn, $l,$subdir);
                     my @matching_files = @{$mfiles};
@@ -145,9 +144,9 @@ sub find_files {
     my ( $self, $full_path, $type_extn,$lane_obj, $subdir ) = @_;
 
     my @matches;
-    
+
     # If there is a storage path - lookup nexsan directly instead of going via lustre, but return the lustre path
-    # There a potential for error here but its a big speed increase.    
+    # There a potential for error here but its a big speed increase.
     my $storage_path = $lane_obj->storage_path;
     if(defined($storage_path) && -e "$storage_path$subdir/$type_extn" )
     {
@@ -251,6 +250,7 @@ sub _get_full_path {
 
     my %path_details;
     $lane_path = $pathtrack->hierarchy_path_of_lane( $lane, $hierarchy_template );
+
     foreach my $subdir (@subdirs) {
         $path_details{$subdir} = "$root/$lane_path";
     }

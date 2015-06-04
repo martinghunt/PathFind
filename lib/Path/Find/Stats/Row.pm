@@ -37,6 +37,7 @@ use Path::Find::LaneStatus;
 has 'vrtrack'    => ( is => 'ro', isa => 'VRTrack::VRTrack',         required => 1 );    # database
 has 'lane'       => ( is => 'ro', isa => 'VRTrack::Lane',            required => 1 );    # lane
 has 'mapstats'   => ( is => 'ro', isa => 'Maybe[VRTrack::Mapstats]', required => 0 );    # mapstats
+has 'het_snps_file' => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );    # heterozygous snps stats file
 has 'stats_file' => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );    # assembly stats file
 has 'bamcheck'   => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );    # assembly bamcheck file
 has 'gff_file'	 => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );
@@ -52,6 +53,7 @@ has '_vrtrack_sample'       => ( is => 'ro', isa => 'Maybe[VRTrack::Sample]',   
 has '_vrtrack_assembly'     => ( is => 'ro', isa => 'Maybe[VRTrack::Assembly]',                lazy_build => 1 );    # Assembly - from mapststs
 has '_vrtrack_mapper'       => ( is => 'ro', isa => 'Maybe[VRTrack::Mapper]',                  lazy_build => 1 );    # Mapper - from mapstats
 has '_bamcheck_obj'         => ( is => 'ro', isa => 'Maybe[VertRes::Parser::bamcheck]', lazy_build => 1 );    # Bamcheck - for assemblies
+has '_het_snp_stats'        => ( is => 'rw', isa => 'HashRef',                          lazy_build => 1 );
 has '_basic_assembly_stats' => ( is => 'ro', isa => 'HashRef',                          lazy_build => 1 );
 has '_pipeline_versions'    => ( is => 'rw', isa => 'HashRef',                          lazy_build => 1 );
 has '_lane_status'          => ( is => 'rw', isa => 'Path::Find::LaneStatus',   builder => '_build__lane_status', lazy => 1 );
@@ -146,6 +148,11 @@ has 'assembled'          => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 )
 has 'annotated'          => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
 # END Pipeline status
 
+# Het snp stats
+has 'het_snps' => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+has 'genome_het_snp_perc' => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+has 'total_snp_het_snp_perc' => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+# END: heterozygous snp file
 
 # Is mapstats entry from QC or Mapping
 sub _build_is_qc_mapstats {
@@ -256,6 +263,28 @@ sub _build_is_mapping_complete {
             }
         }
         return \%assembly_stats;
+    }
+
+    sub _build__het_snp_stats {
+      my ($self) = @_;
+      my $path_to_file = $self->het_snps_file;
+
+      my %het_snp_stats;
+
+      return \%het_snp_stats if ( !defined $path_to_file || $path_to_file eq q{} || !-e $path_to_file );
+
+      open( my $fh, '<', $path_to_file ) or Path::Find::Exception->throw( error => "Couldnt open file $path_to_file\n");
+      my @lines = <$fh>;
+      close($fh);
+
+      my @temp_snp_stats = split(/\t/,$lines[1]);
+      $temp_snp_stats[2] =~ s/\n//;
+
+      $het_snp_stats{het_snps} = $temp_snp_stats[0];
+      $het_snp_stats{genome_het_snp_perc} = $temp_snp_stats[1];
+      $het_snp_stats{total_snp_het_snp_perc} = $temp_snp_stats[2];
+
+      return \%het_snp_stats;
     }
 
     sub _build__checked_mapstats{
@@ -438,6 +467,27 @@ sub _build_is_mapping_complete {
             }
             return $self->double_chomp($transposon_perc);
         }
+
+	sub _build_het_snps {
+	  my ($self) = @_;
+	  return undef unless $self->is_qc_mapstats;
+	  my $bhs = $self->_het_snp_stats;
+	  return $bhs->{het_snps};
+	}
+
+	sub _build_genome_het_snp_perc {
+	  my ($self) = @_;
+	  return undef unless $self->is_qc_mapstats;
+	  my $bhs = $self->_het_snp_stats;
+	  return $bhs->{genome_het_snp_perc};
+	}
+
+	sub _build_total_snp_het_snp_perc {
+	  my ($self) = @_;
+	  return undef unless $self->is_qc_mapstats;
+	  my $bhs = $self->_het_snp_stats;
+	  return $bhs->{total_snp_het_snp_perc};
+	}
 
         sub _build_mapped_perc {
             my ($self) = @_;

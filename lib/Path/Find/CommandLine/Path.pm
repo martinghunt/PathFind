@@ -116,7 +116,7 @@ sub BUILD {
     }
 
 }
-    
+
 sub check_inputs {
     my ($self) = @_;
     return (
@@ -174,35 +174,42 @@ sub run {
     my %type_extensions = (
         fastq => '.fastq.gz',
         bam   => '.bam',
-        pacbio   => '*.h5'
+        pacbio   => '*.h5',
     );
 
     my $lane_filter;
     my $found = 0;
 
+
     # Get databases and loop through
     my $find = Path::Find->new( environment => $self->_environment );
     my @pathogen_databases = $find->pathogen_databases;
     for my $database (@pathogen_databases) {
-        # Connect to database and get info
-        my ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
-        # find matching lanes
-        my $find_lanes = Path::Find::Lanes->new(
-            search_type    => $type,
-            search_id      => $id,
-            file_id_type   => $self->file_id_type,
-            pathtrack      => $pathtrack,
-            dbh            => $dbh,
-            processed_flag => 1
-        );
-        my @lanes = @{ $find_lanes->lanes };
+      # Connect to database and get info
+      my ( $pathtrack, $dbh, $root ) = $find->get_db_info($database);
 
-        unless (@lanes) {
-            $dbh->disconnect();
-            next;
-        }
+      # find matching lanes
+      my $find_lanes = Path::Find::Lanes->new(
+					      search_type    => $type,
+					      search_id      => $id,
+					      file_id_type   => $self->file_id_type,
+					      pathtrack      => $pathtrack,
+					      dbh            => $dbh,
+					      processed_flag => 1
+					     );
 
+      my @lanes = @{ $find_lanes->lanes };
+
+      unless (@lanes) {
+	$dbh->disconnect();
+	next;
+      }
+
+      my @req_stats;
+      for my $l_o ( @lanes) {
+	push (@req_stats , $l_o->{hierarchy_name} . '_heterozygous_snps_report.txt' );
+      }
 
         # filter lanes
         $lane_filter = Path::Find::Filter->new(
@@ -212,8 +219,10 @@ sub run {
             root            => $root,
             pathtrack       => $pathtrack,
             type_extensions => \%type_extensions,
+	    stats           => \@req_stats,
 	    search_depth    => 1
         );
+
         my @matching_lanes = $lane_filter->filter;
 
         unless (@matching_lanes) {
@@ -229,9 +238,10 @@ sub run {
         if ( defined $stats || defined $archive ) {
             eval('use Path::Find::Stats::Generator');
             my $sg = Path::Find::Stats::Generator->new(
-                lane_hashes => \@matching_lanes,
-                vrtrack     => $pathtrack
-            );
+						       lane_hashes => \@matching_lanes,
+						       vrtrack     => $pathtrack
+						      );
+
             $stats_output = $sg->pathfind;
             if(defined $stats){
                 my $stats_name = $self->stats_name;
@@ -331,6 +341,7 @@ sub usage_text {
     my ($self) = @_;
     my $script_name = $self->script_name;
     return <<USAGE;
+Running pathfind locally
 Usage: $script_name
 		-t|type		<study|lane|file|library|sample|species>
 		-i|id		<study id|study name|lane name|file of lane names>
