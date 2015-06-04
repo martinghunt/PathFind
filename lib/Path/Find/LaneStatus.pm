@@ -60,7 +60,6 @@ sub _build__pipeline_names_to_flags {
 
 sub _check_processed_flag {
     my ( $self, $bit_flag ) = @_;
-    my $bin_o = $self->lane->processed() & $bit_flag;
     if ( ($self->lane->processed() & $bit_flag) == 0 ) {
         return 0;
     }
