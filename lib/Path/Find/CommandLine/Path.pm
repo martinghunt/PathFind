@@ -238,9 +238,9 @@ sub run {
         if ( defined $stats || defined $archive ) {
             eval('use Path::Find::Stats::Generator');
             my $sg = Path::Find::Stats::Generator->new(
-                lane_hashes => \@matching_lanes,
-                vrtrack     => $pathtrack
-            );
+						       lane_hashes => \@matching_lanes,
+						       vrtrack     => $pathtrack
+						      );
 
             $stats_output = $sg->pathfind;
             if(defined $stats){

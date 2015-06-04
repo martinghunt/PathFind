@@ -94,6 +94,8 @@ sub pathfind {
 		 'paired_perc',       'mean_insert_size',
 		 'depth_of_coverage', 'depth_of_coverage_sd',
 		 'adapter_perc',      'transposon_perc',
+		 'het_snps',          'genome_het_snp_perc',
+		 'total_snp_het_snp_perc',
 		 'genome_covered',    'duplication_rate',
 		 'error_rate',        'npg_qc',
 		 'manual_qc',
@@ -116,10 +118,12 @@ sub pathfind {
     my ( $het_snp_file ) = @{ $l_h->{stats} };
 
     my @mapstat = @{$self->_select_mapstats( $l->qc_mappings, $l_h )};
+
     foreach my $m (@mapstat) {
       my $row     = Path::Find::Stats::Row->new(
 						lane     => $l,
 						mapstats => $m,
+						stats_file => $het_snp_file,
 						vrtrack  => $vrtrack,
 						path     => $l_h->{path}
 					       );
@@ -128,9 +132,6 @@ sub pathfind {
       foreach my $c (@columns) {
 	my $i = defined( $row->$c ) ? $row->$c : "NA";
 	push( @info, $i );
-	if ($c eq 'transposon_perc') {
-	  push( @info, _get_het_snp_stats( $het_snp_file ) ); #Push the het snp stats retrieved from the het snp report file
-	}
       }
       my $row_joined = join( "\t", @info );
       push(@all_stats, $row_joined);
@@ -494,26 +495,6 @@ sub _select_mapstats {
     foreach my $ms ( @mappings ){
         return [$ms] if( $ms->id eq $ms_id );
     }
-}
-
-sub _get_het_snp_stats {
-
-  my ($het_snp_file) = @_;
-
-  my @het_snp_stats;
-
-  if ( !defined $het_snp_file || $het_snp_file eq q() ) {
-     @het_snp_stats = ('NA','NA','NA');
-  }
-  else {
-    open( my $fh, '<', $het_snp_file );
-    my @lines = <$fh>;
-    @het_snp_stats = split(/\t/,$lines[1]);
-    $het_snp_stats[2] =~ s/\n//;
-
-  }
-
-  return @het_snp_stats;
 }
 
 sub remove_dups {
