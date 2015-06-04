@@ -115,7 +115,7 @@ sub pathfind {
   foreach my $l_h (@lanes) {
 
     my $l       = $l_h->{lane};
-    my ( $het_snp_file ) = @{ $l_h->{stats} };
+    my ( $het_snps_file ) = @{ $l_h->{stats} };
 
     my @mapstat = @{$self->_select_mapstats( $l->qc_mappings, $l_h )};
 
@@ -123,7 +123,7 @@ sub pathfind {
       my $row     = Path::Find::Stats::Row->new(
 						lane     => $l,
 						mapstats => $m,
-						stats_file => $het_snp_file,
+						het_snps_file => $het_snps_file,
 						vrtrack  => $vrtrack,
 						path     => $l_h->{path}
 					       );

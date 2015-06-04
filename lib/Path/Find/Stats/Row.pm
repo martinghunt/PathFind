@@ -37,6 +37,7 @@ use Path::Find::LaneStatus;
 has 'vrtrack'    => ( is => 'ro', isa => 'VRTrack::VRTrack',         required => 1 );    # database
 has 'lane'       => ( is => 'ro', isa => 'VRTrack::Lane',            required => 1 );    # lane
 has 'mapstats'   => ( is => 'ro', isa => 'Maybe[VRTrack::Mapstats]', required => 0 );    # mapstats
+has 'het_snps_file' => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );    # heterozygous snps stats file
 has 'stats_file' => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );    # assembly stats file
 has 'bamcheck'   => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );    # assembly bamcheck file
 has 'gff_file'	 => ( is => 'ro', isa => 'Maybe[Str]',               required => 0 );
@@ -266,11 +267,11 @@ sub _build_is_mapping_complete {
 
     sub _build__het_snp_stats {
       my ($self) = @_;
-      my $path_to_file = $self->stats_file;
+      my $path_to_file = $self->het_snps_file;
 
       my %het_snp_stats;
 
-      return \%het_snp_stats if ( !-e $path_to_file || !defined $path_to_file || $path_to_file eq q{} );
+      return \%het_snp_stats if ( !defined $path_to_file || $path_to_file eq q{} || !-e $path_to_file );
 
       open( my $fh, '<', $path_to_file ) or Path::Find::Exception->throw( error => "Couldnt open file $path_to_file\n");
       my @lines = <$fh>;
