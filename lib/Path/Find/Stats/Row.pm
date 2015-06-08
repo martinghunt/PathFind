@@ -152,6 +152,7 @@ has 'annotated'          => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 )
 has 'het_snps' => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
 has 'genome_het_snp_perc' => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
 has 'total_genome_covered_het_snp_perc' => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
+has 'total_snps_het_snp_perc' => ( is => 'ro', isa => 'Maybe[Str]', lazy_build => 1 );
 # END: heterozygous snp file
 
 # Is mapstats entry from QC or Mapping
@@ -278,12 +279,13 @@ sub _build_is_mapping_complete {
       close($fh);
 
       my @temp_snp_stats = split(/\t/,$lines[1]);
-      $temp_snp_stats[2] =~ s/\n//;
+      $temp_snp_stats[3] =~ s/\n//;
 
 
       $het_snp_stats{het_snps} = $temp_snp_stats[0];
       $het_snp_stats{genome_het_snp_perc} = $temp_snp_stats[1];
       $het_snp_stats{total_genome_covered_het_snp_perc} = $temp_snp_stats[2];
+      $het_snp_stats{total_snps_het_snp_perc} = $temp_snp_stats[3];
 
       return \%het_snp_stats;
     }
@@ -488,6 +490,13 @@ sub _build_is_mapping_complete {
 	  return undef unless $self->is_qc_mapstats;
 	  my $bhs = $self->_het_snp_stats;
 	  return $bhs->{total_genome_covered_het_snp_perc};
+	}
+
+	sub _build_total_snps_het_snp_perc {
+	  my ($self) = @_;
+	  return undef unless $self->is_qc_mapstats;
+	  my $bhs = $self->_het_snp_stats;
+	  return $bhs->{total_snps_het_snp_perc};
 	}
 
         sub _build_mapped_perc {
