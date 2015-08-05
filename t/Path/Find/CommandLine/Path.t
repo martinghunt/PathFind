@@ -735,6 +735,13 @@ $obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script
 $arg_str = join(" ", @args);
 stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
 
+# test 87
+@args = ( "-t", "study", "-i", "Pacbio_pathogens", "-f", "fastq" );
+$exp_out = read_file('t/data/pathfind/87.txt');
+$obj = Path::Find::CommandLine::Path->new(args => \@args, script_name => $script_name);
+$arg_str = join(" ", @args);
+stdout_is { $obj->run } $exp_out, "Correct results for '$arg_str'";
+
 # check  stats file
 is( compare( 't/data/pathfind/86.stats', "$tmp/test.86.stats" ), 0, 'stats file correct' );
 
