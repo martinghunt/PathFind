@@ -173,7 +173,7 @@ sub find_files {
 			}else{
 				#eg m140712_044442_00127_c100658932550000001823129311271434_s1_p0.1.bax.h5
 				my ($name,$path,$suffix) = fileparse($file_from_obj);
-				$name =~ s/\d{1}.ba[xs].h5/fastq.gz/;
+				$name =~ s/\d{1}.ba[xs].h5$/fastq.gz/;
 				$fastq_filenames{$name} = 1;
 			}
 		}
