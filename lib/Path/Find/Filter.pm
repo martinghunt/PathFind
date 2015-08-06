@@ -24,6 +24,7 @@ Returns a list of full paths to lanes that match the given criteria
 use Moose;
 use Path::Find;
 use File::Find::Rule;
+use File::Basename;
 
 use lib "../../";
 use Path::Find::Exception;
@@ -148,6 +149,7 @@ sub find_files {
     # If there is a storage path - lookup nexsan directly instead of going via lustre, but return the lustre path
     # There a potential for error here but its a big speed increase.
     my $storage_path = $lane_obj->storage_path;
+
     if(defined($storage_path) && -e "$storage_path$subdir/$type_extn" )
     {
       push( @matches, "$full_path/$type_extn" );
@@ -159,13 +161,28 @@ sub find_files {
     }
 
     if(defined $type_extn && $type_extn =~ /fastq/){
-	$type_extn =~ s/\*//;
-        foreach my $f ( @{$lane_obj->files} ){
-            my $file_from_obj = $f->name;
-            push(@matches, "$full_path/$file_from_obj") if ( $file_from_obj =~ /$type_extn/ && -e "$full_path/$file_from_obj");
-        }
-        return \@matches if( @matches );
+		$type_extn =~ s/\*//;
+		my %fastq_filenames = ();
+		# For illumina data, the db stores the names of the fastq files. However, 
+		# for pacbio data, the file names stored in db are the bax files. So, we
+		# try and work out what the fastq is likely to be called here 
+		foreach my $f ( @{$lane_obj->files} ){
+			my $file_from_obj = $f->name;
+			if ($full_path !~ /pathogen_pacbio_track/) {
+				$fastq_filenames{$file_from_obj} = 1;
+			}else{
+				#eg m140712_044442_00127_c100658932550000001823129311271434_s1_p0.1.bax.h5
+				my ($name,$path,$suffix) = fileparse($file_from_obj);
+				$name =~ s/\d{1}.ba[xs].h5$/fastq.gz/;
+				$fastq_filenames{$name} = 1;
+			}
+		}
+		for my $fname (keys %fastq_filenames){
+			push(@matches, "$full_path/$fname") if ( $fname =~ /$type_extn/ && -e "$full_path/$fname");
+		}
+   	 return \@matches if( @matches );
     }
+
 
     my $file_query;
     if ( defined($type_extn) && $type_extn =~ /\*/ ) {
