@@ -19,7 +19,7 @@ where \@ARGV follows the following parameters:
 -t|type		<study|lane|file|sample|species>
 -i|id		<study id|study name|lane name|file of lane names>
 -h|help		<help message>
--f|filetype	<fastq|bam>
+-f|filetype	<fastq|bam|pacbio|corrected>
 -l|symlink	<create sym links to the data and define output directory>
 -a|archive	<name for archive containing the data>
 -s|stats	<output statistics>
@@ -138,7 +138,7 @@ sub check_inputs {
           )
           && ( $self->file_id_type eq 'lane' || $self->file_id_type eq 'sample' )
           && ( !$self->filetype
-            || ( $self->filetype && ( $self->filetype eq 'fastq' ||  $self->filetype eq 'pacbio') ) )
+            || ( $self->filetype && ( $self->filetype eq 'fastq' ||  $self->filetype eq 'pacbio' ||  $self->filetype eq 'bam' ||  $self->filetype eq 'corrected'   ) ) )
     );
 }
 
@@ -175,6 +175,7 @@ sub run {
         fastq => '.fastq.gz',
         bam   => '.bam',
         pacbio   => '*.h5',
+	corrected => '*.corrected.*',
     );
 
     my $lane_filter;
@@ -347,7 +348,7 @@ Usage: $script_name
 		-i|id		<study id|study name|lane name|file of lane names>
         --file_id_type     <lane|sample> define ID types contained in file. default = lane
 		-h|help		<this help message>
-		-f|filetype	<fastq|bam|pacbio>
+		-f|filetype	<fastq|bam|pacbio|corrected>
 		-l|symlink	<create sym links to the data and define output directory>
 		-a|archive	<name for archive containing the data>
 		-r|rename   <replace # in symlinks with _>
@@ -357,7 +358,7 @@ Usage: $script_name
 
 	Given a study, lane or a file containing a list of lanes or samples, this script will output the path (on pathogen disk) to the data associated with the specified study or lane. 
 	Using the option -qc (passed|failed|pending) will limit the results to data of the specified qc status. 
-	Using the option -filetype (fastq, bam or pacbio) will return the path to the files of this type for the given data. 
+	Using the option -filetype (fastq, bam, pacbio or corrected) will return the path to the files of this type for the given data. 
 	Using the option -symlink will create a symlink to the queried data in the current directory, alternativley an output directory can be specified in which the symlinks will be created.
 	Similarly, the archive option will create and archive (.tar.gz) of the data under a default file name unless one is specified.
 USAGE
