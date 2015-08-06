@@ -183,6 +183,18 @@ sub find_files {
    	 return \@matches if( @matches );
     }
 
+    
+    # -f corrected - return corrected fastq files only
+    # the corrected fastq file is named with the lane name followed by .corrected.fastq.gz
+    # e.g. 32473_H01.corrected.fastq.gz
+    if(defined $type_extn && $type_extn =~ /corrected/){
+    	my $corrected_fastq_filename = $lane_obj->hierarchy_name.".corrected.fastq.gz";
+    	push(@matches, "$full_path/$corrected_fastq_filename") if ( -e "$full_path/$corrected_fastq_filename");
+	return \@matches if( @matches );
+    
+    }
+
+
 
     my $file_query;
     if ( defined($type_extn) && $type_extn =~ /\*/ ) {
