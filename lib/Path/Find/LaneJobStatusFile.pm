@@ -71,6 +71,7 @@ sub time_stamp
 sub parse_job_status_file
 {
    my ($self) = @_;
+   return unless( -r $self->filename ); # The file might exist but not readable
    my @file_contents = read_file($self->filename, chomp => 1 );
    
    if(@file_contents == 4)
